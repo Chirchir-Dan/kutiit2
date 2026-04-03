@@ -56,16 +56,16 @@ export default function LandingPage() {
             </Button>
           </ContactModal>
         )}
-      </div>
-
-      {mounted && (
-        <SupportModal>
-          <button className="flex items-center gap-2 px-6 py-3 bg-[#FFDD00] hover:bg-black hover:text-white text-black rounded-full font-black uppercase text-[10px] tracking-widest transition-all shadow-md">
-            <span>☕</span>
-            Support Project
-          </button>
-        </SupportModal>
-      )}
-    </div>
+    </div>  </div>
+//</div>
+    //</div>  {mounted && (
+    //</div>    <SupportModal>
+    //</div>      <button className="flex items-center gap-2 px-6 py-3 bg-[#FFDD00] hover:bg-black hover:text-white text-black rounded-full font-black uppercase text-[10px] tracking-widest transition-all shadow-md">
+    //</div>        <span>☕</span>
+    //</div>        Support Project
+    //</div>      </button>
+    //</div>    </SupportModal>
+    //</div>  )}
+    //</div></div>
   );
 }
