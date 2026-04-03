@@ -66,7 +66,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <FacebookIcon size={20} /> Kutiit
             </a>
           </div>
-          <div>
+          <div className="flex items-center gap-8 pt-2">
             <Link href="/login" className="text-[10px] font-bold text-slate-400 uppercase hover:text-emerald-600 tracking-widest">
               Admin Portal
             </Link>
