@@ -18,7 +18,7 @@ export default function LandingPage() {
         </h1>
         
         <p className="text-lg md:text-2xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
-          The open digital infrastructure for the Kalenjin diaspora. 
+          The open digital infrastructure for the Kalenjin community across the world. 
           <span className="text-slate-900"> Built for the future, rooted in tradition.</span>
         </p>
       </div>
@@ -37,7 +37,7 @@ export default function LandingPage() {
             <GraduationCap size={18} /> Now Offering Lessons
           </div>
           <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight">Master the Language</h2>
-          <p className="text-emerald-50/80 font-medium text-sm">Join our structured classes for grammar, tonal accuracy, and cultural idioms.</p>
+          <p className="text-emerald-50/80 font-medium text-sm">Join our structured classes for grammar, tonal accuracy, and cultural idioms, sayings e.t.c.</p>
         </div>
         
         {/* Swapped mailto Link for Modal */}
