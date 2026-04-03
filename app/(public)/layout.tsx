@@ -24,7 +24,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <a href="https://www.facebook.com/kutinyuu" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-blue-600 transition-colors sm:block hidden">
               <FacebookIcon />
             </a>
-            <Link href="/dictionary" className="text-[12px] font-black uppercase tracking-widest text-slate-600 hover:text-emerald-600 transition-colors px-2">
+            <Link href="/dictionary" className="text-[12px] font-black uppercase tracking-widest text-slate-900 hover:text-emerald-600 transition-colors px-2">
               Dictionary
             </Link>
             
