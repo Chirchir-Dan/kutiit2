@@ -39,7 +39,7 @@ export function ContactModal({ children }: { children: React.ReactNode }) {
       });
 
       if (response.ok) {
-        alert("Koshia! Message received.");
+        alert("Message received! We'll get back to you soon.");
         reset();
         setOpen(false);
       } else {
@@ -80,14 +80,23 @@ export function ContactModal({ children }: { children: React.ReactNode }) {
 
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Subject</label>
-            <select 
-              {...register("subject")}
-              className="w-full rounded-xl bg-slate-50 h-12 px-3 text-sm border-none focus:ring-2 focus:ring-emerald-500 outline-none"
-            >
-              <option value="General Inquiry">General Inquiry</option>
-              <option value="Language Lessons">Language Lessons</option>
-              <option value="Project Feedback">Project Feedback</option>
-            </select>
+                <div className="relative">
+                    <select 
+                    {...register("subject")}
+                    className="w-full rounded-xl bg-slate-50 h-12 px-4 text-sm border-none focus:ring-2 focus:ring-slate-900 outline-none appearance-none cursor-pointer text-slate-700 font-medium"
+                    >
+                    <option value="General Inquiry">General Inquiry</option>
+                    <option value="Language Lessons">Language Lessons</option>
+                    <option value="Project Feedback">Project Feedback</option>
+                    <option value="Partnership">Partnership</option>
+                    </select>
+                    {/* Custom Arrow Icon */}
+                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                    </div>
+                </div>
           </div>
 
           <div className="space-y-1">
