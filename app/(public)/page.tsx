@@ -1,11 +1,20 @@
-// app/(public)/page.tsx
+"use client";
+
+import { useState, useEffect } from "react"; 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, GraduationCap, Sparkles } from "lucide-react";
 import { ContactModal } from "@/components/shared/ContactModal";
+import { SupportModal } from "@/components/shared/SupportModal";
 
 export default function LandingPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-6 text-center max-w-5xl mx-auto space-y-12 py-20">
       <div className="space-y-6">
@@ -40,13 +49,23 @@ export default function LandingPage() {
           <p className="text-emerald-50/80 font-medium text-sm">Join our structured classes for grammar, tonal accuracy, and cultural idioms, sayings e.t.c.</p>
         </div>
         
-        {/* Swapped mailto Link for Modal */}
-        <ContactModal>
-          <Button className="bg-white text-emerald-700 hover:bg-emerald-50 h-14 px-8 rounded-xl font-black uppercase text-xs tracking-widest z-10 shrink-0 shadow-lg cursor-pointer">
-            Inquire Now
-          </Button>
-        </ContactModal>
+        {mounted && (
+          <ContactModal>
+            <Button className="bg-white text-emerald-700 hover:bg-emerald-50 h-14 px-8 rounded-xl font-black uppercase text-xs tracking-widest z-10 shrink-0 shadow-lg cursor-pointer">
+              Inquire Now
+            </Button>
+          </ContactModal>
+        )}
       </div>
+
+      {mounted && (
+        <SupportModal>
+          <button className="flex items-center gap-2 px-6 py-3 bg-[#FFDD00] hover:bg-black hover:text-white text-black rounded-full font-black uppercase text-[10px] tracking-widest transition-all shadow-md">
+            <span>☕</span>
+            Support Project
+          </button>
+        </SupportModal>
+      )}
     </div>
   );
 }
