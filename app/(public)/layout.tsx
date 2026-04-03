@@ -63,10 +63,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
           <div className="flex items-center gap-8 pt-2">
             <a href="https://www.facebook.com/kutinyuu" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors">
-              <FacebookIcon size={20} /> Kutiit
+              <FacebookIcon size={20} />
             </a>
-          </div>
-          <div className="flex items-center gap-8 pt-2">
             <Link href="/login" className="text-[10px] font-bold text-slate-400 uppercase hover:text-emerald-600 tracking-widest">
               Admin Portal
             </Link>
