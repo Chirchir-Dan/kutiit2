@@ -39,7 +39,6 @@ export default function DictionaryPage() {
     fetchWords();
   }, []);
 
-  // STRICT PRESERVATION: Your original search logic
   const filteredWords = words
     .filter((w) => {
       const s = searchQuery.toLowerCase();
@@ -144,9 +143,12 @@ export default function DictionaryPage() {
     </div>
   );
 
-  return (
-    <div className="flex flex-col h-screen bg-white font-sans">
-      <header className="border-b bg-white p-4 sticky top-0 z-10">
+ return (
+    /* 1. Change h-screen to min-h-screen but keep the main container fixed to viewport height */
+    <div className="flex flex-col h-screen bg-white font-sans overflow-hidden">
+      
+      {/* HEADER: Remains static at the top */}
+      <header className="border-b bg-white p-4 shrink-0">
         <div className="max-w-7xl mx-auto flex items-center gap-4 md:gap-8">
           <div className="flex items-center gap-2 font-black text-emerald-700 text-xl tracking-tighter">
             <BookOpen className="h-6 w-6" strokeWidth={3} /> KUTIIT
@@ -163,15 +165,17 @@ export default function DictionaryPage() {
         </div>
       </header>
 
-      <main className="flex flex-1 overflow-hidden max-w-7xl mx-auto w-full">
-        {/* SIDEBAR */}
-        <aside className="w-full md:w-80 lg:w-96 border-r flex flex-col bg-slate-50/30">
-          <div className="p-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b flex justify-between bg-white px-5">
+      {/* MAIN CONTAINER: Uses flex-1 and overflow-hidden to contain the scrollable areas */}
+      <main className="flex flex-1 overflow-hidden max-w-7xl mx-auto w-full border-x bg-white">
+        
+        {/* SIDEBAR: overflow-y-auto ensures it scrolls independently */}
+        <aside className="hidden md:flex w-80 lg:w-96 flex-col border-r bg-slate-50/30 shrink-0">
+          <div className="p-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b flex justify-between bg-white px-5 shrink-0">
             <span>{mounted ? `${filteredWords.length} Entries` : "Loading..."}</span>
             {(loading || !mounted) && <Loader2 size={12} className="animate-spin text-emerald-600" />}
           </div>
           
-          <ScrollArea className="flex-1">
+          <div className="flex-1 overflow-y-auto">
             {filteredWords.map((word) => (
               <button
                 key={word.id}
@@ -193,11 +197,31 @@ export default function DictionaryPage() {
                 <ChevronRight size={16} className={selectedWord?.id === word.id ? "text-emerald-500" : "text-slate-200"} />
               </button>
             ))}
-          </ScrollArea>
+            {/* Added padding at bottom so the last item isn't hugged by the screen edge */}
+            <div className="h-20" /> 
+          </div>
         </aside>
 
-        {/* DESKTOP DETAIL VIEW */}
-        <section className="hidden md:block flex-1 overflow-y-auto bg-white p-12">
+        {/* MOBILE LIST: Visible only on mobile, replaces the desktop detail view when no word is selected */}
+        <section className="flex-1 md:hidden overflow-y-auto p-0">
+           {filteredWords.map((word) => (
+              <button
+                key={word.id}
+                onClick={() => handleSelectWord(word)}
+                className="w-full text-left p-6 border-b flex justify-between items-center bg-white"
+              >
+                <div>
+                  <div className="font-black text-slate-900 uppercase text-lg">{word.entry_name}</div>
+                  <div className="text-sm text-slate-500">{word.translation_en}</div>
+                </div>
+                <ChevronRight size={20} className="text-emerald-500" />
+              </button>
+            ))}
+            <div className="h-20" />
+        </section>
+
+        {/* DESKTOP DETAIL VIEW: Independent scroll zone */}
+        <section className="hidden md:block flex-1 overflow-y-auto bg-white p-12 custom-scrollbar">
           {selectedWord ? (
             <WordDetailContent word={selectedWord} />
           ) : (
@@ -206,23 +230,25 @@ export default function DictionaryPage() {
               <p className="text-xs font-black uppercase tracking-widest">Select an entry</p>
             </div>
           )}
+          <div className="h-20" /> {/* Safe zone for the bottom of the content */}
         </section>
       </main>
 
-      {/* MOBILE MODAL VIEW */}
+      {/* MOBILE MODAL: Uses Dialog from components */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="w-[92vw] max-w-[500px] max-h-[85vh] p-0 flex flex-col border-none overflow-hidden rounded-[2.5rem] shadow-2xl bg-white [&>button]:hidden">
+        <DialogContent className="w-full max-w-full sm:max-w-[500px] h-full sm:h-auto max-h-screen sm:max-h-[85vh] p-0 flex flex-col border-none overflow-hidden rounded-none sm:rounded-[2.5rem] shadow-2xl bg-white [&>button]:hidden">
           <DialogHeader className="p-6 border-b bg-white flex flex-row items-center justify-between space-y-0 shrink-0">
             <DialogTitle className="text-sm font-black uppercase tracking-widest text-slate-400">
               Dictionary Entry
             </DialogTitle>
-            <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="rounded-full h-10 w-10 hover:bg-slate-100 transition-colors">
+            <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="rounded-full h-10 w-10">
               <X size={20} className="text-slate-400" />
             </Button>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white">
+          <div className="flex-1 overflow-y-auto p-8 bg-white">
             {selectedWord && <WordDetailContent word={selectedWord} />}
+            <div className="h-12" />
           </div>
         </DialogContent>
       </Dialog>
