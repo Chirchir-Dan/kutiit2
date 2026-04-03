@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Mail } from "lucide-react";
 import { ContactModal } from "@/components/shared/ContactModal";
+import { BookOpen } from "lucide-react";
 
 const FacebookIcon = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -16,9 +17,12 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-black/5 backdrop-blur-md border-b h-20 flex items-center px-6">
         <nav className="flex w-full justify-between items-center max-w-7xl mx-auto">
-          <Link href="/" className="font-black text-2xl tracking-tighter text-slate-900 uppercase italic">
-            Kutiit
+          <Link href="/" >
+             <div className="flex items-center gap-2 font-black text-emerald-700 text-xl tracking-tighter">
+              <BookOpen className="h-6 w-6" strokeWidth={3} /> KUTIIT
+            </div>
           </Link>
+          
 
           <div className="flex items-center gap-4">
             <a href="https://www.facebook.com/kutinyuu" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-blue-600 transition-colors sm:block hidden">

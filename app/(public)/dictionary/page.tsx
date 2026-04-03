@@ -150,9 +150,7 @@ export default function DictionaryPage() {
       {/* HEADER: Remains static at the top */}
       <header className="border-b bg-white p-4 shrink-0">
         <div className="max-w-7xl mx-auto flex items-center gap-4 md:gap-8">
-          <div className="flex items-center gap-2 font-black text-emerald-700 text-xl tracking-tighter">
-            <BookOpen className="h-6 w-6" strokeWidth={3} /> KUTIIT
-          </div>
+         
           <div className="relative flex-1 max-w-2xl">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <Input 
