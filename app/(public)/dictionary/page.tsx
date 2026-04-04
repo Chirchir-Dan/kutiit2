@@ -58,7 +58,7 @@ export default function DictionaryPage() {
     const isTraditional = ["proverb", "saying", "riddle"].includes(word.word_type);
     const isRiddle = word.word_type === "riddle";
     
-    // Check if any noun-specific data exists
+    // Noun form check
     const hasNounForms = word.singular_indefinite || word.singular_definite || word.plural_indefinite || word.plural_definite;
 
     return (
@@ -72,7 +72,7 @@ export default function DictionaryPage() {
         
         {isRiddle && (
           <div className="mb-10 p-8 bg-emerald-50 rounded-[2.5rem] border-2 border-emerald-100 border-dashed relative overflow-hidden">
-             <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 mb-2">Walutiet</h4>
+             <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">Walutiet</h4>
              <p className="text-4xl font-black text-emerald-900 uppercase tracking-tighter relative z-10">{word.answer || "---"}</p>
           </div>
         )}
@@ -88,26 +88,25 @@ export default function DictionaryPage() {
           </p>
         </div>
 
-        {/* MERGED NOUN FORMS SECTION */}
+        {/* COMPACT NOUN SECTION */}
         {hasNounForms && (
-          <div className="mb-10 p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+          <div className="mb-10 p-6 bg-slate-50 rounded-[2rem] border border-slate-100 shadow-sm">
             <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4">Noun Forms</h4>
-            <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Singular</span>
+                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Singular</span>
                 <p className="text-sm font-bold text-slate-900">{word.singular_indefinite || "—"}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{word.singular_definite || ""}</p>
+                {word.singular_definite && <p className="text-[10px] text-emerald-600 font-medium bg-emerald-50/50 px-1.5 py-0.5 rounded-md inline-block mt-1">{word.singular_definite}</p>}
               </div>
               <div>
-                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Plural</span>
+                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Plural</span>
                 <p className="text-sm font-bold text-slate-900">{word.plural_indefinite || "—"}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{word.plural_definite || ""}</p>
+                {word.plural_definite && <p className="text-[10px] text-emerald-600 font-medium bg-emerald-50/50 px-1.5 py-0.5 rounded-md inline-block mt-1">{word.plural_definite}</p>}
               </div>
             </div>
           </div>
         )}
 
-        {/* IMPERATIVE - SEPARATE FROM NOUNS */}
         {word.imperative && (
           <div className="mb-10 p-4 bg-slate-50 rounded-2xl border border-slate-100 inline-block">
             <span className="block text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Imperative</span>
@@ -238,7 +237,11 @@ export default function DictionaryPage() {
         isOpen={isSuggestionModalOpen} 
         onOpenChange={setIsSuggestionModalOpen} 
         initialSearch={searchQuery}
-        onSuccess={() => setSearchQuery("")} 
+        // This is the function that clears the search bar in the background
+        onSuccess={() => {
+            setSearchQuery("");
+            setIsSuggestionModalOpen(false);
+        }} 
       />
     </div>
   );
