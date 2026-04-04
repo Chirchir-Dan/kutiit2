@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { 
   Search, ChevronRight, X, MessageSquareQuote, Quote, HelpCircle, Frown, Languages, Plus 
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -33,7 +32,6 @@ export default function DictionaryPage() {
     setLoading(false);
   };
 
-  // BROAD SEARCH LOGIC: Scans all fields
   const filteredWords = words.filter((w) => {
     const s = searchQuery.toLowerCase();
     return (
@@ -41,13 +39,7 @@ export default function DictionaryPage() {
       w.translation_en?.toLowerCase().includes(s) || 
       w.answer?.toLowerCase().includes(s) ||
       w.notes?.toLowerCase().includes(s) ||
-      w.examples?.toLowerCase().includes(s) ||
-      w.singular_indefinite?.toLowerCase().includes(s) ||
-      w.singular_definite?.toLowerCase().includes(s) ||
-      w.plural_indefinite?.toLowerCase().includes(s) ||
-      w.plural_definite?.toLowerCase().includes(s) ||
-      w.imperative?.toLowerCase().includes(s) ||
-      w.meaning?.toLowerCase().includes(s) 
+      w.examples?.toLowerCase().includes(s)
     );
   });
 
@@ -63,39 +55,66 @@ export default function DictionaryPage() {
   };
 
   const WordDetailContent = ({ word }: { word: any }) => {
-    const isTraditional = ["proverb", "saying"].includes(word.word_type);
+    const isTraditional = ["proverb", "saying", "riddle"].includes(word.word_type);
     const isRiddle = word.word_type === "riddle";
     
+    // Check if any noun-specific data exists
+    const hasNounForms = word.singular_indefinite || word.singular_definite || word.plural_indefinite || word.plural_definite;
+
     return (
       <div className="max-w-3xl animate-in fade-in slide-in-from-right-4 duration-300 pb-32">
         <div className="flex flex-col gap-2 mb-8">
-          
-          <h1 className={`font-extrabold text-slate-900 tracking-tighter leading-tight ${isTraditional || isRiddle ? "text-3xl md:text-5xl italic" : "text-4xl md:text-6xl uppercase"}`}>
-            {(isTraditional || isRiddle) && <Quote size={28} className="inline mr-3 text-emerald-200" />}
+          <h1 className={`font-extrabold text-slate-900 tracking-tighter leading-tight ${isTraditional ? "text-3xl md:text-5xl italic" : "text-4xl md:text-6xl uppercase"}`}>
+            {(isTraditional ) && <Quote size={28} className="inline mr-3 text-emerald-200" />}
             {word.entry_name}
           </h1>
         </div>
         
-        {/* RIDDLE ANSWER - REQUIRED FOR TANGOCH */}
         {isRiddle && (
-          <div className="mb-10 p-8 bg-emerald-50 rounded-[2rem] border-2 border-emerald-100 border-dashed relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-4 opacity-10"><HelpCircle size={80} /></div>
-             <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 mb-2">Walutiet (Answer)</h4>
+          <div className="mb-10 p-8 bg-emerald-50 rounded-[2.5rem] border-2 border-emerald-100 border-dashed relative overflow-hidden">
+             <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 mb-2">Walutiet</h4>
              <p className="text-4xl font-black text-emerald-900 uppercase tracking-tighter relative z-10">{word.answer || "---"}</p>
           </div>
         )}
 
-        {/* TRANSLATION OR MEANING - REQUIRED */}
         <div className="mb-10">
-          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-            {isTraditional ? "Meaning" : "Translation"}
-          </h4>
+          {!isRiddle &&  
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                {isTraditional ? "Meaning" : "Translation"}
+            </h4>
+          }
           <p className="text-2xl md:text-3xl text-slate-700 font-semibold leading-snug tracking-tight">
             {word.translation_en}
           </p>
         </div>
 
-        {/* LINGUEE STYLE EXAMPLES */}
+        {/* MERGED NOUN FORMS SECTION */}
+        {hasNounForms && (
+          <div className="mb-10 p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+            <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4">Noun Forms</h4>
+            <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+              <div>
+                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Singular</span>
+                <p className="text-sm font-bold text-slate-900">{word.singular_indefinite || "—"}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{word.singular_definite || ""}</p>
+              </div>
+              <div>
+                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Plural</span>
+                <p className="text-sm font-bold text-slate-900">{word.plural_indefinite || "—"}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{word.plural_definite || ""}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* IMPERATIVE - SEPARATE FROM NOUNS */}
+        {word.imperative && (
+          <div className="mb-10 p-4 bg-slate-50 rounded-2xl border border-slate-100 inline-block">
+            <span className="block text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Imperative</span>
+            <span className="text-base font-bold text-slate-900">{word.imperative}</span>
+          </div>
+        )}
+
         {word.examples && (
           <div className="mb-10">
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -164,7 +183,7 @@ export default function DictionaryPage() {
                   <Frown size={40} />
                 </div>
                 <h3 className="text-2xl font-black uppercase text-slate-900 tracking-tighter">Mamii!</h3>
-                <p className="text-slate-400 text-xs mt-3 leading-relaxed font-medium">We couldn't find anything for "{searchQuery}". Contribute it to the textbook?</p>
+                <p className="text-slate-400 text-xs mt-3 leading-relaxed font-medium">We couldn't find anything for "{searchQuery}". Help us add it?</p>
                 <Button 
                   onClick={() => setIsSuggestionModalOpen(true)} 
                   className="mt-8 bg-slate-900 hover:bg-black text-white w-full rounded-2xl py-7 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl"
@@ -192,18 +211,17 @@ export default function DictionaryPage() {
         </section>
       </main>
 
-      {/* MOBILE MODAL - FIXED WITH ACCESSIBILITY TAGS */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[600px] w-[95vw] h-[92vh] rounded-[3rem] p-0 flex flex-col border-none bg-white shadow-2xl overflow-hidden [&>button]:hidden">
           <VisuallyHidden.Root>
             <DialogHeader>
               <DialogTitle>{selectedWord?.entry_name || "Word Details"}</DialogTitle>
-              <DialogDescription>Details and examples for the Nandi word.</DialogDescription>
+              <DialogDescription>Full details for the selected entry.</DialogDescription>
             </DialogHeader>
           </VisuallyHidden.Root>
           
           <div className="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-20 shrink-0">
-            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest">
+             <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest">
               {selectedWord?.word_type}
             </span>
             <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="rounded-full bg-slate-50 h-10 w-10">
@@ -219,7 +237,8 @@ export default function DictionaryPage() {
       <SuggestWordModal 
         isOpen={isSuggestionModalOpen} 
         onOpenChange={setIsSuggestionModalOpen} 
-        initialSearch={searchQuery} 
+        initialSearch={searchQuery}
+        onSuccess={() => setSearchQuery("")} 
       />
     </div>
   );

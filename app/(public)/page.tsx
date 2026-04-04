@@ -50,7 +50,7 @@ export default function LandingPage() {
             <GraduationCap size={14} className="md:size-4" /> Now Offering Lessons
           </div>
           <h2 className="text-xl sm:text-2xl md:text-4xl font-black uppercase tracking-tight leading-tight">Master the Language</h2>
-          <p className="text-emerald-50/80 font-medium text-xs md:text-sm">Join our structured classes for grammar, tonal accuracy, and cultural idioms.</p>
+          <p className="text-emerald-50/80 font-medium text-xs md:text-sm">Join our structured classes for grammar and tonal accuracy.</p>
         </div>
         
         {mounted && (
