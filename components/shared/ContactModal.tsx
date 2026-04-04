@@ -4,10 +4,18 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contactSchema, type ContactFormValues } from "@/lib/validation";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, // Add this
+  DialogTrigger 
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden"; // Add this
 
 export function ContactModal({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -60,6 +68,12 @@ export function ContactModal({ children }: { children: React.ReactNode }) {
           <DialogTitle className="text-2xl font-black uppercase tracking-tighter text-slate-900">
             Contact Kutiit
           </DialogTitle>
+          {/* FIX: Visually hidden description for screen readers */}
+          <VisuallyHidden.Root>
+            <DialogDescription>
+              Use this form to send a message to the Kutiit team regarding inquiries, lessons, or feedback.
+            </DialogDescription>
+          </VisuallyHidden.Root>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
@@ -80,23 +94,22 @@ export function ContactModal({ children }: { children: React.ReactNode }) {
 
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Subject</label>
-                <div className="relative">
-                    <select 
-                    {...register("subject")}
-                    className="w-full rounded-xl bg-slate-50 h-12 px-4 text-sm border-none focus:ring-2 focus:ring-slate-900 outline-none appearance-none cursor-pointer text-slate-700 font-medium"
-                    >
-                    <option value="General Inquiry">General Inquiry</option>
-                    <option value="Language Lessons">Language Lessons</option>
-                    <option value="Project Feedback">Project Feedback</option>
-                    <option value="Partnership">Partnership</option>
-                    </select>
-                    {/* Custom Arrow Icon */}
-                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                    </div>
-                </div>
+            <div className="relative">
+              <select 
+                {...register("subject")}
+                className="w-full rounded-xl bg-slate-50 h-12 px-4 text-sm border-none focus:ring-2 focus:ring-slate-900 outline-none appearance-none cursor-pointer text-slate-700 font-medium"
+              >
+                <option value="General Inquiry">General Inquiry</option>
+                <option value="Language Lessons">Language Lessons</option>
+                <option value="Project Feedback">Project Feedback</option>
+                <option value="Partnership">Partnership</option>
+              </select>
+              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-1">

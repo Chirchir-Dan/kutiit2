@@ -1,20 +1,35 @@
 // types/index.ts
 
-export type WordType = 'noun' | 'verb' | 'adjective' | 'adverb';
+export type WordType = 
+  | 'noun' 
+  | 'verb' 
+  | 'adjective' 
+  | 'adverb' 
+  | 'pronoun' 
+  | 'preposition' 
+  | 'conjunction' 
+  | 'interjection' 
+  | 'particle'
+  | 'proverb'   // Kalewenet
+  | 'riddle'    // Tangoch
+  | 'saying';    // Ng’olyot
 
 export interface NandiWord {
   id: string;
+  entry_name: string; 
   word_type: WordType;
   translation_en: string;
   is_verified: boolean;
   
-  // Noun specific
+  // Morphology
   singular_indefinite?: string;
   singular_definite?: string;
   plural_indefinite?: string;
   plural_definite?: string;
+  imperative?: string;
 
-  // Verb/Other specific
-  entry_name?: string; 
-  infinitive?: string;
+  // Metadata
+  notes?: string; 
+  examples?: string;
+  answer?: string; // Specifically for Riddles
 }
