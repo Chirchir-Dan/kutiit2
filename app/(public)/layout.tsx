@@ -39,7 +39,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             </div>
           </Link>
 
-          {/* ACTIONS SECTION - Clustered for mobile */}
+          {/* ACTIONS SECTION */}
           <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
             <a 
               href="https://www.facebook.com/kutinyuu" 
@@ -50,9 +50,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <FacebookIcon size={18} />
             </a>
             
+            {/* DICTIONARY LINK - Hidden on extremely small screens */}
             <Link 
               href="/dictionary" 
-              className="text-[10px] md:text-[12px] font-black uppercase tracking-tight md:tracking-widest text-slate-900 hover:text-emerald-600 transition-colors px-1"
+              className="hidden sm:block text-[10px] md:text-[12px] font-black uppercase tracking-tight md:tracking-widest text-slate-900 hover:text-emerald-600 transition-colors px-1"
             >
               Dictionary
             </Link>
