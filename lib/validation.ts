@@ -9,8 +9,7 @@ export const contactSchema = z.object({
   email: z
     .string()
     .email("Please enter a valid email address"),
-  // FIX: Change the second argument to just a message string or a simple object
-  subject: z.enum(["General Inquiry", "Language Lessons", "Project Feedback"], {
+  subject: z.enum(["General Inquiry", "Language Lessons", "Project Feedback", "Partnership"], {
     error: "Please select an inquiry type",
   }),
   message: z
@@ -18,6 +17,8 @@ export const contactSchema = z.object({
     .min(10, "Message must be at least 10 characters")
     .max(1000, "Message is too long (max 1000 characters)"),
   honeyPot: z.string().max(0, "Bot detected"),
+  // ADD THIS: The token must be a string and it's required for a successful parse
+  turnstileToken: z.string().min(1, "Security check required"),
 });
 
 export type ContactFormValues = z.infer<typeof contactSchema>;

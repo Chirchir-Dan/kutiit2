@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { 
-  Loader2, Search, Save, X, BookOpen, LogOut,
+  Loader2, Search, Save, X, BookOpen,
   ChevronRight, Plus, Languages, Zap, MessageSquareQuote, Quote, HelpCircle,
-  ExternalLink
+  Inbox, Check, Trash2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +28,6 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
 
   return (
     <div className="space-y-8 py-2">
-      {/* 1. MASTER TYPE SELECTOR */}
       <div className="space-y-2">
         <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">Grammar Category</label>
         <select 
@@ -58,7 +56,6 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
       </div>
 
       <div className={`grid grid-cols-1 ${isRiddle ? "" : "md:grid-cols-2"} gap-6`}>
-        {/* 2. NANDI TEXT ENTRY */}
         <div className="space-y-2">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
             {isRiddle ? "Riddle Text (Tangoch)" : isProverbOrSaying ? "Nandi Text" : "Nandi Entry"}
@@ -72,7 +69,6 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
           />
         </div>
 
-        {/* 3. CONDITIONAL TRANSLATION (Hidden for Tangoch) */}
         {!isRiddle && (
           <div className="space-y-2 animate-in fade-in">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
@@ -88,7 +84,6 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
         )}
       </div>
 
-      {/* 4. RIDDLE ANSWER (Walutiet) */}
       {isRiddle && (
         <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
           <label className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 ml-1">
@@ -104,7 +99,6 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
         </div>
       )}
 
-      {/* 5. NOUN MORPHOLOGY */}
       {isNoun && (
         <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100 animate-in fade-in">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -126,7 +120,6 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
         </div>
       )}
 
-      {/* 6. VERB MORPHOLOGY */}
       {isVerb && (
         <div className="bg-amber-50/30 p-5 rounded-2xl border border-amber-100 space-y-2 animate-in fade-in">
           <label className="text-[10px] font-black text-amber-800 uppercase tracking-widest flex items-center gap-2 ml-1">
@@ -136,7 +129,6 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
         </div>
       )}
 
-      {/* 7. EXAMPLES (Hidden for Traditional Lit) */}
       {!isProverbOrSaying && !isRiddle && (
         <div className="space-y-2 animate-in fade-in">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
@@ -146,7 +138,6 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
         </div>
       )}
 
-      {/* 8. NOTES & CONTEXT */}
       <div className="space-y-2 pb-10">
         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
           <MessageSquareQuote size={14} className="text-emerald-600" /> Notes & Context
@@ -166,8 +157,9 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
 // --- MAIN PAGE ---
 
 export default function AdminDashboard() {
-  const router = useRouter();
   const [words, setWords] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [view, setView] = useState<"words" | "suggestions">("words");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedWord, setSelectedWord] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>(null);
@@ -175,14 +167,14 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => { fetchWords(); }, []);
+  useEffect(() => { fetchWords(); fetchSuggestions(); }, []);
 
   const fetchWords = async () => {
     setLoading(true);
     const { data } = await supabase.from("words").select("*").order("entry_name", { ascending: true });
     if (data) { 
       setWords(data); 
-      if (data.length > 0 && !selectedWord) { 
+      if (data.length > 0 && !selectedWord && view === "words") { 
         setSelectedWord(data[0]); 
         setEditForm(data[0]); 
       } 
@@ -190,9 +182,9 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
+  const fetchSuggestions = async () => {
+    const { data } = await supabase.from("suggestions").select("*").order("created_at", { ascending: false });
+    if (data) setSuggestions(data);
   };
 
   const handleSelect = (word: any) => {
@@ -214,6 +206,7 @@ export default function AdminDashboard() {
   };
 
   const handleSave = async () => {
+    if (!editForm) return;
     setSaving(true);
     const { error } = editForm.id 
       ? await supabase.from("words").update(editForm).eq("id", editForm.id)
@@ -226,129 +219,204 @@ export default function AdminDashboard() {
     setSaving(false);
   };
 
-  const filteredWords = words.filter((w) => {
+  const handleApproveSuggestion = async () => {
+    if (!editForm) return;
+    setSaving(true);
+    const { id, created_at, user_email, ...wordData } = editForm;
+    const { error: insertError } = await supabase.from("words").insert([{ ...wordData, is_verified: true }]);
+    if (!insertError) {
+      await supabase.from("suggestions").delete().eq("id", id);
+      await fetchWords();
+      await fetchSuggestions();
+      setSelectedWord(null);
+      setEditForm(null);
+      setIsModalOpen(false);
+    }
+    setSaving(false);
+  };
+
+  const handleRejectSuggestion = async (id: string) => {
+    if (!id || !confirm("Reject and delete this suggestion?")) return;
+    const { error } = await supabase.from("suggestions").delete().eq("id", id);
+    if (!error) {
+      await fetchSuggestions();
+      setSelectedWord(null);
+      setEditForm(null);
+      setIsModalOpen(false);
+    }
+  };
+
+  const filteredItems = (view === "words" ? words : suggestions).filter((w) => {
     const s = searchQuery.toLowerCase();
     return w.entry_name?.toLowerCase().includes(s) || w.translation_en?.toLowerCase().includes(s);
   });
 
   return (
-    <div className="flex h-screen w-full bg-white overflow-hidden fixed inset-0">
+    <div className="flex h-full">
       {/* SIDEBAR */}
-      <aside className="flex flex-col w-full md:w-80 lg:w-96 border-r bg-slate-50/50 shrink-0 h-full overflow-hidden">
-        <div className="p-4 border-b bg-white space-y-4 shrink-0 shadow-sm">
+     <aside className="w-full md:w-80 lg:w-96 border-r bg-slate-50/30 flex flex-col shrink-0">
+        <div className="p-4 border-b bg-white space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-black text-slate-900 uppercase text-[10px] tracking-widest flex items-center gap-2">
-                <BookOpen size={16} className="text-emerald-600" /> Kutiit Admin
-              </span>
-              {/* PUBLIC PAGE LINK */}
-              <button 
-                onClick={() => router.push("/")}
-                className="text-[9px] font-bold text-slate-400 hover:text-emerald-600 transition-colors flex items-center gap-1 border-l pl-2 border-slate-200"
-              >
-                PUBLIC <ExternalLink size={10} />
-              </button>
-            </div>
-            <div className="flex gap-2">
-                <Button onClick={handleAddNew} size="sm" className="bg-emerald-600 hover:bg-emerald-700 h-8 text-[10px] font-bold uppercase tracking-wider">
-                    <Plus size={14} className="mr-1" /> Add
-                </Button>
-                <Button variant="outline" onClick={handleLogout} size="sm" className="h-8 w-8 p-0 border-slate-200">
-                    <LogOut size={14} className="text-slate-400" />
-                </Button>
-            </div>
+            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Database</span>
+            <Button onClick={handleAddNew} variant="ghost" size="sm" className="h-7 px-2 text-emerald-600 font-black text-[10px] uppercase hover:bg-emerald-50 transition-colors">
+              <Plus size={14} className="mr-1" /> New Entry
+            </Button>
           </div>
+
+          <div className="flex p-1 bg-slate-100 rounded-xl">
+            <button 
+              onClick={() => { setView("words"); setSelectedWord(null); setEditForm(null); }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all ${view === "words" ? "bg-white shadow-sm text-emerald-600" : "text-slate-400 hover:text-slate-600"}`}
+            >
+              <BookOpen size={14} /> 
+              Live
+              <span className={`ml-1 px-1.5 py-0.5 rounded-md text-[9px] ${view === "words" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"}`}>
+                {words.length}
+              </span>
+            </button>
+            <button 
+              onClick={() => { setView("suggestions"); setSelectedWord(null); setEditForm(null); }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all ${view === "suggestions" ? "bg-white shadow-sm text-amber-600" : "text-slate-400 hover:text-slate-600"}`}
+            >
+              <Inbox size={14} /> 
+              Review
+              {suggestions.length > 0 && (
+                <span className={`ml-1 px-1.5 py-0.5 rounded-md text-[9px] ${view === "suggestions" ? "bg-amber-100 text-amber-700" : "bg-amber-200 text-amber-800"}`}>
+                  {suggestions.length}
+                </span>
+              )}
+            </button>
+          </div>
+
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             <Input 
               placeholder="Search..." 
-              className="pl-9 bg-slate-100 border-none h-10 text-xs rounded-xl focus-visible:ring-emerald-500" 
+              className="pl-9 bg-white border-slate-200 h-11 text-xs rounded-xl focus-visible:ring-emerald-500" 
               value={searchQuery} 
               onChange={(e) => setSearchQuery(e.target.value)} 
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-white/50">
-          {filteredWords.map((word) => {
-            const isRiddle = word.word_type === 'riddle';
-            const isProverb = word.word_type === 'proverb';
-            const isSaying = word.word_type === 'saying';
-
-            return (
-              <button 
-                key={word.id} 
-                onClick={() => handleSelect(word)} 
-                className={`w-full text-left p-4 border-b transition-all flex justify-between items-center ${selectedWord?.id === word.id ? "bg-white border-l-4 border-l-emerald-600 shadow-sm" : "hover:bg-slate-100 border-l-4 border-l-transparent"}`}
-              >
-                <div className="min-w-0">
-                  <div className="font-bold text-slate-900 uppercase text-[11px] truncate flex items-center gap-2">
-                    {(isRiddle || isProverb || isSaying) && <Quote size={10} className="text-emerald-500" />}
-                    {word.entry_name}
-                  </div>
-                  
-                  <div className="text-[10px] text-slate-400 italic truncate mt-0.5">
-                    {(isRiddle || isProverb || isSaying) ? (
-                        null 
-                    ) : (
-                        word.translation_en 
-                    )}
-                  </div>
+        <div className="flex-1 overflow-y-auto">
+          {filteredItems.map((item) => (
+            <button 
+              key={item.id} 
+              onClick={() => handleSelect(item)} 
+              className={`w-full text-left p-5 border-b transition-all flex justify-between items-center ${selectedWord?.id === item.id ? "bg-white border-l-4 border-l-emerald-600 shadow-sm" : "hover:bg-white/60 border-l-4 border-l-transparent"}`}
+            >
+              <div className="min-w-0">
+                <div className="font-bold text-slate-900 uppercase text-[11px] truncate flex items-center gap-2">
+                  {item.entry_name}
                 </div>
-                <ChevronRight size={14} className={selectedWord?.id === word.id ? "text-emerald-500" : "text-slate-200"} />
-              </button>
-            );
-          })}
+                <div className="text-[10px] text-slate-400 italic truncate mt-0.5">{item.translation_en}</div>
+              </div>
+              <ChevronRight size={14} className={selectedWord?.id === item.id ? "text-emerald-500" : "text-slate-200"} />
+            </button>
+          ))}
         </div>
       </aside>
 
-      {/* DESKTOP EDITOR PANE */}
-      <main className="hidden md:flex flex-1 flex-col h-full bg-white overflow-hidden">
+      {/* MAIN EDITOR */}
+      <main className="hidden md:flex flex-1 flex-col bg-white overflow-hidden">
         {editForm ? (
           <>
             <div className="p-8 border-b flex justify-between items-center bg-white shrink-0">
-              <h1 className="text-2xl font-black uppercase tracking-tighter text-slate-900 truncate pr-4">{editForm.entry_name || "New Entry"}</h1>
-              <Button onClick={handleSave} disabled={saving} className="bg-slate-900 px-10 h-12 font-bold uppercase text-[10px] tracking-widest shadow-lg hover:bg-black transition-all">
-                {saving ? <Loader2 className="animate-spin" /> : <Save size={18} className="mr-2" />} Save Entry
-              </Button>
+              <div className="min-w-0">
+                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest block mb-1">{editForm.word_type}</span>
+                <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900 truncate">{editForm.entry_name || "New Entry"}</h1>
+              </div>
+              
+              <div className="flex gap-3">
+                {view === "suggestions" ? (
+                  <>
+                    <Button onClick={() => handleRejectSuggestion(editForm?.id)} variant="outline" className="border-rose-200 text-rose-500 hover:bg-rose-50 px-6 h-12 font-bold uppercase text-[10px] tracking-widest rounded-xl">
+                      Reject
+                    </Button>
+                    <Button onClick={handleApproveSuggestion} disabled={saving} className="bg-emerald-600 px-10 h-12 font-bold uppercase text-[10px] tracking-widest rounded-xl shadow-lg hover:bg-emerald-700 text-white">
+                      {saving ? <Loader2 className="animate-spin" /> : <Check size={18} className="mr-2" />} Approve
+                    </Button>
+                  </>
+                ) : (
+                  <Button onClick={handleSave} disabled={saving} className="bg-slate-900 px-10 h-12 font-bold uppercase text-[10px] tracking-widest rounded-xl shadow-lg hover:bg-black transition-all">
+                    {saving ? <Loader2 className="animate-spin" /> : <Save size={18} className="mr-2" />} Save Changes
+                  </Button>
+                )}
+              </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-10">
+            <div className="flex-1 overflow-y-auto p-12">
               <div className="max-w-2xl mx-auto">
                 <EditorFields editForm={editForm} handleInputChange={(e:any) => setEditForm({...editForm, [e.target.name]: e.target.value})} />
               </div>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-200 uppercase font-black tracking-widest text-xs">
-            <BookOpen size={40} className="mb-4 opacity-10" />
-            Select an entry to edit
+          <div className="flex-1 flex flex-col items-center justify-center text-slate-200">
+            <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+              <BookOpen size={32} className="opacity-20" />
+            </div>
+            <p className="uppercase font-black tracking-[0.2em] text-[10px]">Select an entry to begin</p>
           </div>
         )}
       </main>
 
-      {/* MOBILE MODAL EDITOR */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="w-[95vw] max-w-[550px] h-[90vh] p-0 flex flex-col border-none rounded-[2rem] overflow-hidden bg-white shadow-2xl [&>button]:hidden">
-          <DialogHeader className="p-6 border-b bg-white shrink-0 flex flex-row items-center justify-between space-y-0">
-            <div className="flex flex-col truncate pr-4">
-               <span className="text-[10px] font-black text-emerald-600 uppercase block mb-0.5">{editForm?.word_type}</span>
-               <DialogTitle className="text-lg font-black uppercase text-slate-900 truncate">
-                {editForm?.id ? "Edit Entry" : "New Entry"}
-               </DialogTitle>
+      {/* MOBILE MODAL */}
+  
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="w-[95vw] max-w-[550px] h-[90vh] p-0 flex flex-col border-none rounded-[2rem] overflow-hidden bg-white shadow-2xl [&>button]:hidden">
+            
+            <DialogHeader className="p-6 border-b bg-white shrink-0 flex flex-row items-center justify-between space-y-0">
+              <div className="flex flex-col truncate pr-4">
+                <span className="text-[10px] font-black text-emerald-600 uppercase block mb-0.5">
+                  {editForm?.word_type}
+                </span>
+                <DialogTitle className="text-lg font-black uppercase text-slate-900 truncate">
+                  {view === "suggestions" ? "Review Suggestion" : "Edit Entry"}
+                </DialogTitle>
+                {/* ADD THIS: Visually hidden description to satisfy accessibility requirements */}
+                <DialogDescription className="sr-only">
+                  Form for editing Nandi language entries and reviewing community suggestions.
+                </DialogDescription>
+              </div>
+              
+              <div className="flex gap-2 items-center">
+                <Button 
+                  onClick={view === "suggestions" ? handleApproveSuggestion : handleSave} 
+                  disabled={saving} 
+                  size="sm" 
+                  className="bg-emerald-600 rounded-xl h-10 px-6 text-[10px] font-black uppercase"
+                >
+                  {saving ? <Loader2 className="animate-spin h-4 w-4" /> : "SAVE"}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setIsModalOpen(false)} 
+                  className="rounded-full h-10 w-10"
+                >
+                  <X size={20} />
+                </Button>
+              </div>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto p-8 bg-white">
+              <EditorFields 
+                editForm={editForm} 
+                handleInputChange={(e: any) => setEditForm({ ...editForm, [e.target.name]: e.target.value })} 
+              />
+              {view === "suggestions" && (
+                <Button 
+                  onClick={() => handleRejectSuggestion(editForm?.id)} 
+                  variant="ghost" 
+                  className="w-full mt-4 text-rose-500 font-black uppercase text-[10px]"
+                >
+                  Reject Suggestion
+                </Button>
+              )}
             </div>
-            <div className="flex gap-2 items-center shrink-0">
-              <Button onClick={handleSave} disabled={saving} size="sm" className="bg-emerald-600 rounded-xl h-10 px-6 text-[10px] font-black uppercase shadow-md">SAVE</Button>
-              <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="rounded-full h-10 w-10 hover:bg-slate-100"><X size={20} className="text-slate-400" /></Button>
-            </div>
-          </DialogHeader>
-          <DialogDescription className="sr-only">
-            Editor for managing Nandi vocabulary, proverbs, and riddles.
-          </DialogDescription>
-          <div className="flex-1 overflow-y-auto p-8 bg-white">
-            <EditorFields editForm={editForm} handleInputChange={(e:any) => setEditForm({...editForm, [e.target.name]: e.target.value})} />
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
     </div>
   );
 }

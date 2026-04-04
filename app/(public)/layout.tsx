@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Mail } from "lucide-react";
 import { ContactModal } from "@/components/shared/ContactModal";
 import { BookOpen } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const FacebookIcon = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -20,9 +21,13 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           <Link href="/" >
              <div className="flex items-center gap-2 font-black text-emerald-700 text-xl tracking-tighter">
               <BookOpen className="h-6 w-6" strokeWidth={3} /> KUTIIT
+              <div className="flex items-center gap-2">
+                  <Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-bold px-1.5 py-0">
+                    BETA <br/>
+                  </Badge>
+                </div>
             </div>
           </Link>
-          
 
           <div className="flex items-center gap-4">
             <a href="https://www.facebook.com/kutinyuu" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-blue-600 transition-colors sm:block hidden">

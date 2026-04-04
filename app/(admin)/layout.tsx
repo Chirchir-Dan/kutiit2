@@ -1,46 +1,64 @@
 "use client";
 
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, Globe, BookOpen } from "lucide-react";
-import Link from "next/link";
+import { BookOpen, ExternalLink, LogOut } from "lucide-react";
+// Import your Footer component here
+// import Footer from "@/components/Footer"; 
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/login";
+    router.push("/login");
   };
 
   return (
     <div className="flex flex-col h-screen bg-white">
-      {/* GLOBAL ADMIN NAV */}
-      <header className="h-14 border-b flex items-center justify-between px-6 shrink-0 bg-slate-900 text-white">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 font-bold tracking-tighter text-emerald-400">
-            <BookOpen size={18} /> KUTIIT ADMIN
+      {/* 1. HEADER */}
+      <nav className="h-16 border-b bg-white flex items-center justify-between px-6 shrink-0 z-20">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="bg-emerald-600 p-1.5 rounded-lg">
+              <BookOpen size={18} className="text-white" />
+            </div>
+            <span className="font-black text-slate-900 uppercase text-xs tracking-tighter">
+              Kutiit <span className="text-emerald-600">Admin</span>
+            </span>
           </div>
-          <Link 
-            href="/dictionary" 
-            className="text-[10px] uppercase font-bold bg-white/10 px-2 py-1 rounded hover:bg-white/20 transition-all flex items-center gap-1"
+          <button 
+            onClick={() => router.push("/")}
+            className="text-[10px] font-black text-slate-400 hover:text-emerald-600 transition-colors flex items-center gap-1.5 uppercase tracking-widest"
           >
-            <Globe size={12} /> Public Site
-          </Link>
+            Public Site <ExternalLink size={12} />
+          </button>
         </div>
+        
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            onClick={handleLogout} 
+            className="text-slate-400 hover:text-rose-500 font-black text-[10px] uppercase tracking-widest flex items-center gap-2"
+          >
+            Logout <LogOut size={16} />
+          </Button>
+        </div>
+      </nav>
 
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={handleLogout}
-          className="text-white/50 hover:text-white gap-2"
-        >
-          <span className="text-xs uppercase font-bold">Sign Out</span>
-          <LogOut size={16} />
-        </Button>
-      </header>
-
+      {/* 2. MAIN DASHBOARD AREA (Flexible height) */}
       <div className="flex-1 overflow-hidden">
         {children}
       </div>
+
+      {/* 3. FOOTER (Stays at the very bottom) */}
+      <footer className="shrink-0 border-t bg-slate-50 py-4 px-6">
+         <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+           <p>© {new Date().getFullYear()} Kutiit Project</p>
+           <p>Admin Portal v2.0</p>
+         </div>
+      </footer>
     </div>
   );
 }

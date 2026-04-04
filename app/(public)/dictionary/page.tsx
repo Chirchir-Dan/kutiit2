@@ -2,172 +2,120 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Input } from "@/components/ui/input";
 import { 
-  Search, 
-  ChevronRight, 
-  X, 
-  MessageSquareQuote,
-  Quote,
-  HelpCircle,
-  Info
+  Search, ChevronRight, X, MessageSquareQuote, Quote, HelpCircle, Frown, Languages, Plus 
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import SuggestWordModal from "@/components/shared/SuggestWordModal";
 
 export default function DictionaryPage() {
   const [words, setWords] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedWord, setSelectedWord] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    const fetchWords = async () => {
-      const { data } = await supabase
-        .from("words")
-        .select("*")
-        .order("entry_name", { ascending: true });
-      
-      if (data) {
-        setWords(data);
-        setSelectedWord(data[0]);
-      }
-      setLoading(false);
-    };
     fetchWords();
   }, []);
 
+  const fetchWords = async () => {
+    const { data } = await supabase.from("words").select("*").eq("is_verified", true).order("entry_name", { ascending: true });
+    if (data) { 
+      setWords(data); 
+      if (data.length > 0) setSelectedWord(data[0]); 
+    }
+    setLoading(false);
+  };
+
+  // BROAD SEARCH LOGIC: Scans all fields
   const filteredWords = words.filter((w) => {
     const s = searchQuery.toLowerCase();
     return (
-      w.entry_name?.toLowerCase().includes(s) ||
-      w.translation_en?.toLowerCase().includes(s) ||
+      w.entry_name?.toLowerCase().includes(s) || 
+      w.translation_en?.toLowerCase().includes(s) || 
+      w.answer?.toLowerCase().includes(s) ||
       w.notes?.toLowerCase().includes(s) ||
       w.examples?.toLowerCase().includes(s) ||
-      w.answer?.toLowerCase().includes(s) ||
-      w.imperative?.toLowerCase().includes(s) ||
       w.singular_indefinite?.toLowerCase().includes(s) ||
       w.singular_definite?.toLowerCase().includes(s) ||
       w.plural_indefinite?.toLowerCase().includes(s) ||
-      w.plural_definite?.toLowerCase().includes(s)
+      w.plural_definite?.toLowerCase().includes(s) ||
+      w.imperative?.toLowerCase().includes(s) ||
+      w.meaning?.toLowerCase().includes(s) 
     );
   });
 
-  const handleSelectWord = (word: any) => {
-    setSelectedWord(word);
-    if (window.innerWidth < 768) {
-      setIsModalOpen(true);
-    }
+  const renderLingueeLine = (line: string) => {
+    if (!line.includes("-")) return <p className="mb-2 text-slate-700">{line}</p>;
+    const [nandi, english] = line.split("-");
+    return (
+      <div className="mb-4 border-l-4 border-emerald-500/20 pl-4 py-1">
+        <p className="font-bold text-slate-900 text-lg tracking-tight">{nandi.trim()}</p>
+        <p className="text-slate-500 italic text-sm mt-1">{english.trim()}</p>
+      </div>
+    );
   };
 
   const WordDetailContent = ({ word }: { word: any }) => {
+    const isTraditional = ["proverb", "saying"].includes(word.word_type);
     const isRiddle = word.word_type === "riddle";
-    const isProverb = word.word_type === "proverb";
-    const isSaying = word.word_type === "saying";
-    const isTraditional = isRiddle || isProverb || isSaying;
-
+    
     return (
-      <div className="max-w-3xl animate-in fade-in slide-in-from-right-4 duration-300">
-        <div className="flex flex-col gap-2 mb-6">
-          <Badge variant="outline" className="w-fit text-emerald-600 bg-emerald-50 border-emerald-200 uppercase text-[10px] tracking-widest font-black">
-             {isRiddle ? 'Tangoch' : isProverb ? 'Kalewenet' : word.word_type}
-          </Badge>
-          <h1 className={`font-extrabold text-slate-900 tracking-tight leading-tight ${isTraditional ? "text-3xl md:text-4xl italic" : "text-4xl md:text-5xl uppercase"}`}>
-            {isTraditional && <Quote size={24} className="inline mr-3 text-emerald-200" />}
+      <div className="max-w-3xl animate-in fade-in slide-in-from-right-4 duration-300 pb-32">
+        <div className="flex flex-col gap-2 mb-8">
+          
+          <h1 className={`font-extrabold text-slate-900 tracking-tighter leading-tight ${isTraditional || isRiddle ? "text-3xl md:text-5xl italic" : "text-4xl md:text-6xl uppercase"}`}>
+            {(isTraditional || isRiddle) && <Quote size={28} className="inline mr-3 text-emerald-200" />}
             {word.entry_name}
           </h1>
         </div>
         
+        {/* RIDDLE ANSWER - REQUIRED FOR TANGOCH */}
         {isRiddle && (
-          <div className="mb-8 space-y-6">
-            <div className="p-6 bg-emerald-50 rounded-3xl border-2 border-emerald-100 border-dashed">
-               <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 mb-2">
-                 <HelpCircle size={14} /> Walutiet
-               </h4>
-               <p className="text-3xl font-black text-emerald-900 uppercase tracking-tight">{word.answer}</p>
-            </div>
+          <div className="mb-10 p-8 bg-emerald-50 rounded-[2rem] border-2 border-emerald-100 border-dashed relative overflow-hidden">
+             <div className="absolute top-0 right-0 p-4 opacity-10"><HelpCircle size={80} /></div>
+             <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 mb-2">Walutiet (Answer)</h4>
+             <p className="text-4xl font-black text-emerald-900 uppercase tracking-tighter relative z-10">{word.answer || "---"}</p>
           </div>
         )}
 
-        {(isProverb || isSaying || isRiddle) && (
-          <div className="mb-8">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Meaning</h4>
-            <p className="text-xl md:text-2xl text-slate-600 font-medium leading-relaxed">
-              {word.translation_en}
-            </p>
-          </div>
-        )}
+        {/* TRANSLATION OR MEANING - REQUIRED */}
+        <div className="mb-10">
+          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+            {isTraditional ? "Meaning" : "Translation"}
+          </h4>
+          <p className="text-2xl md:text-3xl text-slate-700 font-semibold leading-snug tracking-tight">
+            {word.translation_en}
+          </p>
+        </div>
 
-        {!isTraditional && (
-          <div className="mb-8">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">English Translation</h4>
-            <p className="text-xl md:text-2xl text-slate-600 font-medium leading-relaxed uppercase">
-              {word.translation_en}
-            </p>
-          </div>
-        )}
-
-        {!isTraditional && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-              {word.word_type === "noun" && (
-                <div className="p-4 rounded-xl border bg-slate-50 border-slate-100 shadow-sm col-span-full">
-                  <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-3 tracking-widest">Morphology</h4>
-                  <div className="grid grid-cols-2 gap-6 text-sm">
-                    <div>
-                      <p className="text-slate-400 text-[9px] uppercase font-bold mb-1">Singular</p>
-                      <p className="font-bold text-slate-800">{word.singular_indefinite || "—"} / {word.singular_definite || "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400 text-[9px] uppercase font-bold mb-1">Plural</p>
-                      <p className="font-bold text-slate-800">{word.plural_indefinite || "—"} / {word.plural_definite || "—"}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {word.word_type === "verb" && word.imperative && (
-                <div className="p-5 rounded-xl border bg-blue-50 border-blue-100 col-span-full shadow-sm">
-                  <h4 className="text-[10px] font-bold text-blue-600 uppercase mb-2 tracking-widest">Imperative</h4>
-                  <p className="text-2xl font-bold text-blue-900">{word.imperative}</p>
-                </div>
-              )}
+        {/* LINGUEE STYLE EXAMPLES */}
+        {word.examples && (
+          <div className="mb-10">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Languages size={14} className="text-emerald-500" /> Usage Examples
+            </h4>
+            <div className="space-y-2">
+              {word.examples.split("\n").map((line: string, i: number) => line.trim() && (
+                <div key={i}>{renderLingueeLine(line)}</div>
+              ))}
             </div>
-
-            <div className="space-y-6">
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2 border-b pb-2">
-                <Info className="text-emerald-500" size={16} /> Sentence Usage
-              </h3>
-              {word.examples ? (
-                <div className="space-y-3">
-                  {word.examples.split('\n').filter((l: any) => l.trim()).map((line: string, i: number) => (
-                    <div key={i} className="p-4 rounded-xl border bg-white shadow-sm italic text-slate-700 border-l-4 border-l-slate-200">"{line}"</div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-slate-300 text-xs italic uppercase tracking-widest">No examples available</p>
-              )}
-            </div>
-          </>
+          </div>
         )}
 
         {word.notes && (
-          <div className="mt-12 pt-8 border-t border-dashed border-slate-200">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest flex items-center gap-2">
-              <MessageSquareQuote size={14} className="text-emerald-500" /> {isTraditional ? "More Context" : "Additional Notes"}
+          <div className="mt-10 pt-10 border-t border-dashed border-slate-200">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase mb-4 flex items-center gap-2 tracking-widest">
+              <MessageSquareQuote size={14} className="text-emerald-500" /> Notes & Context
             </h4>
-            <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-100 text-slate-600 text-sm italic leading-relaxed">
-               {word.notes}
+            <div className="p-6 bg-slate-50/80 rounded-[1.5rem] text-slate-600 text-base italic leading-relaxed border border-slate-100 shadow-sm">
+               {word.notes.split("\n").map((line: string, i: number) => <p key={i} className="mb-2 last:mb-0">{line}</p>)}
             </div>
           </div>
         )}
@@ -178,79 +126,101 @@ export default function DictionaryPage() {
   return (
     <div className="flex flex-col h-screen bg-white font-sans overflow-hidden">
       <header className="border-b bg-white p-4 shrink-0 shadow-sm z-10">
-        <div className="max-w-7xl mx-auto flex items-center gap-4">
-           <div className="relative flex-1">
-             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+        <div className="max-w-7xl mx-auto">
+           <div className="relative w-full">
+             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
              <Input 
-               placeholder="Search entries..." 
-               className="pl-10 h-11 bg-slate-50 border-none rounded-xl focus-visible:ring-emerald-500/20 text-md shadow-inner w-full"
-               value={searchQuery}
-               onChange={(e) => setSearchQuery(e.target.value)}
+               placeholder="Search....." 
+               className="pl-12 h-14 bg-slate-50 border-none rounded-2xl w-full font-bold text-lg placeholder:text-slate-300 focus-visible:ring-emerald-500" 
+               value={searchQuery} 
+               onChange={(e) => setSearchQuery(e.target.value)} 
              />
            </div>
         </div>
       </header>
 
-      <main className="flex flex-1 overflow-hidden max-w-7xl mx-auto w-full border-x bg-white">
+      <main className="flex flex-1 overflow-hidden max-w-7xl mx-auto w-full border-x">
         <aside className="flex w-full md:w-80 lg:w-96 flex-col border-r bg-slate-50/30 shrink-0 h-full overflow-hidden">
-          <div className="p-3 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b flex justify-between bg-white px-5 shrink-0">
-            <span>{mounted ? `${filteredWords.length} Entries` : ""}</span>
-          </div>
           <div className="flex-1 overflow-y-auto bg-white">
-            {filteredWords.map((word) => (
-              <button
-                key={word.id}
-                onClick={() => handleSelectWord(word)}
-                className={`w-full text-left p-5 border-b transition-all flex justify-between items-center group ${
-                  selectedWord?.id === word.id ? "bg-white border-l-4 border-l-emerald-500 shadow-sm" : "hover:bg-slate-50 border-l-4 border-l-transparent"
-                }`}
-              >
-                <div className="flex-1 pr-2 min-w-0">
-                  <div className="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors uppercase text-sm flex items-center gap-2 truncate">
-                    {["riddle", "proverb", "saying"].includes(word.word_type) && <Quote size={10} className="text-emerald-400 shrink-0" />}
-                    <span className="truncate">{word.entry_name}</span>
+            {filteredWords.length > 0 ? (
+              filteredWords.map((word) => (
+                <button 
+                  key={word.id} 
+                  onClick={() => { setSelectedWord(word); if (window.innerWidth < 768) setIsModalOpen(true); }} 
+                  className={`w-full text-left p-6 border-b transition-all flex justify-between items-center group ${selectedWord?.id === word.id ? "bg-white border-l-4 border-l-emerald-500 shadow-sm" : "hover:bg-slate-50 border-l-4 border-l-transparent"}`}
+                >
+                  <div className="min-w-0 pr-2">
+                    <div className="font-black text-slate-900 uppercase text-sm tracking-tight truncate">{word.entry_name}</div>
+                    <div className="text-xs text-slate-400 italic truncate mt-1">
+                      {word.word_type === 'riddle' ? word.answer : word.translation_en}
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-400 italic line-clamp-1 mt-0.5 truncate">
-                    {word.word_type === 'riddle' ? `Answer: ${word.answer}` : word.translation_en}
-                  </div>
+                  <ChevronRight size={16} className={selectedWord?.id === word.id ? "text-emerald-500" : "text-slate-200"} />
+                </button>
+              ))
+            ) : searchQuery.length > 0 ? (
+              <div className="p-12 text-center animate-in fade-in zoom-in-95 duration-300">
+                <div className="w-20 h-20 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Frown size={40} />
                 </div>
-                <ChevronRight size={16} className={selectedWord?.id === word.id ? "text-emerald-500" : "text-slate-200"} />
-              </button>
-            ))}
+                <h3 className="text-2xl font-black uppercase text-slate-900 tracking-tighter">Mamii!</h3>
+                <p className="text-slate-400 text-xs mt-3 leading-relaxed font-medium">We couldn't find anything for "{searchQuery}". Contribute it to the textbook?</p>
+                <Button 
+                  onClick={() => setIsSuggestionModalOpen(true)} 
+                  className="mt-8 bg-slate-900 hover:bg-black text-white w-full rounded-2xl py-7 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl"
+                >
+                  <Plus size={14} className="mr-2" /> Suggest Word
+                </Button>
+              </div>
+            ) : (
+              <div className="p-12 text-center opacity-10">
+                <Search size={48} className="mx-auto mb-4" />
+                <p className="text-[10px] font-black uppercase tracking-[0.3em]">Ready to search</p>
+              </div>
+            )}
           </div>
         </aside>
 
-        <section className="hidden md:block flex-1 overflow-y-auto bg-white p-12">
-          {selectedWord ? <WordDetailContent word={selectedWord} /> : (
-             <div className="h-full flex items-center justify-center text-slate-300 uppercase font-black text-[10px] tracking-widest">
-               Select an entry to view
-             </div>
+        <section className="hidden md:block flex-1 overflow-y-auto bg-white p-16">
+          {selectedWord && filteredWords.length > 0 ? (
+            <WordDetailContent word={selectedWord} />
+          ) : (
+            <div className="h-full flex items-center justify-center opacity-20 uppercase tracking-[0.5em] text-[10px] font-black">
+              Kutiit Dictionary
+            </div>
           )}
         </section>
       </main>
 
-      {/* FIXED MODAL: Added sizeable container and accessibility labels */}
+      {/* MOBILE MODAL - FIXED WITH ACCESSIBILITY TAGS */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[550px] w-[95vw] max-h-[85vh] rounded-[2.5rem] p-0 flex flex-col border-none bg-white shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogContent className="sm:max-w-[600px] w-[95vw] h-[92vh] rounded-[3rem] p-0 flex flex-col border-none bg-white shadow-2xl overflow-hidden [&>button]:hidden">
           <VisuallyHidden.Root>
             <DialogHeader>
-              <DialogTitle>{selectedWord?.entry_name || "Entry Details"}</DialogTitle>
-              <DialogDescription>Details for {selectedWord?.entry_name}</DialogDescription>
+              <DialogTitle>{selectedWord?.entry_name || "Word Details"}</DialogTitle>
+              <DialogDescription>Details and examples for the Nandi word.</DialogDescription>
             </DialogHeader>
           </VisuallyHidden.Root>
-
-          <div className="p-5 border-b flex justify-between items-center bg-white sticky top-0 z-20 shrink-0">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{selectedWord?.word_type}</span>
-            <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="rounded-full hover:bg-slate-50">
-              <X size={20} />
+          
+          <div className="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-20 shrink-0">
+            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest">
+              {selectedWord?.word_type}
+            </span>
+            <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="rounded-full bg-slate-50 h-10 w-10">
+              <X size={20} className="text-slate-500" />
             </Button>
           </div>
-          <div className="flex-1 overflow-y-auto p-8 pt-4">
+          <div className="flex-1 overflow-y-auto p-10 pt-6">
             {selectedWord && <WordDetailContent word={selectedWord} />}
-            <div className="h-6" />
           </div>
         </DialogContent>
       </Dialog>
+
+      <SuggestWordModal 
+        isOpen={isSuggestionModalOpen} 
+        onOpenChange={setIsSuggestionModalOpen} 
+        initialSearch={searchQuery} 
+      />
     </div>
   );
 }
