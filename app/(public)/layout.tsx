@@ -1,45 +1,67 @@
-// app/(public)/layout.tsx
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Mail } from "lucide-react";
+import { Mail, BookOpen } from "lucide-react";
 import { ContactModal } from "@/components/shared/ContactModal";
-import { BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const FacebookIcon = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+  >
     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
   </svg>
 );
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white overflow-x-hidden">
       {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-black/5 backdrop-blur-md border-b h-20 flex items-center px-6">
-        <nav className="flex w-full justify-between items-center max-w-7xl mx-auto">
-          <Link href="/" >
-             <div className="flex items-center gap-2 font-black text-emerald-700 text-xl tracking-tighter">
-              <BookOpen className="h-6 w-6" strokeWidth={3} /> KUTIIT
-              <div className="flex items-center gap-2">
-                  <Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-bold px-1.5 py-0">
-                    BETA <br/>
-                  </Badge>
-                </div>
+      <header className="sticky top-0 z-50 bg-black/5 backdrop-blur-md border-b h-20 flex items-center px-4 md:px-6 overflow-hidden">
+        <nav className="flex w-full justify-between items-center max-w-7xl mx-auto gap-2">
+          
+          {/* LOGO SECTION - Flexible scaling */}
+          <Link href="/" className="shrink min-w-0">
+             <div className="flex items-center gap-1.5 font-black text-emerald-700 tracking-tighter">
+              <BookOpen className="h-5 w-5 md:h-6 md:w-6 shrink-0" strokeWidth={3} /> 
+              <span className="text-base md:text-xl truncate uppercase">Kutiit</span>
+              <Badge className="bg-emerald-100 text-emerald-700 border-none text-[7px] md:text-[8px] font-bold px-1 py-0 shrink-0">
+                BETA
+              </Badge>
             </div>
           </Link>
 
-          <div className="flex items-center gap-4">
-            <a href="https://www.facebook.com/kutinyuu" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-blue-600 transition-colors sm:block hidden">
-              <FacebookIcon />
+          {/* ACTIONS SECTION - Clustered for mobile */}
+          <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
+            <a 
+              href="https://www.facebook.com/kutinyuu" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-slate-500 hover:text-blue-600 transition-colors hidden sm:block"
+            >
+              <FacebookIcon size={18} />
             </a>
-            <Link href="/dictionary" className="text-[12px] font-black uppercase tracking-widest text-slate-900 hover:text-emerald-600 transition-colors px-2">
+            
+            <Link 
+              href="/dictionary" 
+              className="text-[10px] md:text-[12px] font-black uppercase tracking-tight md:tracking-widest text-slate-900 hover:text-emerald-600 transition-colors px-1"
+            >
               Dictionary
             </Link>
             
-            {/* Swapped Link for Modal */}
             <ContactModal>
-              <Button size="sm" className="bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase px-5 shadow-lg cursor-pointer">
+              <Button 
+                size="sm" 
+                className="bg-slate-900 text-white rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-bold uppercase px-3 md:px-5 h-8 md:h-9 shadow-lg cursor-pointer transition-transform active:scale-95"
+              >
                 Contact
               </Button>
             </ContactModal>
@@ -47,16 +69,18 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         </nav>
       </header>
 
-      <main className="flex-grow flex flex-col">
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-grow flex flex-col w-full">
         {children}
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t py-12 px-6 bg-black/5">
-        <div className="max-w-7xl mx-auto flex flex-col items-center text-center gap-4">
+      <footer className="border-t py-12 px-6 bg-black/5 shrink-0">
+        <div className="max-w-7xl mx-auto flex flex-col items-center text-center gap-6">
+          
           <div className="space-y-1">
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
-              © 2026 Kutiit Project 
+              © {new Date().getFullYear()} Kutiit Project 
             </p>
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
               Preserving Kalenjin Heritage
@@ -65,19 +89,31 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           
           <div className="flex items-center gap-2 text-slate-400">
             <Mail size={14} className="text-emerald-600" />
-            <a href="mailto:kutiitadmin@gmail.com" className="text-[10px] font-bold hover:text-emerald-600 transition-colors tracking-widest uppercase">
+            <a 
+              href="mailto:kutiitadmin@gmail.com" 
+              className="text-[10px] font-bold hover:text-emerald-600 transition-colors tracking-widest uppercase"
+            >
               kutiitadmin@gmail.com
             </a>
           </div>
 
           <div className="flex items-center gap-8 pt-2">
-            <a href="https://www.facebook.com/kutinyuu" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors">
+            <a 
+              href="https://www.facebook.com/kutinyuu" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-slate-400 hover:text-blue-600 transition-colors"
+            >
               <FacebookIcon size={20} />
             </a>
-            <Link href="/login" className="text-[10px] font-bold text-slate-400 uppercase hover:text-emerald-600 tracking-widest">
+            <Link 
+              href="/login" 
+              className="text-[10px] font-bold text-slate-400 uppercase hover:text-emerald-600 tracking-widest"
+            >
               Admin Portal
             </Link>
           </div>
+
         </div>
       </footer>
     </div>
