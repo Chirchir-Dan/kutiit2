@@ -21,7 +21,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <div className="flex items-center gap-1.5 font-black text-emerald-600 tracking-tighter transition-colors group-hover:text-emerald-700">
               <BookOpen className="h-4 w-4 xs:h-5 xs:w-5 md:h-6 md:w-6 shrink-0" strokeWidth={3} /> 
               <span className="text-sm xs:text-base md:text-xl truncate uppercase">Kutiit</span>
-              <Badge className="bg-emerald-100 text-emerald-700 border-none text-[6px] md:text-[8px] font-bold px-1.5 py-0.5 shrink-0">BETA</Badge>
             </div>
           </Link>
           <div className="flex items-center gap-1 xs:gap-2 sm:gap-4 shrink-0">
