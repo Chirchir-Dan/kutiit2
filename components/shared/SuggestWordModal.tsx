@@ -259,7 +259,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                   </label>
                   <Textarea 
                     name="examples" 
-                    placeholder="Kalenjin - English (separate with ' - ' . one line = one example)"
+                    placeholder="Provide both kalenjin and english, separated by a dash e.g Hello - Chamgei"
                     value={form.examples} 
                     onChange={handleInputChange} 
                     className="min-h-[100px] bg-slate-50/50 border-2 border-slate-100 rounded-2xl p-5 font-mono text-sm focus-visible:ring-emerald-500 focus:bg-white" 
