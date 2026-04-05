@@ -198,7 +198,11 @@ export default function DictionaryPage() {
 
       {/* DETAIL VIEW - Independent scroll for Desktop */}
       <section className="hidden md:block flex-1 overflow-y-auto bg-white p-12 custom-scrollbar">
+        <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest">
+              {selectedWord?.word_type}
+        </span>
         {selectedWord && filteredWords.length > 0 ? (
+          
           <WordDetailContent word={selectedWord} />
         ) : (
           <div className="h-full flex items-center justify-center opacity-20 uppercase tracking-[0.5em] text-[10px] font-black">

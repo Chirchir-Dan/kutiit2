@@ -161,6 +161,11 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                       <option value="verb">Verb</option>
                       <option value="adjective">Adjective</option>
                       <option value="adverb">Adverb</option>
+                      <option value="pronoun">Pronoun</option>
+                      <option value="preposition">Preposition</option>
+                      <option value="conjunction">Conjunction</option>
+                      <option value="interjection">Interjection</option>
+                      <option value="particle">Particle</option>
                     </optgroup>
                     <optgroup label="Traditional Literature">
                       <option value="proverb">Kalewenet</option>

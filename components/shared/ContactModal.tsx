@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contactSchema, type ContactFormValues } from "@/lib/validation";
@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 export function ContactModal({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -28,29 +28,39 @@ export function ContactModal({ children }: { children: React.ReactNode }) {
     register,
     handleSubmit,
     reset,
+    setValue,
+    trigger,
     formState: { errors, isValid },
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
-    mode: "onChange",
+    mode: "all",
     defaultValues: {
       name: "",
       email: "",
       subject: "General Inquiry",
       message: "",
       honeyPot: "",
+      turnstileToken: "",
     },
   });
 
+  // Re-validate when modal opens to ensure default values are accounted for
+  useEffect(() => {
+    if (open) {
+      trigger();
+    }
+  }, [open, trigger]);
+
   const onSubmit = async (data: ContactFormValues) => {
     if (data.honeyPot) return;
-    if (!turnstileToken) return;
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, turnstileToken }), 
+        body: JSON.stringify(data),
       });
+      
       if (response.ok) {
         reset();
         setTurnstileToken(null);
@@ -66,11 +76,10 @@ export function ContactModal({ children }: { children: React.ReactNode }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      {/* CRITICAL FIX: 
-          1. Changed w-[95vw] to max-w-[calc(100vw-2rem)] for safer padding.
-          2. Added overflow-x-hidden to prevent any internal horizontal scaling.
+      {/* FIXED: Added [&>button] modifiers to move the close 'X' away from the deep rounded corners.
+          top-8 and right-8 aligns the button perfectly with the internal p-10 padding.
       */}
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[450px] rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-10 bg-white border-none shadow-2xl overflow-y-auto overflow-x-hidden max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[450px] rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-10 bg-white border-none shadow-2xl overflow-y-auto overflow-x-hidden max-h-[90vh] flex flex-col [&>button]:top-8 [&>button]:right-8 [&>button]:opacity-40 [&>button:hover]:opacity-100 transition-opacity">
         <DialogHeader>
           <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter text-slate-900">
             Contact Kutiit
@@ -80,21 +89,23 @@ export function ContactModal({ children }: { children: React.ReactNode }) {
           </VisuallyHidden.Root>
         </DialogHeader>
 
-        {/* CRITICAL FIX: 
-            Added 'w-full' and 'max-w-full' to the form to ensure it respects the modal width.
-        */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2 w-full max-w-full">
+        <form 
+          onSubmit={handleSubmit(onSubmit, (err) => console.log("Validation Errors:", err))} 
+          className="space-y-4 mt-2 w-full max-w-full"
+        >
+          {/* Hidden Fields */}
           <input {...register("honeyPot")} className="hidden" tabIndex={-1} />
+          <input {...register("turnstileToken")} className="hidden" />
 
           <div className="space-y-1 w-full min-w-0">
             <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
-            <Input {...register("name")} placeholder="e.g. Kipchoge" className="w-full min-w-0 rounded-xl bg-slate-50 border-none h-11 shadow-sm text-sm" />
+            <Input {...register("name")} placeholder="e.g. Kipkosgei Dan" className="w-full rounded-xl bg-slate-50 border-none h-11 text-sm focus-visible:ring-emerald-500" />
             {errors.name && <p className="text-[9px] text-red-500 font-bold uppercase ml-2">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-1 w-full min-w-0">
             <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email</label>
-            <Input {...register("email")} type="email" placeholder="your@email.com" className="w-full min-w-0 rounded-xl bg-slate-50 border-none h-11 shadow-sm text-sm" />
+            <Input {...register("email")} type="email" placeholder="your@email.com" className="w-full rounded-xl bg-slate-50 border-none h-11 text-sm focus-visible:ring-emerald-500" />
             {errors.email && <p className="text-[9px] text-red-500 font-bold uppercase ml-2">{errors.email.message}</p>}
           </div>
 
@@ -103,7 +114,7 @@ export function ContactModal({ children }: { children: React.ReactNode }) {
             <div className="relative w-full">
               <select 
                 {...register("subject")}
-                className="w-full min-w-0 rounded-xl bg-slate-50 h-11 px-4 text-sm border-none focus:ring-2 focus:ring-slate-900 outline-none appearance-none cursor-pointer text-slate-700 font-medium shadow-sm"
+                className="w-full rounded-xl bg-slate-50 h-11 px-4 text-sm border-none focus:ring-2 focus:ring-emerald-500 outline-none appearance-none cursor-pointer text-slate-700 font-medium shadow-sm"
               >
                 <option value="General Inquiry">General Inquiry</option>
                 <option value="Language Lessons">Language Lessons</option>
@@ -120,19 +131,22 @@ export function ContactModal({ children }: { children: React.ReactNode }) {
 
           <div className="space-y-1 w-full min-w-0">
             <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Message</label>
-            <Textarea {...register("message")} placeholder="How can we help?" className="w-full min-w-0 rounded-xl bg-slate-50 border-none min-h-[80px] shadow-sm text-sm" />
+            <Textarea {...register("message")} placeholder="How can we help?" className="w-full rounded-xl bg-slate-50 border-none min-h-[80px] text-sm focus-visible:ring-emerald-500 shadow-sm" />
             {errors.message && <p className="text-[9px] text-red-500 font-bold uppercase ml-2">{errors.message.message}</p>}
           </div>
 
-          {/* TURNSTILE FIX:
-              Forcing the container to be exactly the parent's width and centering.
-          */}
           <div className="w-full flex justify-center overflow-hidden py-2">
             <div className="scale-75 xs:scale-90 sm:scale-100 origin-center">
               <Turnstile
                 siteKey="0x4AAAAAAC0n6ihaIamC4RCT"
-                onSuccess={(token) => setTurnstileToken(token)}
-                onExpire={() => setTurnstileToken(null)}
+                onSuccess={(token) => {
+                  setTurnstileToken(token);
+                  setValue("turnstileToken", token, { shouldValidate: true });
+                }}
+                onExpire={() => {
+                  setTurnstileToken(null);
+                  setValue("turnstileToken", "", { shouldValidate: true });
+                }}
                 options={{ theme: "light" }}
               />
             </div>
@@ -140,17 +154,24 @@ export function ContactModal({ children }: { children: React.ReactNode }) {
 
           <div className="space-y-2 w-full">
             <Button 
-              disabled={isSubmitting || !isValid || !turnstileToken} 
+              disabled={isSubmitting || !turnstileToken} 
               type="submit" 
-              className="w-full bg-slate-900 hover:bg-black text-white h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg disabled:opacity-30"
+              className="w-full bg-slate-900 hover:bg-black text-white h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg disabled:opacity-30 flex items-center justify-center gap-2"
             >
-              {isSubmitting ? "Processing..." : "Send Message"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="animate-spin h-4 w-4" />
+                  Processing...
+                </>
+              ) : (
+                "Send Message"
+              )}
             </Button>
 
-            {(!turnstileToken || !isValid) && (
-               <p className="text-center text-[9px] font-black uppercase text-indigo-400 tracking-widest animate-pulse flex items-center justify-center gap-1">
+            {(!turnstileToken || Object.keys(errors).length > 0) && (
+              <p className="text-center text-[9px] font-black uppercase text-indigo-400 tracking-widest animate-pulse flex items-center justify-center gap-1">
                 <AlertCircle size={10} /> 
-                {!turnstileToken ? "Security check required" : "Complete the form"}
+                {!turnstileToken ? "Security check required" : "Check highlighted fields"}
               </p>
             )}
           </div>

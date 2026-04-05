@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Helper function for Turnstile Verification
 async function verifyTurnstile(token: string) {
-  const secretKey = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY;
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
   
   if (!secretKey) {
     console.error("TURNSTILE_ERROR: Secret key is missing from environment variables.");

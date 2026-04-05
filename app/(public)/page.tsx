@@ -16,17 +16,17 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-start px-4 md:px-6 text-center max-w-5xl mx-auto space-y-8 md:space-y-12 pt-10 md:pt-32 pb-20 overflow-x-hidden">
+    <div className="flex-1 flex flex-col items-center justify-start px-4 md:px-6 text-center max-w-5xl mx-auto space-y-8 md:space-y-12 pt-10 md:pt-10 pb-10 overflow-x-hidden">
       
       {/* HERO SECTION */}
       <div className="space-y-4 md:space-y-6 w-full">
         <div className="flex justify-center mb-2">
-          <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 px-3 md:px-4 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-[0.15em] md:tracking-[0.2em] whitespace-nowrap">
+          <Badge variant="outline" className=" border-emerald-200 bg-emerald-50 text-emerald-600 px-3 md:px-4 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-[0.15em] md:tracking-[0.2em] whitespace-nowrap">
             Digital Language Preservation
           </Badge>
         </div>
         
-        <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9] md:leading-[0.85] break-words">
+        <h1 className="pt-10 text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9] md:leading-[0.85] break-words">
           <span className="text-emerald-600">Kalenjin</span>
         </h1>
         
@@ -47,16 +47,16 @@ export default function LandingPage() {
         <Sparkles className="absolute -right-4 -top-4 text-emerald-500 w-20 h-20 md:w-32 md:h-32 opacity-20 pointer-events-none" />
         
         <div className="space-y-3 md:space-y-4 max-w-xl z-10 text-center md:text-left">
-          <div className="flex items-center justify-center md:justify-start gap-2 text-emerald-200 uppercase text-[8px] md:text-[10px] font-black tracking-widest">
+          <div className="flex items-center justify-center md:justify-start gap-2 text-white uppercase text-[8px] md:text-[10px] font-black tracking-widest">
             <GraduationCap size={14} className="md:size-4" /> Now Offering Lessons
           </div>
           <h2 className="text-xl sm:text-2xl md:text-4xl font-black uppercase tracking-tight leading-tight">Master the Language</h2>
-          <p className="text-emerald-50/80 font-medium text-xs md:text-sm">Join our structured classes for grammar and tonal accuracy.</p>
+          <p className="text-white font-medium text-xs md:text-sm">Join our structured classes for grammar and tonal accuracy.</p>
         </div>
         
         {mounted && (
           <ContactModal>
-            <Button className="bg-white text-emerald-700 hover:bg-emerald-50 h-12 md:h-14 px-6 md:px-8 rounded-xl font-black uppercase text-[10px] md:text-xs tracking-widest z-10 shrink-0 shadow-lg cursor-pointer w-full md:w-auto">
+            <Button className="bg-white text-emerald-800 hover:text-white hover:bg-emerald-900 h-12 md:h-14 px-6 md:px-8 rounded-xl font-black uppercase text-[10px] md:text-xs tracking-widest z-10 shrink-0 shadow-lg cursor-pointer w-full md:w-auto">
               Inquire Now
             </Button>
           </ContactModal>
