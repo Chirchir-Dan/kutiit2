@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </span>
           </div>
           <button 
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/dictionary")}
             className="text-[10px] font-black text-slate-400 hover:text-emerald-600 transition-colors flex items-center gap-1.5 uppercase tracking-widest"
           >
             Public Site <ExternalLink size={12} />
