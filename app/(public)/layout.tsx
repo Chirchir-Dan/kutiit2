@@ -45,9 +45,37 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
            {children}
         </div>
       </main>
-      <div className="pb-10">
+      <footer className=" h-0 shrink-0 border-t bg-white py-2 px-4 md:px-6">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-emerald-600">
+          
+          <a href="mailto:kutiitadmin@gmail.com" className="hover:text-emerald-900 transition-colors shrink-0">
+            Email
+          </a>
 
-      </div>
+          <span className="text-slate-200">|</span>
+
+          <a 
+            href="https://www.facebook.com/kutinyuu" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="hover:text-emerald-900 transition-colors shrink-0"
+          >
+            FB
+          </a>
+
+          <span className="text-slate-200">|</span>
+
+          <Link href="/dashboard" className="hover:text-emerald-900 transition-colors shrink-0">
+            Admin
+          </Link>
+
+          <span className="text-slate-200">|</span>
+
+          <span className="pt-1 shrink-0 text-slate-400 font-bold">
+            © {new Date().getFullYear()} Kutiit | All Rights Reserved
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
