@@ -45,22 +45,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
            {children}
         </div>
       </main>
+      <div className="pb-10">
 
-      <footer className="border-t border-slate-100 py-6 px-6 bg-slate-50 shrink-0 z-50">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-left">
-            <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">© {new Date().getFullYear()} Kutiit Project</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Mail size={14} className="text-emerald-600" />
-            <a href="mailto:kutiitadmin@gmail.com" className="text-[10px] font-black text-emerald-600 hover:text-slate-600 transition-colors tracking-widest uppercase">kutiitadmin@gmail.com</a>
-          </div>
-          <div className="flex items-center gap-6">
-            <a href="https://www.facebook.com/kutinyuu" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-slate-600 transition-colors"><FacebookIcon size={18} /></a>
-            <Link href="/login" className="text-[10px] font-black text-emerald-600 uppercase hover:text-slate-600 tracking-[0.2em]">Admin Portal</Link>
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }

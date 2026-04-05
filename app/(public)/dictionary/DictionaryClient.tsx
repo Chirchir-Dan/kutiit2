@@ -150,54 +150,66 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
   };
 
   return (
+    <>
+    
     <div className="flex flex-col md:flex-row flex-1 h-full bg-white font-sans overflow-hidden max-w-7xl mx-auto w-full border-x">
-      <aside className="flex w-full md:w-80 lg:w-96 flex-col border-r bg-slate-50/30 shrink-0 h-full overflow-hidden">
-        <div className="p-4 bg-white border-b shrink-0 z-20">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-            <Input 
-              placeholder="Search words..." 
-              className="pl-10 h-12 bg-slate-50 border-none rounded-xl w-full font-bold text-sm placeholder:text-slate-300 focus-visible:ring-emerald-500" 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)} 
-            />
-          </div>
-        </div>
+      <aside className="flex w-full md:w-80 lg:w-96 flex-col border-r bg-slate-50/30 shrink-0 h-full overflow-hidden relative">
+  {/* 1. FIXED SEARCHBAR - Changed to sticky with top-0 */}
+  <div className="sticky top-0 p-4 bg-white border-b shrink-0 z-30">
+    <div className="relative w-full">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+      <Input 
+        placeholder="Search words..." 
+        className="pl-10 h-12 bg-slate-50 border-none rounded-xl w-full font-bold text-sm placeholder:text-slate-300 focus-visible:ring-emerald-500" 
+        value={searchQuery} 
+        onChange={(e) => setSearchQuery(e.target.value)} 
+      />
+    </div>
+  </div>
 
-        <div className="flex-1 overflow-y-auto bg-white custom-scrollbar">
-          {filteredWords.length > 0 ? (
-            filteredWords.map((word) => (
-              <button 
-                key={word.id} 
-                onClick={() => { setSelectedWord(word); if (window.innerWidth < 768) setIsModalOpen(true); }} 
-                className={`w-full text-left p-6 border-b transition-all flex justify-between items-center group ${selectedWord?.id === word.id ? "bg-white border-l-4 border-l-emerald-500 shadow-sm" : "hover:bg-slate-50 border-l-4 border-l-transparent"}`}
-              >
-                <div className="min-w-0 pr-2">
-                  <div className="font-black text-slate-900 uppercase text-sm tracking-tight truncate">{word.entry_name}</div>
-                  <div className="text-xs text-slate-400 italic truncate mt-1">
-                    {word.word_type === 'riddle' ? word.answer : word.translation_en}
-                  </div>
-                </div>
-                <ChevronRight size={16} className={selectedWord?.id === word.id ? "text-emerald-500" : "text-slate-200"} />
-              </button>
-            ))
-          ) : searchQuery.length > 0 ? (
-            <div className="p-10 text-center">
-              <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Frown size={32} />
-              </div>
-              <h3 className="text-lg font-black uppercase text-slate-900">Not found</h3>
-              <Button onClick={() => setIsSuggestionModalOpen(true)} className="mt-6 bg-slate-899 hover:bg-black text-white w-full rounded-xl py-6 font-black uppercase text-[9px] tracking-widest shadow-lg">
-                <Plus size={14} className="mr-2" /> Suggest Word
-              </Button>
+  {/* 2. SCROLLABLE CONTENT - Added pb-24 to ensure the bottom button doesn't hide words */}
+  <div className="flex-1 overflow-y-auto bg-white custom-scrollbar pb-24">
+    {filteredWords.length > 0 ? (
+      filteredWords.map((word) => (
+        <button 
+          key={word.id} 
+          onClick={() => { setSelectedWord(word); if (window.innerWidth < 768) setIsModalOpen(true); }} 
+          className={`w-full text-left p-6 border-b transition-all flex justify-between items-center group ${selectedWord?.id === word.id ? "bg-white border-l-4 border-l-emerald-500 shadow-sm" : "hover:bg-slate-50 border-l-4 border-l-transparent"}`}
+        >
+          <div className="min-w-0 pr-2">
+            <div className="font-black text-slate-900 uppercase text-sm tracking-tight truncate">{word.entry_name}</div>
+            <div className="text-xs text-slate-400 italic truncate mt-1">
+              {word.word_type === 'riddle' ? word.answer : word.translation_en}
             </div>
-          ) : (
-            <div className="p-12 text-center opacity-10">
-              <Search size={40} className="mx-auto mb-4" />
-            </div>
-          )}
+          </div>
+          <ChevronRight size={16} className={selectedWord?.id === word.id ? "text-emerald-500" : "text-slate-200"} />
+        </button>
+      ))
+    ) : searchQuery.length > 0 ? (
+      <div className="p-10 text-center">
+        <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Frown size={32} />
         </div>
-      </aside>
+        <h3 className="text-lg font-black uppercase text-slate-900">Not found</h3>
+        <p className="text-xs text-slate-400 mt-2">Try suggesting this word below.</p>
+      </div>
+    ) : (
+      <div className="p-12 text-center opacity-10">
+        <Search size={40} className="mx-auto mb-4" />
+      </div>
+    )}
+  </div>
+
+  {/* 3. PERSISTENT FLOATING BUTTON - Added back at the bottom of the sidebar */}
+  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent pt-8 shrink-0 z-20">
+    <Button 
+      onClick={() => setIsSuggestionModalOpen(true)} 
+      className="bg-slate-900 hover:bg-black text-white w-full rounded-2xl h-14 font-black uppercase text-[10px] tracking-widest shadow-xl transition-transform active:scale-95"
+    >
+      <Plus size={16} className="mr-2" /> Suggest New Word
+    </Button>
+  </div>
+</aside>
 
       <section className="hidden md:block flex-1 overflow-y-auto bg-white p-12 pt-0 custom-scrollbar relative">
         {selectedWord && filteredWords.length > 0 ? (
@@ -209,12 +221,14 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
               </span>
             </div>
             <WordDetailContent word={selectedWord} />
+            
           </>
         ) : (
           <div className="h-full flex items-center justify-center opacity-20 uppercase tracking-[0.5em] text-[10px] font-black">
             Select a word to begin
           </div>
         )}
+        
       </section>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -237,5 +251,8 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
 
       <SuggestWordModal isOpen={isSuggestionModalOpen} onOpenChange={setIsSuggestionModalOpen} initialSearch={searchQuery} onSuccess={() => setIsSuggestionModalOpen(false)} />
     </div>
-  );
+        
+    </>
+   );
+  
 }
