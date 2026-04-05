@@ -187,7 +187,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
                 <Frown size={32} />
               </div>
               <h3 className="text-lg font-black uppercase text-slate-900">Not found</h3>
-              <Button onClick={() => setIsSuggestionModalOpen(true)} className="mt-6 bg-slate-900 hover:bg-black text-white w-full rounded-xl py-6 font-black uppercase text-[9px] tracking-widest shadow-lg">
+              <Button onClick={() => setIsSuggestionModalOpen(true)} className="mt-6 bg-slate-899 hover:bg-black text-white w-full rounded-xl py-6 font-black uppercase text-[9px] tracking-widest shadow-lg">
                 <Plus size={14} className="mr-2" /> Suggest Word
               </Button>
             </div>
