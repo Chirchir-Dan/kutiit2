@@ -1,246 +1,44 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { Metadata } from "next";
+import DictionaryClient from "./DictionaryClient";
 import { supabase } from "@/lib/supabase";
-import { 
-  Search, ChevronRight, X, MessageSquareQuote, Quote, Frown, Languages, Plus 
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import SuggestWordModal from "@/components/shared/SuggestWordModal";
 
-export default function DictionaryPage() {
-  const [words, setWords] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedWord, setSelectedWord] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
+// 1. Universal Kalenjin SEO Metadata
+export const metadata: Metadata = {
+  title: "Kutiit | The Universal Kalenjin Dictionary",
+  description: "The premier digital archive for the Kalenjin language family. Search words, translations, and proverbs across Nandi, Kipsigis, Keiyo, Tugen, Marakwet, Pokot, Sabiny (Sebei), and Sabaot dialects.",
+  keywords: [
+    "Kalenjin dictionary", 
+    "Kutiit", 
+    "Nandi dictionary", 
+    "Pokot dictionary", 
+    "Marakwet translation", 
+    "Tugen language", 
+    "Sabiny Sebei dictionary", 
+    "Sabaot wordlist",
+    "Kalenjin proverbs",
+    "African linguistics",
+    "Tangoch riddles",
+    "Ng’olyot sayings",
+    "Kalwenet wisdom",
+    "Kalenjin language preservation",
+    "Kalenjin grammar",
+  ],
+  openGraph: {
+    title: "Kutiit - The Unified Kalenjin Language Platform",
+    description: "Preserving the rich linguistic heritage of the Kalenjin people across East Africa. and the world. Explore words, meanings, and cultural wisdom in one place.",
+    type: "website",
+  },
+};
 
-  useEffect(() => {
-    fetchWords();
-  }, []);
+// 2. Set ISR to 1 hour
+export const revalidate = 3600; 
 
-  const fetchWords = async () => {
-    const { data } = await supabase.from("words").select("*").eq("is_verified", true).order("entry_name", { ascending: true });
-    if (data) { 
-      setWords(data); 
-      if (data.length > 0) setSelectedWord(data[0]); 
-    }
-    setLoading(false);
-  };
+export default async function DictionaryPage() {
+  const { data } = await supabase
+    .from("words")
+    .select("*")
+    .eq("is_verified", true)
+    .order("entry_name", { ascending: true });
 
-  const filteredWords = words.filter((w) => {
-    const s = searchQuery.toLowerCase();
-    return (
-      w.entry_name?.toLowerCase().includes(s) || 
-      w.translation_en?.toLowerCase().includes(s) || 
-      w.answer?.toLowerCase().includes(s) ||
-      w.notes?.toLowerCase().includes(s) ||
-      w.examples?.toLowerCase().includes(s)
-    );
-  });
-
-  const renderLingueeLine = (line: string) => {
-    if (!line.includes("-")) return <p className="mb-2 text-slate-700">{line}</p>;
-    const [nandi, english] = line.split("-");
-    return (
-      <div className="mb-4 border-l-4 border-emerald-500/20 pl-4 py-1">
-        <p className="font-bold text-slate-900 text-lg tracking-tight">{nandi.trim()}</p>
-        <p className="text-slate-500 italic text-sm mt-1">{english.trim()}</p>
-      </div>
-    );
-  };
-
-  const WordDetailContent = ({ word }: { word: any }) => {
-    const isTraditional = ["proverb", "saying", "riddle"].includes(word.word_type);
-    const isRiddle = word.word_type === "riddle";
-    const hasNounForms = word.singular_indefinite || word.singular_definite || word.plural_indefinite || word.plural_definite;
-
-    return (
-      <div className="max-w-3xl animate-in fade-in slide-in-from-right-4 duration-300 pb-32">
-        <div className="flex flex-col gap-2 mb-8">
-          <h1 className={`font-extrabold text-slate-900 tracking-tighter leading-tight ${isTraditional ? "text-3xl md:text-5xl italic" : "text-4xl md:text-6xl uppercase"}`}>
-            {(isTraditional ) && <Quote size={28} className="inline mr-3 text-emerald-200" />}
-            {word.entry_name}
-          </h1>
-        </div>
-        
-        {isRiddle && (
-          <div className="mb-10 p-8 bg-emerald-50 rounded-[2.5rem] border-2 border-emerald-100 border-dashed relative overflow-hidden">
-             <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">Walutiet</h4>
-             <p className="text-4xl font-black text-emerald-900 uppercase tracking-tighter relative z-10">{word.answer || "---"}</p>
-          </div>
-        )}
-
-        <div className="mb-10">
-          {!isRiddle &&   
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                {isTraditional ? "Meaning" : "Translation"}
-            </h4>
-          }
-          <p className="text-2xl md:text-3xl text-slate-700 font-semibold leading-snug tracking-tight">
-            {word.translation_en}
-          </p>
-        </div>
-
-        {hasNounForms && (
-          <div className="mb-10 p-6 bg-slate-50 rounded-[2rem] border border-slate-100 shadow-sm">
-            <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4">Noun Forms</h4>
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Singular</span>
-                <p className="text-sm font-bold text-slate-900">{word.singular_indefinite || "—"}</p>
-                {word.singular_definite && <p className="text-[10px] text-emerald-600 font-medium bg-emerald-50/50 px-1.5 py-0.5 rounded-md inline-block mt-1">{word.singular_definite}</p>}
-              </div>
-              <div>
-                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Plural</span>
-                <p className="text-sm font-bold text-slate-900">{word.plural_indefinite || "—"}</p>
-                {word.plural_definite && <p className="text-[10px] text-emerald-600 font-medium bg-emerald-50/50 px-1.5 py-0.5 rounded-md inline-block mt-1">{word.plural_definite}</p>}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {word.imperative && (
-          <div className="mb-10 p-4 bg-slate-50 rounded-2xl border border-slate-100 inline-block">
-            <span className="block text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Imperative</span>
-            <span className="text-base font-bold text-slate-900">{word.imperative}</span>
-          </div>
-        )}
-
-        {word.examples && (
-          <div className="mb-10">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Languages size={14} className="text-emerald-500" /> Usage Examples
-            </h4>
-            <div className="space-y-2">
-              {word.examples.split("\n").map((line: string, i: number) => line.trim() && (
-                <div key={i}>{renderLingueeLine(line)}</div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {word.notes && (
-          <div className="mt-10 pt-10 border-t border-dashed border-slate-200">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase mb-4 flex items-center gap-2 tracking-widest">
-              <MessageSquareQuote size={14} className="text-emerald-500" /> Notes & Context
-            </h4>
-            <div className="p-6 bg-slate-50/80 rounded-[1.5rem] text-slate-600 text-base italic leading-relaxed border border-slate-100 shadow-sm">
-                {word.notes.split("\n").map((line: string, i: number) => <p key={i} className="mb-2 last:mb-0">{line}</p>)}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <div className="flex flex-col md:flex-row flex-1 h-full bg-white font-sans overflow-hidden max-w-7xl mx-auto w-full border-x">
-      
-      {/* SIDEBAR - Decoupled with flex column */}
-      <aside className="flex w-full md:w-80 lg:w-96 flex-col border-r bg-slate-50/30 shrink-0 h-full overflow-hidden">
-        
-        {/* FIXED SEARCH - This div will NOT scroll */}
-        <div className="p-4 bg-white border-b shrink-0 z-20">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-            <Input 
-              placeholder="Search words..." 
-              className="pl-10 h-12 bg-slate-50 border-none rounded-xl w-full font-bold text-sm placeholder:text-slate-300 focus-visible:ring-emerald-500" 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)} 
-            />
-          </div>
-        </div>
-
-        {/* SCROLLABLE LIST - flex-1 allows this to take all remaining space and scroll */}
-        <div className="flex-1 overflow-y-auto bg-white custom-scrollbar">
-          {filteredWords.length > 0 ? (
-            filteredWords.map((word) => (
-              <button 
-                key={word.id} 
-                onClick={() => { setSelectedWord(word); if (window.innerWidth < 768) setIsModalOpen(true); }} 
-                className={`w-full text-left p-6 border-b transition-all flex justify-between items-center group ${selectedWord?.id === word.id ? "bg-white border-l-4 border-l-emerald-500 shadow-sm" : "hover:bg-slate-50 border-l-4 border-l-transparent"}`}
-              >
-                <div className="min-w-0 pr-2">
-                  <div className="font-black text-slate-900 uppercase text-sm tracking-tight truncate">{word.entry_name}</div>
-                  <div className="text-xs text-slate-400 italic truncate mt-1">
-                    {word.word_type === 'riddle' ? word.answer : word.translation_en}
-                  </div>
-                </div>
-                <ChevronRight size={16} className={selectedWord?.id === word.id ? "text-emerald-500" : "text-slate-200"} />
-              </button>
-            ))
-          ) : searchQuery.length > 0 ? (
-            <div className="p-10 text-center">
-              <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Frown size={32} />
-              </div>
-              <h3 className="text-lg font-black uppercase text-slate-900">Not found</h3>
-              <Button 
-                onClick={() => setIsSuggestionModalOpen(true)} 
-                className="mt-6 bg-slate-900 hover:bg-black text-white w-full rounded-xl py-6 font-black uppercase text-[9px] tracking-widest shadow-lg"
-              >
-                <Plus size={14} className="mr-2" /> Suggest Word
-              </Button>
-            </div>
-          ) : (
-            <div className="p-12 text-center opacity-10">
-              <Search size={40} className="mx-auto mb-4" />
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {/* DETAIL VIEW - Independent scroll for Desktop */}
-      <section className="hidden md:block flex-1 overflow-y-auto bg-white p-12 custom-scrollbar">
-        <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest">
-              {selectedWord?.word_type}
-        </span>
-        {selectedWord && filteredWords.length > 0 ? (
-          
-          <WordDetailContent word={selectedWord} />
-        ) : (
-          <div className="h-full flex items-center justify-center opacity-20 uppercase tracking-[0.5em] text-[10px] font-black">
-            Select a word to begin
-          </div>
-        )}
-      </section>
-
-      {/* MOBILE MODAL - Preserving all your specific modal styling */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[600px] w-[95vw] h-[92vh] rounded-[3rem] p-0 flex flex-col border-none bg-white shadow-2xl overflow-hidden [&>button]:hidden">
-          <VisuallyHidden.Root>
-            <DialogHeader>
-              <DialogTitle>{selectedWord?.entry_name || "Word Details"}</DialogTitle>
-              <DialogDescription>Full details for the selected entry.</DialogDescription>
-            </DialogHeader>
-          </VisuallyHidden.Root>
-          
-          <div className="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-20 shrink-0">
-             <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest">
-              {selectedWord?.word_type}
-            </span>
-            <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="rounded-full bg-slate-50 h-10 w-10">
-              <X size={20} className="text-slate-500" />
-            </Button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-10 pt-6">
-            {selectedWord && <WordDetailContent word={selectedWord} />}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <SuggestWordModal 
-        isOpen={isSuggestionModalOpen} 
-        onOpenChange={setIsSuggestionModalOpen} 
-        initialSearch={searchQuery}
-        onSuccess={() => setIsSuggestionModalOpen(false)} 
-      />
-    </div>
-  );
+  return <DictionaryClient initialWords={data || []} />;
 }

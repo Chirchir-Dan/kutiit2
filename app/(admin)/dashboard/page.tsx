@@ -5,8 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { 
   Loader2, Search, Save, X, BookOpen,
-  ChevronRight, Plus, Languages, Zap, MessageSquareQuote, Quote, HelpCircle,
-  Inbox, Check, Trash2
+  ChevronRight, Plus, Languages, Zap, MessageSquareQuote, 
+  HelpCircle, Inbox, Check, MapPin
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,16 +18,34 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
+const DIALECTS = [
+  "Nandi", "Kipsigis", "Keiyo", "Tugen", "Marakwet", 
+  "Pokot", "Sabaot", "Terik", "Sabiny", "Sebei"
+];
+
 // --- SUB-COMPONENTS ---
 
-const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleInputChange: any }) => {
+const EditorFields = ({ 
+  editForm, 
+  handleInputChange, 
+  onDialectChange,
+  onToggleAllDialects 
+}: { 
+  editForm: any, 
+  handleInputChange: any, 
+  onDialectChange: any,
+  onToggleAllDialects: () => void 
+}) => {
   const isProverbOrSaying = ["proverb", "saying"].includes(editForm?.word_type);
   const isRiddle = editForm?.word_type === "riddle";
   const isNoun = editForm?.word_type === "noun";
   const isVerb = editForm?.word_type === "verb";
 
+  const allSelected = editForm?.dialects?.length === DIALECTS.length;
+
   return (
     <div className="space-y-8 py-2">
+      {/* 1. Grammar Category */}
       <div className="space-y-2">
         <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">Grammar Category</label>
         <select 
@@ -55,10 +73,11 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
         </select>
       </div>
 
+      {/* 2. Main Inputs */}
       <div className={`grid grid-cols-1 ${isRiddle ? "" : "md:grid-cols-2"} gap-6`}>
         <div className="space-y-2">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-            {isRiddle ? "Riddle Text (Tangoch)" : isProverbOrSaying ? "Nandi Text" : "Nandi Entry"}
+            {isRiddle ? "Riddle Text (Tangoch)" : isProverbOrSaying ? "Kalenjin Text" : "Kalenjin Entry"}
           </label>
           <Input 
             name="entry_name" 
@@ -84,18 +103,13 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
         )}
       </div>
 
+      {/* ... Specific morphology fields (Noun/Verb/Riddle) ... */}
       {isRiddle && (
         <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
           <label className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 ml-1">
             <HelpCircle size={14} /> Walutiet
           </label>
-          <Input 
-            name="answer" 
-            placeholder="Nee walutiet?"
-            value={editForm?.answer || ""} 
-            onChange={handleInputChange} 
-            className="h-12 bg-emerald-50 border-emerald-100 rounded-xl font-bold text-emerald-600 focus-visible:ring-emerald-500 placeholder:text-emerald-300" 
-          />
+          <Input name="answer" placeholder="Nee walutiet?" value={editForm?.answer || ""} onChange={handleInputChange} className="h-12 bg-emerald-50 border-emerald-100 rounded-xl font-bold text-emerald-600 focus-visible:ring-emerald-500 placeholder:text-emerald-300" />
         </div>
       )}
 
@@ -138,7 +152,7 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
         </div>
       )}
 
-      <div className="space-y-2 pb-10">
+      <div className="space-y-2">
         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
           <MessageSquareQuote size={14} className="text-emerald-600" /> Notes & Context
         </label>
@@ -150,11 +164,41 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
           className="min-h-[100px] bg-slate-50/50 border-slate-200 rounded-2xl p-4 text-sm italic" 
         />
       </div>
+
+      {/* 3. DIALECT SELECTION (Moved to Bottom) */}
+      <div className="pt-6 border-t border-slate-100 space-y-4 pb-10">
+        <div className="flex items-center justify-between px-1">
+          <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
+            <MapPin size={12} /> Dialect Scope
+          </label>
+          <button 
+            type="button"
+            onClick={onToggleAllDialects}
+            className="text-[9px] font-black uppercase text-blue-500 hover:text-blue-700 transition-colors bg-blue-50 px-2 py-1 rounded-md"
+          >
+            {allSelected ? "Deselect All" : "Select All"}
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          {DIALECTS.map((dialect) => (
+            <div 
+              key={dialect} 
+              onClick={() => onDialectChange(dialect)}
+              className={`flex items-center justify-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${
+                editForm?.dialects?.includes(dialect) 
+                ? "bg-blue-600 border-blue-600 text-white shadow-sm" 
+                : "bg-white border-slate-200 text-slate-400 hover:border-blue-300"
+              }`}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-tight">{dialect}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
-
-// --- MAIN PAGE ---
 
 export default function AdminDashboard() {
   const [words, setWords] = useState<any[]>([]);
@@ -193,9 +237,28 @@ export default function AdminDashboard() {
     if (window.innerWidth < 768) setIsModalOpen(true);
   };
 
+  const handleDialectChange = (dialect: string) => {
+    if (!editForm) return;
+    const current = editForm.dialects || [];
+    const updated = current.includes(dialect)
+      ? current.filter((d: string) => d !== dialect)
+      : [...current, dialect];
+    setEditForm({ ...editForm, dialects: updated });
+  };
+
+  const handleToggleAllDialects = () => {
+    if (!editForm) return;
+    const allSelected = editForm.dialects?.length === DIALECTS.length;
+    setEditForm({ 
+      ...editForm, 
+      dialects: allSelected ? [] : [...DIALECTS] 
+    });
+  };
+
+  // ... handleAddNew, handleSave, handleApprove/Reject logic remains same ...
   const handleAddNew = () => {
     const newEntry = { 
-      entry_name: "", word_type: "noun", translation_en: "", 
+      entry_name: "", word_type: "noun", dialects: ["Nandi"], translation_en: "", 
       examples: "", notes: "", imperative: "", answer: "",
       singular_indefinite: "", singular_definite: "",
       plural_indefinite: "", plural_definite: "", is_verified: true
@@ -254,7 +317,7 @@ export default function AdminDashboard() {
   return (
     <div className="flex h-full">
       {/* SIDEBAR */}
-     <aside className="w-full md:w-80 lg:w-96 border-r bg-slate-50/30 flex flex-col shrink-0">
+      <aside className="w-full md:w-80 lg:w-96 border-r bg-slate-50/30 flex flex-col shrink-0">
         <div className="p-4 border-b bg-white space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Database</span>
@@ -307,7 +370,7 @@ export default function AdminDashboard() {
               className={`w-full text-left p-5 border-b transition-all flex justify-between items-center ${selectedWord?.id === item.id ? "bg-white border-l-4 border-l-emerald-600 shadow-sm" : "hover:bg-white/60 border-l-4 border-l-transparent"}`}
             >
               <div className="min-w-0">
-                <div className="font-bold text-slate-900 uppercase text-[11px] truncate flex items-center gap-2">
+                <div className="font-bold text-slate-900 uppercase text-[11px] truncate">
                   {item.entry_name}
                 </div>
                 <div className="text-[10px] text-slate-400 italic truncate mt-0.5">{item.translation_en}</div>
@@ -327,7 +390,6 @@ export default function AdminDashboard() {
                 <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest block mb-1">{editForm.word_type}</span>
                 <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900 truncate">{editForm.entry_name || "New Entry"}</h1>
               </div>
-              
               <div className="flex gap-3">
                 {view === "suggestions" ? (
                   <>
@@ -347,7 +409,12 @@ export default function AdminDashboard() {
             </div>
             <div className="flex-1 overflow-y-auto p-12">
               <div className="max-w-2xl mx-auto">
-                <EditorFields editForm={editForm} handleInputChange={(e:any) => setEditForm({...editForm, [e.target.name]: e.target.value})} />
+                <EditorFields 
+                  editForm={editForm} 
+                  handleInputChange={(e:any) => setEditForm({...editForm, [e.target.name]: e.target.value})}
+                  onDialectChange={handleDialectChange}
+                  onToggleAllDialects={handleToggleAllDialects}
+                />
               </div>
             </div>
           </>
@@ -362,61 +429,50 @@ export default function AdminDashboard() {
       </main>
 
       {/* MOBILE MODAL */}
-  
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="w-[95vw] max-w-[550px] h-[90vh] p-0 flex flex-col border-none rounded-[2rem] overflow-hidden bg-white shadow-2xl [&>button]:hidden">
-            
-            <DialogHeader className="p-6 border-b bg-white shrink-0 flex flex-row items-center justify-between space-y-0">
-              <div className="flex flex-col truncate pr-4">
-                <span className="text-[10px] font-black text-emerald-600 uppercase block mb-0.5">
-                  {editForm?.word_type}
-                </span>
-                <DialogTitle className="text-lg font-black uppercase text-slate-900 truncate">
-                  {view === "suggestions" ? "Review Suggestion" : "Edit Entry"}
-                </DialogTitle>
-                {/* ADD THIS: Visually hidden description to satisfy accessibility requirements */}
-                <DialogDescription className="sr-only">
-                  Form for editing Nandi language entries and reviewing community suggestions.
-                </DialogDescription>
-              </div>
-              
-              <div className="flex gap-2 items-center">
-                <Button 
-                  onClick={view === "suggestions" ? handleApproveSuggestion : handleSave} 
-                  disabled={saving} 
-                  size="sm" 
-                  className="bg-emerald-600 rounded-xl h-10 px-6 text-[10px] font-black uppercase"
-                >
-                  {saving ? <Loader2 className="animate-spin h-4 w-4" /> : "SAVE"}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => setIsModalOpen(false)} 
-                  className="rounded-full h-10 w-10"
-                >
-                  <X size={20} />
-                </Button>
-              </div>
-            </DialogHeader>
-
-            <div className="flex-1 overflow-y-auto p-8 bg-white">
-              <EditorFields 
-                editForm={editForm} 
-                handleInputChange={(e: any) => setEditForm({ ...editForm, [e.target.name]: e.target.value })} 
-              />
-              {view === "suggestions" && (
-                <Button 
-                  onClick={() => handleRejectSuggestion(editForm?.id)} 
-                  variant="ghost" 
-                  className="w-full mt-4 text-rose-500 font-black uppercase text-[10px]"
-                >
-                  Reject Suggestion
-                </Button>
-              )}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="w-[95vw] max-w-[550px] h-[90vh] p-0 flex flex-col border-none rounded-[2rem] overflow-hidden bg-white shadow-2xl [&>button]:hidden">
+          <DialogHeader className="p-6 border-b bg-white shrink-0 flex flex-row items-center justify-between space-y-0">
+            <div className="flex flex-col truncate pr-4">
+              <span className="text-[10px] font-black text-emerald-600 uppercase block mb-0.5">
+                {editForm?.word_type}
+              </span>
+              <DialogTitle className="text-lg font-black uppercase text-slate-900 truncate">
+                {view === "suggestions" ? "Review Suggestion" : "Edit Entry"}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                Form for editing entries and reviewing suggestions.
+              </DialogDescription>
             </div>
-          </DialogContent>
-        </Dialog>
+            <div className="flex gap-2 items-center">
+              <Button 
+                onClick={view === "suggestions" ? handleApproveSuggestion : handleSave} 
+                disabled={saving} 
+                size="sm" 
+                className="bg-emerald-600 rounded-xl h-10 px-6 text-[10px] font-black uppercase"
+              >
+                {saving ? <Loader2 className="animate-spin h-4 w-4" /> : "SAVE"}
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="rounded-full h-10 w-10">
+                <X size={20} />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto p-8 bg-white">
+            <EditorFields 
+              editForm={editForm} 
+              handleInputChange={(e: any) => setEditForm({ ...editForm, [e.target.name]: e.target.value })} 
+              onDialectChange={handleDialectChange}
+              onToggleAllDialects={handleToggleAllDialects}
+            />
+            {view === "suggestions" && (
+              <Button onClick={() => handleRejectSuggestion(editForm?.id)} variant="ghost" className="w-full mt-4 text-rose-500 font-black uppercase text-[10px]">
+                Reject Suggestion
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

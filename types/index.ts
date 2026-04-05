@@ -12,7 +12,7 @@ export type WordType =
   | 'particle'
   | 'proverb'   // Kalewenet
   | 'riddle'    // Tangoch
-  | 'saying';    // Ng’olyot
+  | 'saying';   // Ng’olyot
 
 export interface NandiWord {
   id: string;
@@ -21,6 +21,11 @@ export interface NandiWord {
   translation_en: string;
   is_verified: boolean;
   
+  /** * An array of Kalenjin dialects (e.g., ['Nandi', 'Kipsigis'])
+   * Added to support the multi-dialect nature of the Kutiit platform.
+   */
+  dialects?: string[]; 
+
   // Morphology
   singular_indefinite?: string;
   singular_definite?: string;

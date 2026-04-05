@@ -4,7 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Turnstile } from "@marsidev/react-turnstile"; 
 import { 
-  X, CheckCircle2, Loader2, BookOpen, HelpCircle, Zap, Languages, MessageSquareQuote, Sparkles, AlertCircle
+  X, CheckCircle2, Loader2, BookOpen, HelpCircle, Zap, Languages, MessageSquareQuote, Sparkles, AlertCircle, MapPin, Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+
+const DIALECTS = [
+  "Nandi", "Kipsigis", "Keiyo", "Tugen", "Marakwet", 
+  "Pokot", "Sabaot", "Terik", "Sabiny", "Sebei"
+];
 
 export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, onSuccess }: any) {
   const [saving, setSaving] = useState(false);
@@ -27,6 +33,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
   const [form, setForm] = useState<any>({
     entry_name: initialSearch || "",
     word_type: "noun",
+    dialects: ["Nandi"], 
     translation_en: "",
     singular_indefinite: "",
     singular_definite: "",
@@ -43,6 +50,20 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleDialectChange = (dialect: string) => {
+    const current = form.dialects || [];
+    const updated = current.includes(dialect)
+      ? current.filter((d: string) => d !== dialect)
+      : [...current, dialect];
+    setForm({ ...form, dialects: updated });
+  };
+
+  const toggleUniversal = (checked: boolean) => {
+    // If checking, select all. If unchecking, clear all.
+    setForm({ ...form, dialects: checked ? [...DIALECTS] : [] });
+  };
+
+  const isUniversal = form.dialects.length === DIALECTS.length;
   const isProverbOrSaying = ["proverb", "saying"].includes(form.word_type);
   const isRiddle = form.word_type === "riddle";
   const isNoun = form.word_type === "noun";
@@ -50,6 +71,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
 
   const isFormValid = () => {
     if (!form.entry_name.trim()) return false;
+    if (form.dialects.length === 0) return false;
     if (isRiddle) return form.answer.trim().length > 0 && turnstileToken !== null;
     return form.translation_en.trim().length > 0 && turnstileToken !== null;
   };
@@ -77,9 +99,8 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
         onOpenChange(false);
         setSubmitted(false);
         setTurnstileToken(null);
-        // Router push removed as requested
         setForm({ 
-          entry_name: "", word_type: "noun", translation_en: "", 
+          entry_name: "", word_type: "noun", dialects: [], translation_en: "", 
           singular_indefinite: "", singular_definite: "", 
           plural_indefinite: "", plural_definite: "", 
           imperative: "", answer: "", examples: "", notes: "", is_verified: false 
@@ -275,9 +296,46 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                   name="notes" 
                   value={form.notes} 
                   onChange={handleInputChange} 
-                  placeholder="is it dialect specific? any cultural context? related words? variations?" 
+                  placeholder="any context? related words? variations?" 
                   className="min-h-[100px] bg-slate-100/30 border-none rounded-2xl p-5 text-base italic shadow-inner focus-visible:ring-emerald-500 focus:bg-white" 
                 />
+              </div>
+
+              {/* DIALECT SELECTION - MOVED TO BOTTOM */}
+              <div className="space-y-4 pt-4 border-t border-slate-50">
+                <div className="flex items-center justify-between ml-2">
+                  <label className="text-[11px] font-black text-blue-600 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <MapPin size={14} /> Applicable Dialects
+                  </label>
+                  
+                  <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 cursor-pointer" onClick={() => toggleUniversal(!isUniversal)}>
+                     <Checkbox 
+                        id="universal" 
+                        checked={isUniversal}
+                        onCheckedChange={toggleUniversal}
+                        className="border-blue-400 data-[state=checked]:bg-blue-600"
+                      />
+                      <label htmlFor="universal" className="text-[10px] font-black text-blue-700 uppercase tracking-wider cursor-pointer flex items-center gap-1">
+                        <Globe size={12} /> Universal
+                      </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-6 bg-blue-50/30 rounded-[2rem] border-2 border-blue-100/50">
+                  {DIALECTS.map((dialect) => (
+                    <div key={dialect} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={dialect} 
+                        checked={form.dialects.includes(dialect)}
+                        onCheckedChange={() => handleDialectChange(dialect)}
+                        className="border-blue-300 data-[state=checked]:bg-blue-600"
+                      />
+                      <label htmlFor={dialect} className="text-xs font-bold text-slate-700 cursor-pointer select-none">
+                        {dialect}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="flex justify-center py-2">
@@ -309,7 +367,9 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                     <AlertCircle size={12} /> 
                     {!turnstileToken 
                       ? "Human verification required" 
-                      : `Missing ${isRiddle ? "Walutiet" : "Translation"}`
+                      : form.dialects.length === 0 
+                        ? "Select at least one dialect"
+                        : `Missing ${isRiddle ? "Walutiet" : "Translation"}`
                     }
                   </p>
                 )}
