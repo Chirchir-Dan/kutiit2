@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"; 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowRight, GraduationCap, Sparkles } from "lucide-react";
+import { Search, Plus, Heart, GraduationCap, ArrowRight, Mail, Database } from "lucide-react";
 import { ContactModal } from "@/components/shared/ContactModal";
 import { SupportModal } from "@/components/shared/SupportModal";
+import SuggestWordModal from "@/components/shared/SuggestWordModal";
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
@@ -16,62 +16,109 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-start px-4 md:px-6 text-center max-w-5xl mx-auto space-y-8 md:space-y-12 pt-10 md:pt-10 pb-10 overflow-x-hidden">
+    /* px-4 for mobile, px-6 for desktop. space-y controlled for mobile flow */
+    <div className="flex-1 flex flex-col items-center justify-start px-4 md:px-6 text-center max-w-5xl mx-auto space-y-10 md:space-y-20 pt-8 pb-20 overflow-x-hidden">
       
-      {/* HERO SECTION */}
-      <div className="space-y-4 md:space-y-6 w-full">
-        <div className="flex justify-center mb-2">
-          <Badge variant="outline" className=" border-emerald-200 bg-emerald-50 text-emerald-600 px-3 md:px-4 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-[0.15em] md:tracking-[0.2em] whitespace-nowrap">
-            Digital Language Preservation
-          </Badge>
+      {/* 1. HERO - FLUID TYPOGRAPHY */}
+      <div className="space-y-6 w-full px-2">
+        <div className="space-y-2">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tight leading-[0.9]">
+            <span className="pb-5 text-emerald-600">Kalenjin</span>
+            <span className=" pt-5 text-slate-900"> Dictionary</span>
+          </h1>
+          <p className="text-[10px] sm:text-xs md:text-lg text-emerald-600 font-bold uppercase tracking-[0.2em]">
+            Kalenjin to English Translation Resource
+          </p>
         </div>
         
-        <h1 className="pt-10 text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9] md:leading-[0.85] break-words">
-          <span className="text-emerald-600">Kalenjin</span>
-        </h1>
-        
-        <p className="text-sm sm:text-base md:text-2xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed px-2">
-          The open digital infrastructure for the Kalenjin community across the world. 
-        </p>
+        <div className="max-w-2xl mx-auto text-slate-900">
+          <p className="text-sm sm:text-base md:text-lg font-medium text-slate-600 leading-relaxed">
+            Kutiit is a comprehensive database for Kalenjin words, phrases, riddles and proverbs. 
+            Search the resource below, if a term is missing, use the <strong className="text-emerald-600">Add</strong> button 
+            beside the search bar in the dictionary to contribute.
+          </p>
+        </div>
+
+        {/* 2. CORE ACTIONS - STACK ON MOBILE */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <Button asChild className="bg-slate-900 hover:bg-black text-white px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-xl w-full sm:w-auto">
+            <Link href="/dictionary" className="flex items-center justify-center">
+              <Search className="mr-2 h-4 w-4" /> Search Database
+            </Link>
+          </Button>
+
+          {mounted && (
+            <SuggestWordModal>
+              <Button variant="outline" className="border-2 border-slate-200 hover:bg-slate-50 text-slate-900 px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest w-full sm:w-auto">
+                <Plus className="mr-2 h-4 w-4 text-emerald-600" /> Add
+              </Button>
+            </SuggestWordModal>
+          )}
+        </div>
       </div>
 
-      {/* PRIMARY CTA */}
-      <Button asChild size="lg" className="bg-slate-900 hover:bg-black text-white px-6 md:px-10 h-14 md:h-16 rounded-2xl font-bold uppercase text-[10px] md:text-xs tracking-widest shadow-2xl transition-all hover:scale-105 active:scale-95 w-full sm:w-auto shrink-0">
-        <Link href="/dictionary" className="flex items-center justify-center">
-          Explore Dictionary <ArrowRight className="ml-2 h-4 w-4 shrink-0" />
-        </Link>
-      </Button>
+      {/* 3. DOCUMENTATION - CENTERED & COMPACT */}
+      <section className="w-full py-10 border-t border-slate-100 max-w-4xl mx-auto flex flex-col items-center text-center px-2">
+        <div className="space-y-4 max-w-2xl">
+          <h3 className="text-base sm:text-xl font-black uppercase tracking-tight text-slate-900 flex items-center justify-center gap-2">
+            <Database size={16} className="text-emerald-600" /> Professional Documentation
+          </h3>
+          <p className="text-xs sm:text-base text-slate-600 font-medium leading-relaxed">
+            This database serves as a primary reference point for documenting Kalenjin terminology. 
+            We maintain a verified record of linguistic expression to support daily communication 
+            and academic research.
+          </p>
+          {mounted && (
+            <ContactModal>
+              <button className="inline-flex items-center gap-2 text-emerald-600 font-bold text-[10px] sm:text-sm hover:underline underline-offset-4 uppercase tracking-wide">
+                <Mail size={12} /> Contact for collaborations
+              </button>
+            </ContactModal>
+          )}
+        </div>
+      </section>
 
-      {/* PROMO CARD */}
-      <div className="w-full mt-4 md:mt-8 bg-emerald-600 rounded-[1.5rem] md:rounded-[3rem] p-6 md:p-12 text-white text-left flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 shadow-2xl shadow-emerald-200 relative overflow-hidden shrink-0">
-        <Sparkles className="absolute -right-4 -top-4 text-emerald-500 w-20 h-20 md:w-32 md:h-32 opacity-20 pointer-events-none" />
-        
-        <div className="space-y-3 md:space-y-4 max-w-xl z-10 text-center md:text-left">
-          <div className="flex items-center justify-center md:justify-start gap-2 text-white uppercase text-[8px] md:text-[10px] font-black tracking-widest">
-            <GraduationCap size={14} className="md:size-4" /> Now Offering Lessons
+      {/* 4. LESSONS PROMO - FULL WIDTH ON MOBILE */}
+      <div data-nosnippet className="w-full bg-slate-900 rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-12 text-white text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
+        <div className="space-y-3 flex flex-col items-center md:items-start">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full uppercase text-[9px] font-black tracking-widest">
+            <GraduationCap size={12} /> Education
           </div>
-          <h2 className="text-xl sm:text-2xl md:text-4xl font-black uppercase tracking-tight leading-tight">Master the Language</h2>
-          <p className="text-white font-medium text-xs md:text-sm">Join our structured classes for grammar and tonal accuracy.</p>
+          <h3 className="text-xl sm:text-3xl font-black uppercase tracking-tight">Master the Language</h3>
+          <p className="text-slate-400 font-medium text-xs sm:text-base max-w-sm">
+            Structured classes focusing on grammar, pronunciation, and tonal accuracy.
+          </p>
         </div>
         
         {mounted && (
           <ContactModal>
-            <Button className="bg-white text-emerald-800 hover:text-white hover:bg-emerald-900 h-12 md:h-14 px-6 md:px-8 rounded-xl font-black uppercase text-[10px] md:text-xs tracking-widest z-10 shrink-0 shadow-lg cursor-pointer w-full md:w-auto">
-              Inquire Now
+            <Button className="bg-emerald-600 hover:bg-emerald-500 text-white py-6 md:h-14 px-10 rounded-xl font-bold uppercase text-[10px] tracking-widest shrink-0 shadow-lg w-full md:w-auto">
+              Inquire Now <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </ContactModal>
         )}
       </div>
 
-      {/* SUPPORT SECTION */}
-       {mounted && (
-        <div className="pt-4 shrink-0">
+      {/* 5. SUPPORT - THE "COINS" SECTION (Mobile Optimized) */}
+      {mounted && (
+        <div className="w-full max-w-xl mx-auto p-6 sm:p-10 rounded-[1.5rem] md:rounded-[2rem] border-2 border-dotted border-amber-200 bg-amber-50/30 flex flex-col items-center gap-5">
+          <div className="text-center space-y-1">
+            <h4 className="text-slate-900 font-black text-[10px] sm:text-xs uppercase tracking-[0.2em]">Support the Project</h4>
+            <p className="text-[9px] sm:text-[10px] text-emerald-600 font-bold uppercase tracking-tight">
+              Help keep the database free
+            </p>
+          </div>
+          
           <SupportModal>
-            <button className="flex items-center gap-2 px-6 py-3 bg-[#FFDD00] hover:bg-black hover:text-white text-black rounded-full font-black uppercase text-[10px] tracking-widest transition-all shadow-md group">
-              <span className="group-hover:animate-bounce">☕</span>
-              Support Project
+            <button className="flex items-center justify-center gap-2 px-8 py-4 bg-[#FFDD00] hover:bg-black hover:text-white text-black rounded-xl font-black uppercase text-[10px] tracking-widest transition-all shadow-md active:scale-95 group w-full sm:w-auto">
+              <Heart className="w-4 h-4 group-hover:fill-red-500 group-hover:text-red-500 transition-colors" />
+              Drop some coins
             </button>
           </SupportModal>
+          
+          <p className="text-[10px] sm:text-xs text-slate-500 max-w-xs leading-relaxed font-medium italic">
+            "If you find value in this resource, consider dropping some coins to help us cover server costs and keep the database free for everyone."
+          </p>
         </div>
       )} 
       

@@ -7,7 +7,7 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: {
-    default: "Kutiit | Digital Kalenjin Dictionary & Nandi Language Resource",
+    default: "Kutiit | The Universal Kalenjin Dictionary",
     template: "%s | Kutiit"
   },
   description: "The premier open-source digital platform for the Kalenjin languages. Explore our comprehensive dictionary, proverbs, and cultural resources for Nandi, Kipsigis, Marakwet, Keiyo, Pokot, Tugen, Sabaot, and Terik.",
