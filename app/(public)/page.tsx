@@ -43,7 +43,7 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <Button asChild className="bg-slate-900 hover:bg-black text-white px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-xl w-full sm:w-auto">
             <Link href="/dictionary" className="flex items-center justify-center">
-              <Search className="mr-2 h-4 w-4" /> Search Database
+              <Search className="mr-2 h-4 w-4" /> Search Dictionary
             </Link>
           </Button>
 
