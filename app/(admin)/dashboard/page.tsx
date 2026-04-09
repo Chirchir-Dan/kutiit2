@@ -285,7 +285,7 @@ export default function AdminDashboard() {
   // ... handleAddNew, handleSave, handleApprove/Reject logic remains same ...
   const handleAddNew = () => {
     const newEntry = { 
-      entry_name: "", word_type: "noun", dialects: ["Nandi"], translation_en: "", 
+      entry_name: "", word_type: "noun", dialects: [""], translation_en: "", 
       examples: "", notes: "", imperative: "", answer: "",
       singular_indefinite: "", singular_definite: "",
       plural_indefinite: "", plural_definite: "", is_verified: true

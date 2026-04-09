@@ -33,7 +33,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
   const [form, setForm] = useState<any>({
     entry_name: initialSearch || "",
     word_type: "noun",
-    dialects: ["Nandi"], 
+    dialects: [""], 
     translation_en: "",
     singular_indefinite: "",
     singular_definite: "",
@@ -202,12 +202,18 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
 
               <div className="space-y-3">
                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
-                  {isRiddle ? "Tangoch" : isProverbOrSaying ? "Proverb/Saying" : "Kalenjin Word"}
+                  {isRiddle ? "Tangoch" : isProverbOrSaying ? "Proverb/Saying" : "Word"}
                 </label>
                 <Input 
                   name="entry_name" 
                   value={form.entry_name} 
-                  placeholder="e.g teta or Ke-labat"
+                  placeholder={
+                  isNoun? "e.g. Teta" :
+                   isVerb ? "e.g. Cham" :
+                  isRiddle ? "kirginyuu kipkelenye tulwo?" :
+                  isProverbOrSaying ? "e.g. Proverb/Saying" :
+                   ""
+                }
                   onChange={handleInputChange} 
                   className="h-14 bg-slate-50/50 border-2 border-slate-100 rounded-2xl text-lg focus-visible:ring-emerald-500 focus:bg-white shadow-none font-bold" 
                 />
@@ -234,7 +240,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                     </label>
                     <Input 
                       name="translation_en" 
-                      placeholder={isProverbOrSaying ? "What does it mean?" : "e.g cow or to run"}
+                      placeholder={isProverbOrSaying ? "What does it mean?" : (isVerb ? "e.g To love" : isNoun?"e.g Cow":"")}
                       value={form.translation_en} 
                       onChange={handleInputChange} 
                       className="h-14 bg-slate-50/50 border-2 border-slate-100 rounded-2xl focus-visible:ring-emerald-500 focus:bg-white font-bold" 
@@ -272,7 +278,6 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                   <Input name="imperative" placeholder="e.g. Cham!" value={form.imperative} onChange={handleInputChange} className="h-14 bg-white border-none rounded-xl font-bold text-emerald-900" />
                 </div>
               )}
-
               {!isProverbOrSaying && !isRiddle && (
                 <div className="space-y-3">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 ml-2">
