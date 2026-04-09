@@ -77,13 +77,13 @@ const EditorFields = ({
       <div className={`grid grid-cols-1 ${isRiddle ? "" : "md:grid-cols-2"} gap-6`}>
         <div className="space-y-2">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-            {isRiddle ? "Riddle Text (Tangoch)" : isProverbOrSaying ? "Kalenjin Text" : "Kalenjin Entry"}
+            {isRiddle ? "Tangoch" : isProverbOrSaying ? "saying/proverb" : " word"}
           </label>
           <Input 
             name="entry_name" 
             value={editForm?.entry_name || ""} 
             onChange={handleInputChange} 
-            placeholder={isRiddle ? "e.g., Aing'un amun..." : "Enter word..."}
+            placeholder={isRiddle ? "e.g., Kirginyuu kipkeleny tulwo" : "Enter word..."}
             className="h-12 bg-white border-slate-200 rounded-xl font-bold" 
           />
         </div>
@@ -91,7 +91,7 @@ const EditorFields = ({
         {!isRiddle && (
           <div className="space-y-2 animate-in fade-in">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-              {editForm?.word_type === 'saying' ? "Meaning" : isProverbOrSaying ? "Meaning" : "English Translation"}
+              {editForm?.word_type === 'saying' ? "Meaning" : isProverbOrSaying ? "Meaning" : "Translation"}
             </label>
             <Input 
               name="translation_en" 
@@ -115,22 +115,49 @@ const EditorFields = ({
 
       {isNoun && (
         <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100 animate-in fade-in">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b pb-1">Singular</p>
-              <div className="flex gap-2">
-                <Input name="singular_indefinite" placeholder="tany" value={editForm?.singular_indefinite || ""} onChange={handleInputChange} className="bg-white" />
-                <Input name="singular_definite" placeholder="teta" value={editForm?.singular_definite || ""} onChange={handleInputChange} className="bg-white" />
-              </div>
-            </div>
-            <div className="space-y-3">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b pb-1">Plural</p>
-              <div className="flex gap-2">
-                <Input name="plural_indefinite" placeholder="tich" value={editForm?.plural_indefinite || ""} onChange={handleInputChange} className="bg-white" />
-                <Input name="plural_definite" placeholder="tuga" value={editForm?.plural_definite || ""} onChange={handleInputChange} className="bg-white" />
-              </div>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> 
+          {/* Singular Section */}
+          <div className="space-y-3">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b pb-1">Singular</p>
+            <div className="flex gap-2">
+              <Input 
+                name="singular_indefinite" 
+                placeholder="tany" 
+                value={editForm?.singular_indefinite || ""} 
+                onChange={handleInputChange} 
+                className="bg-white flex-1 w-full" 
+              />
+              <Input 
+                name="singular_definite" 
+                placeholder="teta" 
+                value={editForm?.singular_definite || ""} 
+                onChange={handleInputChange} 
+                className="bg-white flex-1 w-full" 
+              />
             </div>
           </div>
+
+          {/* Plural Section */}
+          <div className="space-y-3">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b pb-1">Plural</p>
+            <div className="flex gap-2">
+              <Input 
+                name="plural_indefinite" 
+                placeholder="tich" 
+                value={editForm?.plural_indefinite || ""} 
+                onChange={handleInputChange} 
+                className="bg-white flex-1 w-full"  
+              />
+              <Input 
+                name="plural_definite" 
+                placeholder="tuga" 
+                value={editForm?.plural_definite || ""} 
+                onChange={handleInputChange} 
+                className="bg-white flex-1 w-full" 
+              />
+            </div>
+          </div>
+        </div>
         </div>
       )}
 
