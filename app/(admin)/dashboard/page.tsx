@@ -63,6 +63,8 @@ const EditorFields = ({
             <option value="preposition">Preposition</option>
             <option value="conjunction">Conjunction</option>
             <option value="interjection">Interjection</option>
+            <option value="expression">Expression</option>
+            <option value="number">Number</option>
             <option value="particle">Particle</option>
           </optgroup>
           <optgroup label="Traditional Literature">
