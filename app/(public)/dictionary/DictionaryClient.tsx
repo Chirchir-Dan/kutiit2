@@ -32,7 +32,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
         "plural_indefinite",
         "plural_definite"
       ],
-      threshold: 0.35,
+      threshold: 0.37,
       distance: 100,
     });
   }, [words]);
