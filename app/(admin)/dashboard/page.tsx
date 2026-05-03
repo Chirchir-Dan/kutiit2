@@ -354,7 +354,7 @@ export default function AdminDashboard() {
         "plural_indefinite",
         "plural_definite"
       ],
-      threshold: 0.35,
+      threshold: 0.5,
       distance: 100,
     });
   }, [view, words, suggestions]);
