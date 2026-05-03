@@ -193,7 +193,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                     <optgroup label="Traditional Literature">
                       <option value="proverb">Kalewenet</option>
                       <option value="riddle">Tangoch</option>
-                      <option value="saying">Saying</option>
+                      <option value="saying">Saying</option>   
                     </optgroup>
                   </select>
                   <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">

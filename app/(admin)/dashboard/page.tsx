@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { 
@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import Fuse from "fuse.js"; 
 
 const DIALECTS = [
   "Nandi", "Kipsigis", "Keiyo", "Tugen", "Marakwet", 
@@ -284,7 +285,6 @@ export default function AdminDashboard() {
     });
   };
 
-  // ... handleAddNew, handleSave, handleApprove/Reject logic remains same ...
   const handleAddNew = () => {
     const newEntry = { 
       entry_name: "", word_type: "noun", dialects: [""], translation_en: "", 
@@ -338,10 +338,31 @@ export default function AdminDashboard() {
     }
   };
 
-  const filteredItems = (view === "words" ? words : suggestions).filter((w) => {
-    const s = searchQuery.toLowerCase();
-    return w.entry_name?.toLowerCase().includes(s) || w.translation_en?.toLowerCase().includes(s);
-  });
+  // FUZZY SEARCH SETUP
+  const fuse = useMemo(() => {
+    const list = view === "words" ? words : suggestions;
+    return new Fuse(list, {
+      keys: [
+        "entry_name", 
+        "translation_en", 
+        "answer", 
+        "notes", 
+        "examples",
+        "dialects",
+        "singular_indefinite",
+        "singular_definite",
+        "plural_indefinite",
+        "plural_definite"
+      ],
+      threshold: 0.35,
+      distance: 100,
+    });
+  }, [view, words, suggestions]);
+
+  const filteredItems = useMemo(() => {
+    if (!searchQuery.trim()) return view === "words" ? words : suggestions;
+    return fuse.search(searchQuery).map(result => result.item);
+  }, [searchQuery, fuse, view, words, suggestions]);
 
   return (
     <div className="flex h-full">
