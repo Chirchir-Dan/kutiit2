@@ -11,7 +11,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import SuggestWordModal from "@/components/shared/SuggestWordModal";
 import Fuse from "fuse.js";
 
-// 🔥 NEW: Client-side cache for instant repeat searches
+// Client-side cache for instant repeat searches
 interface ClientCacheEntry {
   results: any[];
   timestamp: number;
@@ -50,10 +50,15 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
     });
   }, [words]);
 
-  // 🔥 NEW: Client-side search with cache
+  // 🔥 FIXED: Client-side search with cache
   const performClientSearch = useCallback((query: string) => {
+    // 🔥 FIX: If no query, show filtered words by type
     if (!query.trim()) {
-      setFilteredWords(words);
+      if (selectedType === "all") {
+        setFilteredWords(words);
+      } else {
+        setFilteredWords(words.filter(w => w.word_type === selectedType));
+      }
       return;
     }
 
@@ -88,7 +93,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
     setIsSearching(false);
   }, [words, fuse, selectedType]);
 
-  // 🔥 NEW: API search with cache
+  // API search with cache
   const performAPISearch = useCallback(async (query: string) => {
     const cacheKey = `api|${query}|${selectedType}`;
     
@@ -131,10 +136,15 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
     }
   }, [selectedType, performClientSearch]);
 
-  // 🔥 NEW: Smart search with debounce
+  // 🔥 FIXED: Smart search with debounce
   const performSearch = useCallback((query: string) => {
+    // 🔥 FIX: If no query, show filtered words by type
     if (!query.trim()) {
-      setFilteredWords(words);
+      if (selectedType === "all") {
+        setFilteredWords(words);
+      } else {
+        setFilteredWords(words.filter(w => w.word_type === selectedType));
+      }
       return;
     }
 
@@ -145,13 +155,12 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
     }
 
     // Use API search for longer queries (more accurate, with cache)
-    // Debounce: wait 500ms after typing stops before calling API
     const timer = setTimeout(() => {
       performAPISearch(query);
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [performClientSearch, performAPISearch, words]);
+  }, [performClientSearch, performAPISearch, words, selectedType]);
 
   // Update search when query or type changes
   useEffect(() => {
@@ -159,7 +168,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
     return cleanup;
   }, [searchQuery, selectedType, performSearch]);
 
-  // 🔥 NEW: Clear cache when needed (e.g., after adding a word)
+  // Clear cache when needed
   const clearSearchCache = useCallback(async () => {
     // Clear client cache
     Object.keys(clientSearchCache).forEach(key => delete clientSearchCache[key]);
@@ -174,7 +183,11 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
 
   const clearSearch = () => {
     setSearchQuery("");
-    setFilteredWords(words);
+    if (selectedType === "all") {
+      setFilteredWords(words);
+    } else {
+      setFilteredWords(words.filter(w => w.word_type === selectedType));
+    }
   };
 
   // ... (keep all the existing renderLingueeLine and WordDetailContent functions exactly as they are)
@@ -429,7 +442,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
         initialSearch={searchQuery} 
         onSuccess={() => {
           setIsSuggestionModalOpen(false);
-          clearSearchCache(); // Clear cache when a new word is added
+          clearSearchCache();
         }} 
       />
     </div>
