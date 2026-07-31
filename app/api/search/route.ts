@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { searchCache } from '@/lib/searchCache';
+import Fuse from 'fuse.js';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q')?.toLowerCase().trim();
     const type = searchParams.get('type') || 'all';
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = parseInt(searchParams.get('limit') || '100');
 
     if (!query) {
       return NextResponse.json(
@@ -16,12 +17,11 @@ export async function GET(request: Request) {
       );
     }
 
-    // 🔥 NEW: Check cache first
+    // Check cache first
     const cacheKey = `${query}|${type}|${limit}`;
     const cachedResult = searchCache.get(cacheKey);
 
     if (cachedResult) {
-      // Return cached results (no database hit!)
       return NextResponse.json({
         results: cachedResult.results,
         count: cachedResult.count,
@@ -30,27 +30,19 @@ export async function GET(request: Request) {
       });
     }
 
-    // If not in cache, query the database
     console.log('🔄 Database query for:', query);
 
-    // Build the query
+    // Fetch words from database
     let supabaseQuery = supabase
       .from('words')
-      .select('*')
-      .limit(limit);
+      .select('*');
 
     // Filter by type if specified
     if (type !== 'all') {
       supabaseQuery = supabaseQuery.eq('word_type', type);
     }
 
-    // Search in entry_name and translation_en using ILIKE
-    const { data, error } = await supabaseQuery
-      .or(
-        `entry_name.ilike.%${query}%,` +
-        `translation_en.ilike.%${query}%`
-      )
-      .order('entry_name', { ascending: true });
+    const { data, error } = await supabaseQuery.order('entry_name', { ascending: true });
 
     if (error) {
       console.error('Supabase search error:', error);
@@ -60,27 +52,51 @@ export async function GET(request: Request) {
       );
     }
 
-    // Filter results by translations array (for partial matches)
-    const filteredData = data?.filter(word => {
-      const entryMatch = word.entry_name?.toLowerCase().includes(query);
-      const translationEnMatch = word.translation_en?.toLowerCase().includes(query);
-      
-      let translationsMatch = false;
-      if (word.translations && Array.isArray(word.translations)) {
-        translationsMatch = word.translations.some(
-          (t: string) => t.toLowerCase().includes(query)
-        );
-      }
-      
-      return entryMatch || translationEnMatch || translationsMatch;
+    if (!data || data.length === 0) {
+      return NextResponse.json({
+        results: [],
+        count: 0,
+        query,
+        cached: false
+      });
+    }
+
+    // 🔥 Use Fuse.js for fuzzy search (same threshold as client: 0.37)
+    const fuse = new Fuse(data, {
+      keys: [
+        "entry_name",
+        "translation_en",
+        "translations",
+        "answer",
+        "notes",
+        "examples",
+        "dialects",
+        "singular_indefinite",
+        "singular_definite",
+        "plural_indefinite",
+        "plural_definite"
+      ],
+      threshold: 0.37, // Same as client-side
+      distance: 100,
+      includeScore: true,
+      shouldSort: true,
     });
 
-    // 🔥 NEW: Store results in cache for 5 minutes
-    searchCache.set(cacheKey, filteredData || [], filteredData?.length || 0);
+    // Perform fuzzy search
+    const fuseResults = fuse.search(query);
+    
+    // Extract items and limit results
+    const filteredData = fuseResults
+      .slice(0, limit)
+      .map(result => result.item);
+
+    // Store in cache
+    searchCache.set(cacheKey, filteredData, filteredData.length);
 
     return NextResponse.json({
-      results: filteredData || [],
-      count: filteredData?.length || 0,
+      results: filteredData,
+      count: filteredData.length,
+      totalMatches: fuseResults.length,
       query,
       cached: false
     });
