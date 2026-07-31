@@ -18,7 +18,8 @@ export interface NandiWord {
   id: string;
   entry_name: string; 
   word_type: WordType;
-  translation_en: string;
+  translation_en: string; // Keep for backward compatibility
+  translations: string[]; // New array to hold multiple translations
   is_verified: boolean;
   
   /** * An array of Kalenjin dialects (e.g., ['Nandi', 'Kipsigis'])

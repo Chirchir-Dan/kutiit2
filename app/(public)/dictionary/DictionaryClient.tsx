@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import Fuse from "fuse.js";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { 
   Search, ChevronRight, X, MessageSquareQuote, Quote, Frown, Languages, Plus 
 } from "lucide-react";
@@ -10,38 +9,175 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import SuggestWordModal from "@/components/shared/SuggestWordModal";
+import Fuse from "fuse.js";
+
+// 🔥 NEW: Client-side cache for instant repeat searches
+interface ClientCacheEntry {
+  results: any[];
+  timestamp: number;
+}
+
+const clientSearchCache: Record<string, ClientCacheEntry> = {};
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 export default function DictionaryClient({ initialWords }: { initialWords: any[] }) {
   const [words] = useState<any[]>(initialWords);
+  const [filteredWords, setFilteredWords] = useState<any[]>(initialWords);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedWord, setSelectedWord] = useState<any>(initialWords[0] || null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedType, setSelectedType] = useState<string>("all");
 
+  // Get unique word types for filter
+  const wordTypes = ["all", ...new Set(words.map(w => w.word_type).filter(Boolean))];
+
+  // Initialize Fuse.js for client-side search
   const fuse = useMemo(() => {
     return new Fuse(words, {
       keys: [
         "entry_name", 
         "translation_en", 
+        "translations",
         "answer", 
         "notes", 
         "examples",
-        "dialects",
-        "singular_indefinite",
-        "singular_definite",
-        "plural_indefinite",
-        "plural_definite"
+        "dialects"
       ],
       threshold: 0.37,
       distance: 100,
     });
   }, [words]);
 
-  const filteredWords = useMemo(() => {
-    if (!searchQuery.trim()) return words;
-    return fuse.search(searchQuery).map(result => result.item);
-  }, [searchQuery, fuse, words]);
+  // 🔥 NEW: Client-side search with cache
+  const performClientSearch = useCallback((query: string) => {
+    if (!query.trim()) {
+      setFilteredWords(words);
+      return;
+    }
 
+    setIsSearching(true);
+    
+    // Check client cache first
+    const cacheKey = `client|${query}|${selectedType}`;
+    const cached = clientSearchCache[cacheKey];
+    
+    if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+      console.log('✅ Client cache hit:', query);
+      setFilteredWords(cached.results);
+      setIsSearching(false);
+      return;
+    }
+
+    // Not in cache, perform search
+    let results = fuse.search(query).map(result => result.item);
+    
+    // Filter by type if needed
+    const filtered = selectedType === "all" 
+      ? results 
+      : results.filter(w => w.word_type === selectedType);
+    
+    // Store in client cache
+    clientSearchCache[cacheKey] = {
+      results: filtered,
+      timestamp: Date.now()
+    };
+    
+    setFilteredWords(filtered);
+    setIsSearching(false);
+  }, [words, fuse, selectedType]);
+
+  // 🔥 NEW: API search with cache
+  const performAPISearch = useCallback(async (query: string) => {
+    const cacheKey = `api|${query}|${selectedType}`;
+    
+    // Check client cache first
+    const cached = clientSearchCache[cacheKey];
+    if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+      console.log('✅ Client cache hit (API):', query);
+      setFilteredWords(cached.results);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const params = new URLSearchParams({
+        q: query.trim(),
+        type: selectedType,
+        limit: '100'
+      });
+      
+      const response = await fetch(`/api/search?${params.toString()}`);
+      const data = await response.json();
+      
+      if (data.results) {
+        // Store in client cache
+        clientSearchCache[cacheKey] = {
+          results: data.results,
+          timestamp: Date.now()
+        };
+        setFilteredWords(data.results);
+      } else {
+        setFilteredWords([]);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      // Fallback to client search if API fails
+      performClientSearch(query);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [selectedType, performClientSearch]);
+
+  // 🔥 NEW: Smart search with debounce
+  const performSearch = useCallback((query: string) => {
+    if (!query.trim()) {
+      setFilteredWords(words);
+      return;
+    }
+
+    // Use client search for short queries (fast, no DB hit)
+    if (query.length <= 3) {
+      performClientSearch(query);
+      return;
+    }
+
+    // Use API search for longer queries (more accurate, with cache)
+    // Debounce: wait 500ms after typing stops before calling API
+    const timer = setTimeout(() => {
+      performAPISearch(query);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [performClientSearch, performAPISearch, words]);
+
+  // Update search when query or type changes
+  useEffect(() => {
+    const cleanup = performSearch(searchQuery);
+    return cleanup;
+  }, [searchQuery, selectedType, performSearch]);
+
+  // 🔥 NEW: Clear cache when needed (e.g., after adding a word)
+  const clearSearchCache = useCallback(async () => {
+    // Clear client cache
+    Object.keys(clientSearchCache).forEach(key => delete clientSearchCache[key]);
+    // Clear server cache
+    try {
+      await fetch('/api/search/clear-cache', { method: 'POST' });
+      console.log('🗑️ Cache cleared');
+    } catch (error) {
+      console.error('Failed to clear cache:', error);
+    }
+  }, []);
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setFilteredWords(words);
+  };
+
+  // ... (keep all the existing renderLingueeLine and WordDetailContent functions exactly as they are)
   const renderLingueeLine = (line: string) => {
     if (!line.includes("-")) return <p className="mb-2 text-slate-700">{line}</p>;
     const [nandi, english] = line.split("-");
@@ -57,6 +193,8 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
     const isTraditional = ["proverb", "saying", "riddle"].includes(word.word_type);
     const isRiddle = word.word_type === "riddle";
     const hasNounForms = word.singular_indefinite || word.singular_definite || word.plural_indefinite || word.plural_definite;
+    
+    const translations = word.translations || (word.translation_en ? [word.translation_en] : []);
 
     return (
       <div className="max-w-3xl animate-in fade-in slide-in-from-right-4 duration-300 pb-32">
@@ -78,12 +216,19 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
         <div className="mb-10">
           {!isRiddle &&   
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                {isTraditional ? "Meaning" : "Translation"}
+                {isTraditional ? "Meaning" : "Translations"}
             </h4>
           }
-          <p className="text-2xl md:text-3xl text-slate-700 font-semibold leading-snug tracking-tight">
-            {word.translation_en}
-          </p>
+          <div className="space-y-1">
+            {translations.map((translation: string, index: number) => (
+              <p key={index} className="text-2xl md:text-3xl text-slate-700 font-semibold leading-snug tracking-tight">
+                {translation}
+                {index < translations.length - 1 && (
+                  <span className="text-slate-300 mx-2">•</span>
+                )}
+              </p>
+            ))}
+          </div>
         </div>
 
         {hasNounForms && (
@@ -149,7 +294,6 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
   return (
     <div className="flex flex-col md:flex-row flex-1 h-full bg-white font-sans overflow-hidden max-w-7xl mx-auto w-full border-x">
       <aside className="flex w-full md:w-80 lg:w-96 flex-col border-r bg-slate-50/30 shrink-0 h-full overflow-hidden relative">
-        {/* UPDATED HEADER: Search + Add word button side-by-side */}
         <div className="sticky top-0 p-4 bg-white border-b shrink-0 z-30">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -160,6 +304,11 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
               />
+              {isSearching && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-emerald-500 border-t-transparent"></div>
+                </div>
+              )}
             </div>
             <Button 
               onClick={() => setIsSuggestionModalOpen(true)}
@@ -171,33 +320,65 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
               ADD
             </Button>
           </div>
+          
+          {/* Type Filter */}
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            <div className="flex flex-wrap gap-1.5 flex-1">
+              {wordTypes.map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setSelectedType(type)}
+                  className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all ${
+                    selectedType === type
+                      ? "bg-emerald-600 text-white"
+                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  }`}
+                >
+                  {type === "all" ? "All" : type}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* 2. SCROLLABLE CONTENT - Removed pb-24 padding as the footer button is gone */}
         <div className="flex-1 overflow-y-auto bg-white custom-scrollbar">
           {filteredWords.length > 0 ? (
-            filteredWords.map((word) => (
-              <button 
-                key={word.id} 
-                onClick={() => { setSelectedWord(word); if (window.innerWidth < 768) setIsModalOpen(true); }} 
-                className={`w-full text-left p-6 border-b transition-all flex justify-between items-center group ${selectedWord?.id === word.id ? "bg-white border-l-4 border-l-emerald-500 shadow-sm" : "hover:bg-slate-50 border-l-4 border-l-transparent"}`}
-              >
-                <div className="min-w-0 pr-2">
-                  <div className="font-black text-slate-900 uppercase text-sm tracking-tight truncate">{word.entry_name}</div>
-                  <div className="text-xs text-slate-400 italic truncate mt-1">
-                    {word.word_type === 'riddle' ? word.answer : word.translation_en}
+            filteredWords.map((word) => {
+              const sidebarTranslations = word.translations || (word.translation_en ? [word.translation_en] : []);
+              
+              return (
+                <button 
+                  key={word.id} 
+                  onClick={() => { setSelectedWord(word); if (window.innerWidth < 768) setIsModalOpen(true); }} 
+                  className={`w-full text-left p-6 border-b transition-all flex justify-between items-center group ${selectedWord?.id === word.id ? "bg-white border-l-4 border-l-emerald-500 shadow-sm" : "hover:bg-slate-50 border-l-4 border-l-transparent"}`}
+                >
+                  <div className="min-w-0 pr-2">
+                    <div className="font-black text-slate-900 uppercase text-sm tracking-tight truncate">{word.entry_name}</div>
+                    <div className="text-xs text-slate-400 italic truncate mt-1">
+                      {word.word_type === 'riddle' 
+                        ? word.answer 
+                        : sidebarTranslations.join(', ')
+                      }
+                    </div>
                   </div>
-                </div>
-                <ChevronRight size={16} className={selectedWord?.id === word.id ? "text-emerald-500" : "text-slate-200"} />
-              </button>
-            ))
+                  <ChevronRight size={16} className={selectedWord?.id === word.id ? "text-emerald-500" : "text-slate-200"} />
+                </button>
+              );
+            })
           ) : searchQuery.length > 0 ? (
             <div className="p-10 text-center">
               <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Frown size={32} />
               </div>
               <h3 className="text-lg font-black uppercase text-slate-900">Not found</h3>
-              <p className="text-sm text-slate-500 mt-2">You can use the "ADD" button to add a new word.</p>
+              <p className="text-sm text-slate-500 mt-2">No words match your search.</p>
+              <Button 
+                onClick={clearSearch}
+                variant="ghost"
+                className="mt-4 text-emerald-600 font-bold text-sm"
+              >
+                Clear search
+              </Button>
             </div>
           ) : (
             <div className="p-12 text-center opacity-10">
@@ -242,7 +423,15 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
         </DialogContent>
       </Dialog>
 
-      <SuggestWordModal isOpen={isSuggestionModalOpen} onOpenChange={setIsSuggestionModalOpen} initialSearch={searchQuery} onSuccess={() => setIsSuggestionModalOpen(false)} />
+      <SuggestWordModal 
+        isOpen={isSuggestionModalOpen} 
+        onOpenChange={setIsSuggestionModalOpen} 
+        initialSearch={searchQuery} 
+        onSuccess={() => {
+          setIsSuggestionModalOpen(false);
+          clearSearchCache(); // Clear cache when a new word is added
+        }} 
+      />
     </div>
   );
 }

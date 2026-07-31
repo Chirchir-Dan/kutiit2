@@ -4,7 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Turnstile } from "@marsidev/react-turnstile"; 
 import { 
-  X, CheckCircle2, Loader2, BookOpen, HelpCircle, Zap, Languages, MessageSquareQuote, Sparkles, AlertCircle, MapPin, Globe
+  X, CheckCircle2, Loader2, BookOpen, HelpCircle, Zap, Languages, MessageSquareQuote, Sparkles, AlertCircle, MapPin, Globe, Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,9 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
     entry_name: initialSearch || "",
     word_type: "noun",
     dialects: [""], 
-    translation_en: "",
+    translations: [], // 🔥 NEW: Array for multiple translations
+    translation_input: "", // 🔥 NEW: Temporary input field
+    translation_en: "", // Keep for backward compatibility
     singular_indefinite: "",
     singular_definite: "",
     plural_indefinite: "",
@@ -50,6 +52,33 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // 🔥 NEW: Translation handlers
+  const handleAddTranslation = () => {
+    if (!form.translation_input?.trim()) return;
+    const newTranslation = form.translation_input.trim();
+    if (!form.translations.includes(newTranslation)) {
+      setForm({
+        ...form,
+        translations: [...form.translations, newTranslation],
+        translation_input: ""
+      });
+    }
+  };
+
+  const handleRemoveTranslation = (index: number) => {
+    setForm({
+      ...form,
+      translations: form.translations.filter((_: any, i: number) => i !== index)
+    });
+  };
+
+  const handleTranslationKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddTranslation();
+    }
+  };
+
   const handleDialectChange = (dialect: string) => {
     const current = form.dialects || [];
     const updated = current.includes(dialect)
@@ -59,7 +88,6 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
   };
 
   const toggleUniversal = (checked: boolean) => {
-    // If checking, select all. If unchecking, clear all.
     setForm({ ...form, dialects: checked ? [...DIALECTS] : [] });
   };
 
@@ -73,7 +101,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
     if (!form.entry_name.trim()) return false;
     if (form.dialects.length === 0) return false;
     if (isRiddle) return form.answer.trim().length > 0 && turnstileToken !== null;
-    return form.translation_en.trim().length > 0 && turnstileToken !== null;
+    return form.translations.length > 0 && turnstileToken !== null; // 🔥 CHANGED: Check translations array
   };
 
   const handleSubmit = async () => {
@@ -89,7 +117,15 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
     if (!turnstileToken) return;
 
     setSaving(true);
-    const { error } = await supabase.from("suggestions").insert([form]);
+    
+    // 🔥 NEW: Prepare data for submission
+    const submitData = {
+      ...form,
+      translation_en: form.translations[0] || "", // Keep first translation for backward compatibility
+      translation_input: undefined, // Remove temporary field
+    };
+    
+    const { error } = await supabase.from("suggestions").insert([submitData]);
 
     if (!error) {
       if (onSuccess) onSuccess();
@@ -100,7 +136,9 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
         setSubmitted(false);
         setTurnstileToken(null);
         setForm({ 
-          entry_name: "", word_type: "noun", dialects: [], translation_en: "", 
+          entry_name: "", word_type: "noun", dialects: [], 
+          translations: [], translation_input: "", // 🔥 NEW: Reset translations
+          translation_en: "", 
           singular_indefinite: "", singular_definite: "", 
           plural_indefinite: "", plural_definite: "", 
           imperative: "", answer: "", examples: "", notes: "", is_verified: false 
@@ -236,17 +274,57 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                     />
                   </div>
                 ) : (
+                  // 🔥 CHANGED: Multiple translations input
                   <div className="space-y-3">
                     <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
-                      {isProverbOrSaying ? "Meaning" : "Translation"}
+                      {isProverbOrSaying ? "Meaning" : "Translations"}
                     </label>
-                    <Input 
-                      name="translation_en" 
-                      placeholder={isProverbOrSaying ? "What does it mean?" : (isVerb ? "e.g To love" : isNoun?"e.g Cow":"")}
-                      value={form.translation_en} 
-                      onChange={handleInputChange} 
-                      className="h-14 bg-slate-50/50 border-2 border-slate-100 rounded-2xl focus-visible:ring-emerald-500 focus:bg-white font-bold" 
-                    />
+                    
+                    {/* Translation Input with Enter key support */}
+                    <div className="flex gap-2">
+                      <Input 
+                        name="translation_input"
+                        placeholder={isProverbOrSaying ? "What does it mean? (press Enter)" : (isVerb ? "e.g To love" : isNoun?"e.g Cow":"Type translation and press Enter")}
+                        value={form.translation_input} 
+                        onChange={handleInputChange}
+                        onKeyDown={handleTranslationKeyDown}
+                        className="h-14 bg-slate-50/50 border-2 border-slate-100 rounded-2xl focus-visible:ring-emerald-500 focus:bg-white font-bold flex-1" 
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleAddTranslation}
+                        variant="outline"
+                        className="h-14 px-6 rounded-2xl border-2 border-slate-200 hover:border-emerald-400 hover:bg-emerald-50"
+                        disabled={!form.translation_input?.trim()}
+                      >
+                        <Plus size={18} />
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-slate-400 ml-2">Press Enter to add multiple translations</p>
+
+                    {/* Translation Tags */}
+                    {form.translations.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3 p-4 bg-slate-50/80 rounded-2xl border-2 border-slate-100 min-h-[60px]">
+                        {form.translations.map((translation: string, index: number) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center gap-1 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl text-sm font-bold"
+                          >
+                            {translation}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTranslation(index)}
+                              className="ml-1 hover:text-red-500 transition-colors"
+                            >
+                              <X size={14} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {form.translations.length === 0 && (
+                      <p className="text-sm text-slate-400 mt-1 ml-2">No translations added yet</p>
+                    )}
                   </div>
                 )}
               </div>

@@ -19,7 +19,13 @@ import {
 } from "@/components/ui/dialog";
 
 // 1. DYNAMIC FORM COMPONENT
-const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleInputChange: any }) => {
+const EditorFields = ({ editForm, handleInputChange, handleAddTranslation, handleRemoveTranslation, handleTranslationKeyDown }: { 
+  editForm: any, 
+  handleInputChange: any,
+  handleAddTranslation: any,
+  handleRemoveTranslation: any,
+  handleTranslationKeyDown: any
+}) => {
   const isLongForm = ["proverb", "saying", "tangoch"].includes(editForm?.word_type);
   const isNoun = editForm?.word_type === "noun";
   const isVerb = editForm?.word_type === "verb";
@@ -58,14 +64,54 @@ const EditorFields = ({ editForm, handleInputChange }: { editForm: any, handleIn
         </div>
         <div className="space-y-2">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-            {isLongForm ? "Meaning" : "Translation"}
+            {isLongForm ? "Meaning" : "Translations"}
           </label>
-          <Input 
-            name="translation_en" 
-            value={editForm?.translation_en || ""} 
-            onChange={handleInputChange} 
-            className="h-12 bg-white border-slate-200 rounded-xl" 
-          />
+          {/* Multiple Translations Input */}
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input 
+                name="translation_input"
+                value={editForm?.translation_input || ""}
+                onChange={handleInputChange}
+                onKeyDown={handleTranslationKeyDown}
+                placeholder="Type translation and press Enter..."
+                className="h-12 bg-white border-slate-200 rounded-xl flex-1"
+              />
+              <Button
+                type="button"
+                onClick={handleAddTranslation}
+                variant="outline"
+                className="h-12 px-4 rounded-xl border-slate-200"
+              >
+                <Plus size={16} />
+              </Button>
+            </div>
+            <p className="text-[10px] text-slate-400 ml-1">Press Enter to add multiple translations</p>
+            
+            {/* Translation Tags */}
+            {editForm?.translations && editForm.translations.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2 p-3 bg-slate-50/80 rounded-xl border border-slate-100 min-h-[50px]">
+                {editForm.translations.map((translation: string, index: number) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium"
+                  >
+                    {translation}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTranslation(index)}
+                      className="ml-1 hover:text-red-500 transition-colors"
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {(!editForm?.translations || editForm.translations.length === 0) && (
+              <p className="text-xs text-slate-400 mt-1">No translations added yet</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -142,7 +188,14 @@ export default function AdminDashboard() {
       setWords(data); 
       if (data.length > 0 && !selectedWord) { 
         setSelectedWord(data[0]); 
-        setEditForm(data[0]); 
+        // Handle existing data - initialize translations array from translation_en
+        const wordData = data[0];
+        const translations = wordData.translations || (wordData.translation_en ? [wordData.translation_en] : []);
+        setEditForm({ 
+          ...wordData, 
+          translations: translations,
+          translation_input: "" 
+        }); 
       } 
     }
     setLoading(false);
@@ -155,14 +208,21 @@ export default function AdminDashboard() {
 
   const handleSelect = (word: any) => {
     setSelectedWord(word);
-    setEditForm({ ...word });
-    // Restore modal trigger for mobile
+    // Convert single translation to array if needed
+    const translations = word.translations || (word.translation_en ? [word.translation_en] : []);
+    setEditForm({ 
+      ...word, 
+      translations: translations,
+      translation_input: "" 
+    });
     if (window.innerWidth < 768) setIsModalOpen(true);
   };
 
   const handleAddNew = () => {
     setEditForm({ 
-      entry_name: "", word_type: "noun", translation_en: "", 
+      entry_name: "", word_type: "noun", 
+      translations: [], translation_input: "",
+      translation_en: "",
       examples: "", notes: "", imperative: "",
       singular_indefinite: "", singular_definite: "",
       plural_indefinite: "", plural_definite: ""
@@ -171,17 +231,62 @@ export default function AdminDashboard() {
     setIsModalOpen(true);
   };
 
+  // Translation handlers
+  const handleAddTranslation = () => {
+    if (!editForm?.translation_input?.trim()) return;
+    const newTranslation = editForm.translation_input.trim();
+    if (!editForm.translations.includes(newTranslation)) {
+      setEditForm({
+        ...editForm,
+        translations: [...editForm.translations, newTranslation],
+        translation_input: ""
+      });
+    }
+  };
+
+  const handleRemoveTranslation = (index: number) => {
+    setEditForm({
+      ...editForm,
+      translations: editForm.translations.filter((_: any, i: number) => i !== index)
+    });
+  };
+
+  const handleTranslationKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddTranslation();
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
+    
+    // Prepare data for saving
+    const saveData = { 
+      ...editForm, 
+      // Remove temporary field
+      translation_input: undefined,
+      // Set translation_en as the first translation (for backward compatibility)
+      translation_en: editForm.translations?.[0] || "",
+      // Store all translations as a JSON array
+      translations: editForm.translations || []
+    };
+    
     const { error } = editForm.id 
-      ? await supabase.from("words").update(editForm).eq("id", editForm.id)
-      : await supabase.from("words").insert([editForm]);
+      ? await supabase.from("words").update(saveData).eq("id", editForm.id)
+      : await supabase.from("words").insert([saveData]);
     
     if (!error) { 
       await fetchWords(); 
       setIsModalOpen(false); 
     }
     setSaving(false);
+  };
+
+  // Modified handleInputChange to handle the translation_input field
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setEditForm({ ...editForm, [name]: value });
   };
 
   const filteredWords = words.filter((w) => {
@@ -224,7 +329,9 @@ export default function AdminDashboard() {
                   {["proverb", "tangoch"].includes(word.word_type) && <Quote size={10} className="text-emerald-500" />}
                   {word.entry_name}
                 </div>
-                <div className="text-[10px] text-slate-400 italic truncate mt-0.5">{word.translation_en}</div>
+                <div className="text-[10px] text-slate-400 italic truncate mt-0.5">
+                  {word.translations ? word.translations.join(", ") : word.translation_en}
+                </div>
               </div>
               <ChevronRight size={14} className={selectedWord?.id === word.id ? "text-emerald-500" : "text-slate-200"} />
             </button>
@@ -243,7 +350,13 @@ export default function AdminDashboard() {
             </div>
             <div className="flex-1 overflow-y-auto p-10">
               <div className="max-w-2xl mx-auto">
-                <EditorFields editForm={editForm} handleInputChange={(e:any) => setEditForm({...editForm, [e.target.name]: e.target.value})} />
+                <EditorFields 
+                  editForm={editForm} 
+                  handleInputChange={handleInputChange}
+                  handleAddTranslation={handleAddTranslation}
+                  handleRemoveTranslation={handleRemoveTranslation}
+                  handleTranslationKeyDown={handleTranslationKeyDown}
+                />
               </div>
             </div>
           </>
@@ -262,7 +375,13 @@ export default function AdminDashboard() {
             </div>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto p-8 bg-white">
-            <EditorFields editForm={editForm} handleInputChange={(e:any) => setEditForm({...editForm, [e.target.name]: e.target.value})} />
+            <EditorFields 
+              editForm={editForm} 
+              handleInputChange={handleInputChange}
+              handleAddTranslation={handleAddTranslation}
+              handleRemoveTranslation={handleRemoveTranslation}
+              handleTranslationKeyDown={handleTranslationKeyDown}
+            />
           </div>
         </DialogContent>
       </Dialog>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { 
@@ -17,7 +17,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import Fuse from "fuse.js"; 
 
 const DIALECTS = [
   "Nandi", "Kipsigis", "Keiyo", "Tugen", "Marakwet", 
@@ -30,12 +29,18 @@ const EditorFields = ({
   editForm, 
   handleInputChange, 
   onDialectChange,
-  onToggleAllDialects 
+  onToggleAllDialects,
+  handleAddTranslation,
+  handleRemoveTranslation,
+  handleTranslationKeyDown
 }: { 
   editForm: any, 
   handleInputChange: any, 
   onDialectChange: any,
-  onToggleAllDialects: () => void 
+  onToggleAllDialects: () => void,
+  handleAddTranslation: any,
+  handleRemoveTranslation: any,
+  handleTranslationKeyDown: any
 }) => {
   const isProverbOrSaying = ["proverb", "saying"].includes(editForm?.word_type);
   const isRiddle = editForm?.word_type === "riddle";
@@ -94,14 +99,54 @@ const EditorFields = ({
         {!isRiddle && (
           <div className="space-y-2 animate-in fade-in">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-              {editForm?.word_type === 'saying' ? "Meaning" : isProverbOrSaying ? "Meaning" : "Translation"}
+              {editForm?.word_type === 'saying' ? "Meaning" : isProverbOrSaying ? "Meaning" : "Translations"}
             </label>
-            <Input 
-              name="translation_en" 
-              value={editForm?.translation_en || ""} 
-              onChange={handleInputChange} 
-              className="h-12 bg-white border-slate-200 rounded-xl" 
-            />
+            {/* Multiple Translations Input */}
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input 
+                  name="translation_input"
+                  value={editForm?.translation_input || ""}
+                  onChange={handleInputChange}
+                  onKeyDown={handleTranslationKeyDown}
+                  placeholder="Type translation and press Enter..."
+                  className="h-12 bg-white border-slate-200 rounded-xl flex-1"
+                />
+                <Button
+                  type="button"
+                  onClick={handleAddTranslation}
+                  variant="outline"
+                  className="h-12 px-4 rounded-xl border-slate-200"
+                >
+                  <Plus size={16} />
+                </Button>
+              </div>
+              <p className="text-[10px] text-slate-400 ml-1">Press Enter to add multiple translations</p>
+              
+              {/* Translation Tags */}
+              {editForm?.translations && editForm.translations.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2 p-3 bg-slate-50/80 rounded-xl border border-slate-100 min-h-[50px]">
+                  {editForm.translations.map((translation: string, index: number) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium"
+                    >
+                      {translation}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTranslation(index)}
+                        className="ml-1 hover:text-red-500 transition-colors"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {(!editForm?.translations || editForm.translations.length === 0) && (
+                <p className="text-xs text-slate-400 mt-1">No translations added yet</p>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -240,8 +285,15 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
-  useEffect(() => { fetchWords(); fetchSuggestions(); }, []);
+  // Fetch all words initially
+  useEffect(() => { 
+    fetchWords(); 
+    fetchSuggestions(); 
+  }, []);
 
   const fetchWords = async () => {
     setLoading(true);
@@ -250,7 +302,13 @@ export default function AdminDashboard() {
       setWords(data); 
       if (data.length > 0 && !selectedWord && view === "words") { 
         setSelectedWord(data[0]); 
-        setEditForm(data[0]); 
+        const wordData = data[0];
+        const translations = wordData.translations || (wordData.translation_en ? [wordData.translation_en] : []);
+        setEditForm({ 
+          ...wordData, 
+          translations: translations,
+          translation_input: "" 
+        }); 
       } 
     }
     setLoading(false);
@@ -261,9 +319,85 @@ export default function AdminDashboard() {
     if (data) setSuggestions(data);
   };
 
+  // 🔥 NEW: Clear search cache function
+  const clearSearchCache = async () => {
+    try {
+      await fetch('/api/search/clear-cache', { method: 'POST' });
+      console.log('🗑️ Admin: Cache cleared');
+    } catch (error) {
+      console.error('Failed to clear cache:', error);
+    }
+  };
+
+  const handleManualClearCache = async () => {
+    try {
+      await clearSearchCache();
+      setToastMessage("✅ Search cache cleared successfully!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      setToastMessage("❌ Failed to clear cache");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  };
+
+  // API-based search for admin
+  const performSearch = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      // If no query, show all words
+      fetchWords();
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const params = new URLSearchParams({
+        q: query.trim(),
+        limit: '200' // Get more results for admin
+      });
+      
+      const response = await fetch(`/api/search?${params.toString()}`);
+      const data = await response.json();
+      
+      if (data.results) {
+        setWords(data.results);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // Search when query changes (only for words view)
+  useEffect(() => {
+    if (view === "words") {
+      performSearch(searchQuery);
+    } else {
+      // For suggestions, use client-side filtering
+      if (!searchQuery.trim()) {
+        fetchSuggestions();
+      } else {
+        const filtered = suggestions.filter(item => {
+          const queryLower = searchQuery.toLowerCase();
+          return item.entry_name?.toLowerCase().includes(queryLower) ||
+                 item.translation_en?.toLowerCase().includes(queryLower) ||
+                 item.translations?.some((t: string) => t.toLowerCase().includes(queryLower));
+        });
+        setSuggestions(filtered);
+      }
+    }
+  }, [searchQuery, view]);
+
   const handleSelect = (word: any) => {
     setSelectedWord(word);
-    setEditForm({ ...word });
+    const translations = word.translations || (word.translation_en ? [word.translation_en] : []);
+    setEditForm({ 
+      ...word, 
+      translations: translations,
+      translation_input: "" 
+    });
     if (window.innerWidth < 768) setIsModalOpen(true);
   };
 
@@ -285,9 +419,39 @@ export default function AdminDashboard() {
     });
   };
 
+  // Translation handlers
+  const handleAddTranslation = () => {
+    if (!editForm?.translation_input?.trim()) return;
+    const newTranslation = editForm.translation_input.trim();
+    if (!editForm.translations?.includes(newTranslation)) {
+      setEditForm({
+        ...editForm,
+        translations: [...(editForm.translations || []), newTranslation],
+        translation_input: ""
+      });
+    }
+  };
+
+  const handleRemoveTranslation = (index: number) => {
+    if (!editForm) return;
+    setEditForm({
+      ...editForm,
+      translations: editForm.translations.filter((_: any, i: number) => i !== index)
+    });
+  };
+
+  const handleTranslationKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddTranslation();
+    }
+  };
+
   const handleAddNew = () => {
     const newEntry = { 
-      entry_name: "", word_type: "noun", dialects: [""], translation_en: "", 
+      entry_name: "", word_type: "noun", dialects: [""], 
+      translations: [], translation_input: "",
+      translation_en: "", 
       examples: "", notes: "", imperative: "", answer: "",
       singular_indefinite: "", singular_definite: "",
       plural_indefinite: "", plural_definite: "", is_verified: true
@@ -297,27 +461,47 @@ export default function AdminDashboard() {
     setIsModalOpen(true);
   };
 
+  // 🔥 UPDATED: Save with cache clearing
   const handleSave = async () => {
     if (!editForm) return;
     setSaving(true);
+    
+    const saveData = { 
+      ...editForm, 
+      translation_input: undefined,
+      translation_en: editForm.translations?.[0] || "",
+      translations: editForm.translations || []
+    };
+    
     const { error } = editForm.id 
-      ? await supabase.from("words").update(editForm).eq("id", editForm.id)
-      : await supabase.from("words").insert([editForm]);
+      ? await supabase.from("words").update(saveData).eq("id", editForm.id)
+      : await supabase.from("words").insert([saveData]);
     
     if (!error) { 
+      await clearSearchCache(); // 🔥 NEW: Clear cache after save
       await fetchWords(); 
       setIsModalOpen(false); 
     }
     setSaving(false);
   };
 
+  // 🔥 UPDATED: Approve suggestion with cache clearing
   const handleApproveSuggestion = async () => {
     if (!editForm) return;
     setSaving(true);
-    const { id, created_at, user_email, ...wordData } = editForm;
-    const { error: insertError } = await supabase.from("words").insert([{ ...wordData, is_verified: true }]);
+    const { id, created_at, user_email, translation_input, ...wordData } = editForm;
+    
+    const insertData = {
+      ...wordData,
+      translation_en: wordData.translations?.[0] || "",
+      translations: wordData.translations || [],
+      is_verified: true
+    };
+    
+    const { error: insertError } = await supabase.from("words").insert([insertData]);
     if (!insertError) {
       await supabase.from("suggestions").delete().eq("id", id);
+      await clearSearchCache(); // 🔥 NEW: Clear cache after approve
       await fetchWords();
       await fetchSuggestions();
       setSelectedWord(null);
@@ -338,47 +522,49 @@ export default function AdminDashboard() {
     }
   };
 
-  // FUZZY SEARCH SETUP
-  const fuse = useMemo(() => {
-    const list = view === "words" ? words : suggestions;
-    return new Fuse(list, {
-      keys: [
-        "entry_name", 
-        "translation_en", 
-        "answer", 
-        "notes", 
-        "examples",
-        "dialects",
-        "singular_indefinite",
-        "singular_definite",
-        "plural_indefinite",
-        "plural_definite"
-      ],
-      threshold: 0.37,
-      distance: 100,
-    });
-  }, [view, words, suggestions]);
+  const handleViewChange = (newView: "words" | "suggestions") => {
+    setView(newView);
+    setSearchQuery("");
+    setSelectedWord(null);
+    setEditForm(null);
+    if (newView === "words") {
+      fetchWords();
+    } else {
+      fetchSuggestions();
+    }
+  };
 
-  const filteredItems = useMemo(() => {
-    if (!searchQuery.trim()) return view === "words" ? words : suggestions;
-    return fuse.search(searchQuery).map(result => result.item);
-  }, [searchQuery, fuse, view, words, suggestions]);
+  // Get the current list based on view
+  const currentList = view === "words" ? words : suggestions;
 
   return (
     <div className="flex h-full">
       {/* SIDEBAR */}
       <aside className="w-full md:w-80 lg:w-96 border-r bg-slate-50/30 flex flex-col shrink-0">
         <div className="p-4 border-b bg-white space-y-4">
+          {/* 🔥 CHANGED: Added Clear Cache button here */}
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Database</span>
-            <Button onClick={handleAddNew} variant="ghost" size="sm" className="h-7 px-2 text-emerald-600 font-black text-[10px] uppercase hover:bg-emerald-50 transition-colors">
-              <Plus size={14} className="mr-1" /> New Entry
-            </Button>
+            <div className="flex gap-2">
+              {/* 🔥 NEW: Clear Cache Button */}
+              <Button 
+                onClick={handleManualClearCache} 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 px-2 text-amber-600 font-black text-[10px] uppercase hover:bg-amber-50 transition-colors"
+                title="Clear search cache (forces fresh data from database)"
+              >
+                <X size={12} className="mr-1" /> Clear Cache
+              </Button>
+              <Button onClick={handleAddNew} variant="ghost" size="sm" className="h-7 px-2 text-emerald-600 font-black text-[10px] uppercase hover:bg-emerald-50 transition-colors">
+                <Plus size={14} className="mr-1" /> New Entry
+              </Button>
+            </div>
           </div>
 
           <div className="flex p-1 bg-slate-100 rounded-xl">
             <button 
-              onClick={() => { setView("words"); setSelectedWord(null); setEditForm(null); }}
+              onClick={() => handleViewChange("words")}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all ${view === "words" ? "bg-white shadow-sm text-emerald-600" : "text-slate-400 hover:text-slate-600"}`}
             >
               <BookOpen size={14} /> 
@@ -388,7 +574,7 @@ export default function AdminDashboard() {
               </span>
             </button>
             <button 
-              onClick={() => { setView("suggestions"); setSelectedWord(null); setEditForm(null); }}
+              onClick={() => handleViewChange("suggestions")}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all ${view === "suggestions" ? "bg-white shadow-sm text-amber-600" : "text-slate-400 hover:text-slate-600"}`}
             >
               <Inbox size={14} /> 
@@ -404,30 +590,52 @@ export default function AdminDashboard() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             <Input 
-              placeholder="Search..." 
+              placeholder={view === "words" ? "Search words..." : "Search suggestions..."}
               className="pl-9 bg-white border-slate-200 h-11 text-xs rounded-xl focus-visible:ring-emerald-500" 
               value={searchQuery} 
               onChange={(e) => setSearchQuery(e.target.value)} 
             />
+            {isSearching && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-emerald-500 border-t-transparent"></div>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {filteredItems.map((item) => (
-            <button 
-              key={item.id} 
-              onClick={() => handleSelect(item)} 
-              className={`w-full text-left p-5 border-b transition-all flex justify-between items-center ${selectedWord?.id === item.id ? "bg-white border-l-4 border-l-emerald-600 shadow-sm" : "hover:bg-white/60 border-l-4 border-l-transparent"}`}
-            >
-              <div className="min-w-0">
-                <div className="font-bold text-slate-900 uppercase text-[11px] truncate">
-                  {item.entry_name}
+          {currentList.length > 0 ? (
+            currentList.map((item) => (
+              <button 
+                key={item.id} 
+                onClick={() => handleSelect(item)} 
+                className={`w-full text-left p-5 border-b transition-all flex justify-between items-center ${selectedWord?.id === item.id ? "bg-white border-l-4 border-l-emerald-600 shadow-sm" : "hover:bg-white/60 border-l-4 border-l-transparent"}`}
+              >
+                <div className="min-w-0">
+                  <div className="font-bold text-slate-900 uppercase text-[11px] truncate">
+                    {item.entry_name}
+                  </div>
+                  <div className="text-[10px] text-slate-400 italic truncate mt-0.5">
+                    {(item.translations || (item.translation_en ? [item.translation_en] : [])).join(', ')}
+                  </div>
                 </div>
-                <div className="text-[10px] text-slate-400 italic truncate mt-0.5">{item.translation_en}</div>
+                <ChevronRight size={14} className={selectedWord?.id === item.id ? "text-emerald-500" : "text-slate-200"} />
+              </button>
+            ))
+          ) : (
+            <div className="p-10 text-center">
+              <div className="text-slate-400 text-sm">
+                {searchQuery ? (
+                  <>
+                    <p className="font-bold">No results found</p>
+                    <p className="text-xs mt-1">Try adjusting your search</p>
+                  </>
+                ) : (
+                  <p className="font-bold">No {view === "words" ? "words" : "suggestions"} available</p>
+                )}
               </div>
-              <ChevronRight size={14} className={selectedWord?.id === item.id ? "text-emerald-500" : "text-slate-200"} />
-            </button>
-          ))}
+            </div>
+          )}
         </div>
       </aside>
 
@@ -464,6 +672,9 @@ export default function AdminDashboard() {
                   handleInputChange={(e:any) => setEditForm({...editForm, [e.target.name]: e.target.value})}
                   onDialectChange={handleDialectChange}
                   onToggleAllDialects={handleToggleAllDialects}
+                  handleAddTranslation={handleAddTranslation}
+                  handleRemoveTranslation={handleRemoveTranslation}
+                  handleTranslationKeyDown={handleTranslationKeyDown}
                 />
               </div>
             </div>
@@ -514,6 +725,9 @@ export default function AdminDashboard() {
               handleInputChange={(e: any) => setEditForm({ ...editForm, [e.target.name]: e.target.value })} 
               onDialectChange={handleDialectChange}
               onToggleAllDialects={handleToggleAllDialects}
+              handleAddTranslation={handleAddTranslation}
+              handleRemoveTranslation={handleRemoveTranslation}
+              handleTranslationKeyDown={handleTranslationKeyDown}
             />
             {view === "suggestions" && (
               <Button onClick={() => handleRejectSuggestion(editForm?.id)} variant="ghost" className="w-full mt-4 text-rose-500 font-black uppercase text-[10px]">
@@ -523,6 +737,13 @@ export default function AdminDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* 🔥 NEW: Toast notification for cache clearing */}
+      {showToast && (
+        <div className="fixed bottom-4 right-4 z-50 bg-white border border-slate-200 shadow-lg rounded-xl px-6 py-4 max-w-sm animate-in slide-in-from-bottom-5 duration-300">
+          <p className="text-sm font-medium text-slate-900">{toastMessage}</p>
+        </div>
+      )}
     </div>
   );
 }
