@@ -10,36 +10,32 @@ export async function GET(request: Request) {
     const type = searchParams.get('type') || 'all';
     const limit = parseInt(searchParams.get('limit') || '100');
 
-    if (!query) {
-      return NextResponse.json(
-        { error: 'Search query is required' },
-        { status: 400 }
-      );
-    }
-
-    // Check cache first
+    // 🔥 NEW: Build cache key with type included
     const cacheKey = `${query}|${type}|${limit}`;
+    
+    // Check cache first
     const cachedResult = searchCache.get(cacheKey);
-
     if (cachedResult) {
       return NextResponse.json({
         results: cachedResult.results,
         count: cachedResult.count,
         query,
+        type,
         cached: true
       });
     }
 
-    console.log('🔄 Database query for:', query);
+    console.log(`🔄 Database query for: "${query}" with type: "${type}"`);
 
-    // Fetch words from database
+    // 🔥 STEP 1: Fetch words from database with type filter
     let supabaseQuery = supabase
       .from('words')
       .select('*');
 
-    // Filter by type if specified
+    // 🔥 IMPORTANT: Filter by type FIRST (before search)
     if (type !== 'all') {
       supabaseQuery = supabaseQuery.eq('word_type', type);
+      console.log(`📋 Filtering by type: "${type}"`);
     }
 
     const { data, error } = await supabaseQuery.order('entry_name', { ascending: true });
@@ -57,11 +53,27 @@ export async function GET(request: Request) {
         results: [],
         count: 0,
         query,
+        type,
         cached: false
       });
     }
 
-    // 🔥 Use Fuse.js for fuzzy search (same threshold as client: 0.37)
+    console.log(`📊 Found ${data.length} words matching type filter`);
+
+    // 🔥 STEP 2: If no search query, return filtered results directly
+    if (!query) {
+      // Store in cache
+      searchCache.set(cacheKey, data, data.length);
+      return NextResponse.json({
+        results: data,
+        count: data.length,
+        query,
+        type,
+        cached: false
+      });
+    }
+
+    // 🔥 STEP 3: Use Fuse.js for fuzzy search on the filtered data
     const fuse = new Fuse(data, {
       keys: [
         "entry_name",
@@ -76,7 +88,7 @@ export async function GET(request: Request) {
         "plural_indefinite",
         "plural_definite"
       ],
-      threshold: 0.37, // Same as client-side
+      threshold: 0.37,
       distance: 100,
       includeScore: true,
       shouldSort: true,
@@ -84,6 +96,7 @@ export async function GET(request: Request) {
 
     // Perform fuzzy search
     const fuseResults = fuse.search(query);
+    console.log(`🔍 Found ${fuseResults.length} matches for "${query}"`);
     
     // Extract items and limit results
     const filteredData = fuseResults
@@ -98,6 +111,7 @@ export async function GET(request: Request) {
       count: filteredData.length,
       totalMatches: fuseResults.length,
       query,
+      type,
       cached: false
     });
 
