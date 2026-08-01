@@ -1,10 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Mail, BookOpen } from "lucide-react";
+import { Mail, BookOpen, Menu, X } from "lucide-react";
 import { ContactModal } from "@/components/shared/ContactModal";
-import { Badge } from "@/components/ui/badge";
 
 const FacebookIcon = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -13,6 +13,8 @@ const FacebookIcon = ({ size = 18 }: { size?: number }) => (
 );
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden">
       <header className="shrink-0 z-50 bg-white/80 backdrop-blur-md border-b border-emerald-100/50 h-20 flex items-center px-4 md:px-6">
@@ -23,11 +25,13 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <span className="text-sm xs:text-base md:text-xl truncate uppercase">Kutiit</span>
             </div>
           </Link>
-          <div className="flex items-center gap-1 xs:gap-2 sm:gap-4 shrink-0">
-            <a href="https://www.facebook.com/kutinyuu" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-emerald-900 transition-colors hidden min-[280px]:block p-2">
+
+          {/* Desktop Navigation - Hidden on mobile */}
+          <div className="hidden md:flex items-center gap-1 xs:gap-2 sm:gap-4 shrink-0">
+            <a href="https://www.facebook.com/kutinyuu" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-emerald-900 transition-colors p-2">
               <FacebookIcon size={18} />
             </a>
-            <Link href="/dictionary" className="hidden min-[250px]:block text-[10px] md:text-[12px] font-black uppercase tracking-tight md:tracking-widest text-emerald-600 hover:text-emerald-900 transition-colors px-2">
+            <Link href="/dictionary" className="text-[10px] md:text-[12px] font-black uppercase tracking-tight md:tracking-widest text-emerald-600 hover:text-emerald-900 transition-colors px-2">
               Dictionary
             </Link>
             <ContactModal>
@@ -36,41 +40,70 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               </Button>
             </ContactModal>
           </div>
+
+          {/* Hamburger Button - Mobile only */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2 rounded-lg hover:bg-emerald-50 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <X size={24} className="text-emerald-600" /> : <Menu size={24} className="text-emerald-600" />}
+          </button>
         </nav>
       </header>
 
-      {/* DISABLING GLOBAL SCROLL HERE */}
+      {/* Mobile Menu Dropdown */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white border-b border-emerald-100/50 animate-in slide-in-from-top-2 duration-200">
+          <div className="px-4 py-4 space-y-2 max-w-7xl mx-auto">
+            <a
+              href="https://www.facebook.com/kutinyuu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 text-sm font-medium text-emerald-600 transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <FacebookIcon size={20} /> Facebook
+            </a>
+            <Link
+              href="/dictionary"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 text-sm font-medium text-emerald-600 transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <BookOpen size={20} /> Dictionary
+            </Link>
+            <ContactModal>
+              <button
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 text-sm font-medium text-emerald-600 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Mail size={20} /> Contact
+              </button>
+            </ContactModal>
+          </div>
+        </div>
+      )}
+
       <main className="flex-grow overflow-hidden w-full">
         <div className="h-full flex flex-col">
            {children}
         </div>
       </main>
-      <footer className=" h-0 shrink-0 border-t bg-white py-2 px-4 md:px-6">
+
+      <footer className="h-0 shrink-0 border-t bg-white py-2 px-4 md:px-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-emerald-600">
-          
           <a href="mailto:kutiitadmin@gmail.com" className="hover:text-emerald-900 transition-colors shrink-0">
             Email
           </a>
-
           <span className="text-slate-200">|</span>
-
-          <a 
-            href="https://www.facebook.com/kutinyuu" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="hover:text-emerald-900 transition-colors shrink-0"
-          >
+          <a href="https://www.facebook.com/kutinyuu" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-900 transition-colors shrink-0">
             FB
           </a>
-
           <span className="text-slate-200">|</span>
-
           <Link href="/dashboard" className="hover:text-emerald-900 transition-colors shrink-0">
             Admin
           </Link>
-
           <span className="text-slate-200">|</span>
-
           <span className="pt-1 shrink-0 text-slate-400 font-bold">
             © {new Date().getFullYear()} Kutiit | All Rights Reserved
           </span>
