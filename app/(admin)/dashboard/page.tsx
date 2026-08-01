@@ -739,7 +739,7 @@ export default function AdminDashboard() {
 
       {/* MOBILE MODAL */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[650px] w-[95vw] max-h-[92vh] rounded-[3rem] p-0 flex flex-col border-none bg-white shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogContent className="sm:max-w-[650px] w-[95vw] max-h-[85vh] rounded-[3rem] p-0 flex flex-col border-none bg-white shadow-2xl overflow-hidden [&>button]:hidden">
           <DialogHeader className="p-8 pb-6 bg-emerald-50/50 shrink-0 relative overflow-hidden border-b border-emerald-100/50">
             <div className="flex flex-row items-center justify-between relative z-10">
               <div>

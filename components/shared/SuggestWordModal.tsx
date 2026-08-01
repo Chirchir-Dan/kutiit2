@@ -148,7 +148,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] w-[95vw] max-h-[92vh] rounded-[3rem] p-0 flex flex-col border-none bg-white shadow-2xl overflow-hidden [&>button]:hidden">
+      <DialogContent className="sm:max-w-[650px] w-[95vw] max-h-[85vh] rounded-[3rem] p-0 flex flex-col border-none bg-white shadow-2xl overflow-hidden [&>button]:hidden">
         
         <DialogHeader className="p-8 pb-10 bg-emerald-50/50 shrink-0 relative overflow-hidden border-b border-emerald-100/50">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] rotate-12 scale-150 pointer-events-none">
