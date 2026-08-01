@@ -288,6 +288,7 @@ export default function AdminDashboard() {
   const [isSearching, setIsSearching] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [error, setError] = useState<string | null>(null); // 🔥 NEW: For validation errors
 
   // Fetch all words initially
   useEffect(() => { 
@@ -319,7 +320,6 @@ export default function AdminDashboard() {
     if (data) setSuggestions(data);
   };
 
-  // 🔥 NEW: Clear search cache function
   const clearSearchCache = async () => {
     try {
       await fetch('/api/search/clear-cache', { method: 'POST' });
@@ -342,10 +342,8 @@ export default function AdminDashboard() {
     }
   };
 
-  // API-based search for admin
   const performSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
-      // If no query, show all words
       fetchWords();
       return;
     }
@@ -354,7 +352,7 @@ export default function AdminDashboard() {
     try {
       const params = new URLSearchParams({
         q: query.trim(),
-        limit: '200' // Get more results for admin
+        limit: '200'
       });
       
       const response = await fetch(`/api/search?${params.toString()}`);
@@ -370,12 +368,10 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  // Search when query changes (only for words view)
   useEffect(() => {
     if (view === "words") {
       performSearch(searchQuery);
     } else {
-      // For suggestions, use client-side filtering
       if (!searchQuery.trim()) {
         fetchSuggestions();
       } else {
@@ -398,6 +394,7 @@ export default function AdminDashboard() {
       translations: translations,
       translation_input: "" 
     });
+    setError(null); // Clear any previous errors
     if (window.innerWidth < 768) setIsModalOpen(true);
   };
 
@@ -419,7 +416,6 @@ export default function AdminDashboard() {
     });
   };
 
-  // Translation handlers
   const handleAddTranslation = () => {
     if (!editForm?.translation_input?.trim()) return;
     const newTranslation = editForm.translation_input.trim();
@@ -448,22 +444,44 @@ export default function AdminDashboard() {
   };
 
   const handleAddNew = () => {
-    const newEntry = { 
-      entry_name: "", word_type: "noun", dialects: [""], 
+    setError(null);
+    setEditForm({ 
+      entry_name: "", word_type: "noun", dialects: [], 
       translations: [], translation_input: "",
       translation_en: "", 
       examples: "", notes: "", imperative: "", answer: "",
       singular_indefinite: "", singular_definite: "",
       plural_indefinite: "", plural_definite: "", is_verified: true
-    };
-    setEditForm(newEntry);
+    });
     setSelectedWord(null);
     setIsModalOpen(true);
   };
 
-  // 🔥 UPDATED: Save with cache clearing
+  // 🔥 FIXED: Save with validation
   const handleSave = async () => {
     if (!editForm) return;
+    
+    // 🔥 Validation: Check required fields
+    setError(null);
+    
+    // Check if word has a name
+    if (!editForm.entry_name?.trim()) {
+      setError("Please enter a word");
+      return;
+    }
+    
+    // Check if it has translations (for non-riddle types)
+    if (editForm.word_type !== 'riddle' && (!editForm.translations || editForm.translations.length === 0)) {
+      setError("Please add at least one translation");
+      return;
+    }
+    
+    // Check if riddle has an answer
+    if (editForm.word_type === 'riddle' && !editForm.answer?.trim()) {
+      setError("Please enter the answer for this riddle");
+      return;
+    }
+    
     setSaving(true);
     
     const saveData = { 
@@ -473,22 +491,29 @@ export default function AdminDashboard() {
       translations: editForm.translations || []
     };
     
-    const { error } = editForm.id 
+    const { error: supabaseError } = editForm.id 
       ? await supabase.from("words").update(saveData).eq("id", editForm.id)
       : await supabase.from("words").insert([saveData]);
     
-    if (!error) { 
-      await clearSearchCache(); // 🔥 NEW: Clear cache after save
-      await fetchWords(); 
-      setIsModalOpen(false); 
+    if (supabaseError) {
+      console.error('Supabase error:', supabaseError);
+      setError(`Failed to save: ${supabaseError.message}`);
+      setSaving(false);
+      return;
     }
+    
+    await clearSearchCache();
+    await fetchWords();
+    setIsModalOpen(false);
     setSaving(false);
+    setError(null);
   };
 
-  // 🔥 UPDATED: Approve suggestion with cache clearing
   const handleApproveSuggestion = async () => {
     if (!editForm) return;
     setSaving(true);
+    setError(null);
+    
     const { id, created_at, user_email, translation_input, ...wordData } = editForm;
     
     const insertData = {
@@ -499,16 +524,22 @@ export default function AdminDashboard() {
     };
     
     const { error: insertError } = await supabase.from("words").insert([insertData]);
-    if (!insertError) {
-      await supabase.from("suggestions").delete().eq("id", id);
-      await clearSearchCache(); // 🔥 NEW: Clear cache after approve
-      await fetchWords();
-      await fetchSuggestions();
-      setSelectedWord(null);
-      setEditForm(null);
-      setIsModalOpen(false);
+    if (insertError) {
+      console.error('Supabase error:', insertError);
+      setError(`Failed to approve: ${insertError.message}`);
+      setSaving(false);
+      return;
     }
+    
+    await supabase.from("suggestions").delete().eq("id", id);
+    await clearSearchCache();
+    await fetchWords();
+    await fetchSuggestions();
+    setSelectedWord(null);
+    setEditForm(null);
+    setIsModalOpen(false);
     setSaving(false);
+    setError(null);
   };
 
   const handleRejectSuggestion = async (id: string) => {
@@ -527,6 +558,7 @@ export default function AdminDashboard() {
     setSearchQuery("");
     setSelectedWord(null);
     setEditForm(null);
+    setError(null);
     if (newView === "words") {
       fetchWords();
     } else {
@@ -534,7 +566,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Get the current list based on view
   const currentList = view === "words" ? words : suggestions;
 
   return (
@@ -542,11 +573,9 @@ export default function AdminDashboard() {
       {/* SIDEBAR */}
       <aside className="w-full md:w-80 lg:w-96 border-r bg-slate-50/30 flex flex-col shrink-0">
         <div className="p-4 border-b bg-white space-y-4">
-          {/* 🔥 CHANGED: Added Clear Cache button here */}
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Database</span>
             <div className="flex gap-2">
-              {/* 🔥 NEW: Clear Cache Button */}
               <Button 
                 onClick={handleManualClearCache} 
                 variant="ghost" 
@@ -648,21 +677,29 @@ export default function AdminDashboard() {
                 <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest block mb-1">{editForm.word_type}</span>
                 <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900 truncate">{editForm.entry_name || "New Entry"}</h1>
               </div>
-              <div className="flex gap-3">
-                {view === "suggestions" ? (
-                  <>
-                    <Button onClick={() => handleRejectSuggestion(editForm?.id)} variant="outline" className="border-rose-200 text-rose-500 hover:bg-rose-50 px-6 h-12 font-bold uppercase text-[10px] tracking-widest rounded-xl">
-                      Reject
-                    </Button>
-                    <Button onClick={handleApproveSuggestion} disabled={saving} className="bg-emerald-600 px-10 h-12 font-bold uppercase text-[10px] tracking-widest rounded-xl shadow-lg hover:bg-emerald-700 text-white">
-                      {saving ? <Loader2 className="animate-spin" /> : <Check size={18} className="mr-2" />} Approve
-                    </Button>
-                  </>
-                ) : (
-                  <Button onClick={handleSave} disabled={saving} className="bg-slate-900 px-10 h-12 font-bold uppercase text-[10px] tracking-widest rounded-xl shadow-lg hover:bg-black transition-all">
-                    {saving ? <Loader2 className="animate-spin" /> : <Save size={18} className="mr-2" />} Save Changes
-                  </Button>
+              <div className="flex flex-col items-end gap-2">
+                {/* 🔥 NEW: Error message display */}
+                {error && (
+                  <div className="text-red-500 text-xs font-bold bg-red-50 px-3 py-1 rounded-lg border border-red-200">
+                    ⚠️ {error}
+                  </div>
                 )}
+                <div className="flex gap-3">
+                  {view === "suggestions" ? (
+                    <>
+                      <Button onClick={() => handleRejectSuggestion(editForm?.id)} variant="outline" className="border-rose-200 text-rose-500 hover:bg-rose-50 px-6 h-12 font-bold uppercase text-[10px] tracking-widest rounded-xl">
+                        Reject
+                      </Button>
+                      <Button onClick={handleApproveSuggestion} disabled={saving} className="bg-emerald-600 px-10 h-12 font-bold uppercase text-[10px] tracking-widest rounded-xl shadow-lg hover:bg-emerald-700 text-white">
+                        {saving ? <Loader2 className="animate-spin" /> : <Check size={18} className="mr-2" />} Approve
+                      </Button>
+                    </>
+                  ) : (
+                    <Button onClick={handleSave} disabled={saving} className="bg-slate-900 px-10 h-12 font-bold uppercase text-[10px] tracking-widest rounded-xl shadow-lg hover:bg-black transition-all">
+                      {saving ? <Loader2 className="animate-spin" /> : <Save size={18} className="mr-2" />} Save Changes
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-12">
@@ -720,6 +757,12 @@ export default function AdminDashboard() {
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto p-8 bg-white">
+            {/* 🔥 NEW: Error message in modal */}
+            {error && (
+              <div className="mb-4 text-red-500 text-xs font-bold bg-red-50 px-3 py-2 rounded-lg border border-red-200">
+                ⚠️ {error}
+              </div>
+            )}
             <EditorFields 
               editForm={editForm} 
               handleInputChange={(e: any) => setEditForm({ ...editForm, [e.target.name]: e.target.value })} 
@@ -738,7 +781,7 @@ export default function AdminDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* 🔥 NEW: Toast notification for cache clearing */}
+      {/* Toast notification for cache clearing */}
       {showToast && (
         <div className="fixed bottom-4 right-4 z-50 bg-white border border-slate-200 shadow-lg rounded-xl px-6 py-4 max-w-sm animate-in slide-in-from-bottom-5 duration-300">
           <p className="text-sm font-medium text-slate-900">{toastMessage}</p>
