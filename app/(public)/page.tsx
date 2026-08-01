@@ -3,28 +3,101 @@
 import { useState, useEffect } from "react"; 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Heart, GraduationCap, ArrowRight, Mail, Database } from "lucide-react";
+import { 
+  Search, Plus, Heart, GraduationCap, ArrowRight, Mail, Database, 
+  Menu, X, BookOpen, Coffee 
+} from "lucide-react";
 import { ContactModal } from "@/components/shared/ContactModal";
 import { SupportModal } from "@/components/shared/SupportModal";
 import SuggestWordModal from "@/components/shared/SuggestWordModal";
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   return (
-    /* px-4 for mobile, px-6 for desktop. space-y controlled for mobile flow */
-    <div className="flex-1 flex flex-col items-center justify-start px-4 md:px-6 text-center max-w-5xl mx-auto space-y-10 md:space-y-20 pt-8 pb-20 overflow-x-hidden">
+    <div className="flex-1 flex flex-col items-center justify-start px-4 md:px-6 text-center max-w-5xl mx-auto pt-6 pb-20 overflow-x-hidden">
+      
+      {/* Top Bar with Hamburger Menu */}
+      <div className="w-full flex items-center justify-between mb-8">
+        <div className="flex items-center gap-2">
+          <BookOpen size={20} className="text-emerald-600" />
+          <span className="text-xs font-bold uppercase text-slate-400 tracking-widest">Kutiit</span>
+        </div>
+        
+        {/* Desktop Navigation - Hidden on mobile */}
+        <div className="hidden md:flex items-center gap-2">
+          {mounted && (
+            <ContactModal>
+              <Button variant="ghost" size="sm" className="text-xs font-medium text-slate-500 hover:text-emerald-600">
+                Contact
+              </Button>
+            </ContactModal>
+          )}
+          {mounted && (
+            <SupportModal>
+              <Button variant="ghost" size="sm" className="text-xs font-medium text-slate-500 hover:text-emerald-600 flex items-center gap-1">
+                <Heart size={14} className="text-rose-500" /> Support
+              </Button>
+            </SupportModal>
+          )}
+          {mounted && (
+            <ContactModal>
+              <Button variant="ghost" size="sm" className="text-xs font-medium text-slate-500 hover:text-emerald-600 flex items-center gap-1">
+                <GraduationCap size={14} className="text-blue-500" /> Lessons
+              </Button>
+            </ContactModal>
+          )}
+        </div>
+
+        {/* Hamburger Button - Mobile only */}
+        <button 
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors"
+        >
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMenuOpen && (
+        <div className="w-full md:hidden mb-6 p-4 bg-white border border-slate-200 rounded-2xl shadow-lg animate-in slide-in-from-top-2 duration-200">
+          <div className="flex flex-col gap-2">
+            {mounted && (
+              <ContactModal>
+                <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 text-sm font-medium text-slate-600 flex items-center gap-3">
+                  <Mail size={18} className="text-slate-400" /> Contact
+                </button>
+              </ContactModal>
+            )}
+            {mounted && (
+              <SupportModal>
+                <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 text-sm font-medium text-slate-600 flex items-center gap-3">
+                  <Heart size={18} className="text-rose-500" /> Support the Project
+                </button>
+              </SupportModal>
+            )}
+            {mounted && (
+              <ContactModal>
+                <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 text-sm font-medium text-slate-600 flex items-center gap-3">
+                  <GraduationCap size={18} className="text-blue-500" /> Learn Nandi Grammar
+                </button>
+              </ContactModal>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* 1. HERO - FLUID TYPOGRAPHY */}
       <div className="space-y-6 w-full px-2">
         <div className="space-y-2">
           <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tight leading-[0.9]">
-            <span className="pb-5 text-emerald-600">Kalenjin</span>
-            <span className=" pt-5 text-slate-900"> Dictionary</span>
+            <span className="text-emerald-600">Kalenjin</span>
+            <span className="text-slate-900"> Dictionary</span>
           </h1>
           <p className="text-[10px] sm:text-xs md:text-lg text-emerald-600 font-bold uppercase tracking-[0.2em]">
             Kalenjin to English Translation Resource
@@ -50,15 +123,15 @@ export default function LandingPage() {
           {mounted && (
             <SuggestWordModal>
               <Button variant="outline" className="border-2 border-slate-200 hover:bg-slate-50 text-slate-900 px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest w-full sm:w-auto">
-                <Plus className="mr-2 h-4 w-4 text-emerald-600" /> Add
+                <Plus className="mr-2 h-4 w-4 text-emerald-600" /> Add Word
               </Button>
             </SuggestWordModal>
           )}
         </div>
       </div>
 
-      {/* 3. DOCUMENTATION - CENTERED & COMPACT */}
-      <section className="w-full py-10 border-t border-slate-100 max-w-4xl mx-auto flex flex-col items-center text-center px-2">
+      {/* 3. DOCUMENTATION - Clean */}
+      <section className="w-full py-10 border-t border-slate-100 max-w-4xl mx-auto flex flex-col items-center text-center px-2 mt-8">
         <div className="space-y-4 max-w-2xl">
           <h3 className="text-base sm:text-xl font-black uppercase tracking-tight text-slate-900 flex items-center justify-center gap-2">
             <Database size={16} className="text-emerald-600" /> Professional Documentation
@@ -68,40 +141,12 @@ export default function LandingPage() {
             We maintain a verified record of linguistic expression to support daily communication 
             and academic research.
           </p>
-          {mounted && (
-            <ContactModal>
-              <button className="inline-flex items-center gap-2 text-emerald-600 font-bold text-[10px] sm:text-sm hover:underline underline-offset-4 uppercase tracking-wide">
-                <Mail size={12} /> Contact for collaborations
-              </button>
-            </ContactModal>
-          )}
         </div>
       </section>
 
-      {/* 4. LESSONS PROMO - FULL WIDTH ON MOBILE */}
-      <div data-nosnippet className="w-full bg-slate-900 rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-12 text-white text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
-        <div className="space-y-3 flex flex-col items-center md:items-start">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full uppercase text-[9px] font-black tracking-widest">
-            <GraduationCap size={12} /> Education
-          </div>
-          <h3 className="text-xl sm:text-3xl font-black uppercase tracking-tight">Master the Language</h3>
-          <p className="text-slate-400 font-medium text-xs sm:text-base max-w-sm">
-            Structured classes focusing on grammar, pronunciation, and tonal accuracy.
-          </p>
-        </div>
-        
-        {mounted && (
-          <ContactModal>
-            <Button className="bg-emerald-600 hover:bg-emerald-500 text-white py-6 md:h-14 px-10 rounded-xl font-bold uppercase text-[10px] tracking-widest shrink-0 shadow-lg w-full md:w-auto">
-              Inquire Now <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </ContactModal>
-        )}
-      </div>
-
-      {/* 5. SUPPORT - THE "COINS" SECTION (Mobile Optimized) */}
+      {/* 4. SUPPORT - Clean card */}
       {mounted && (
-        <div className="w-full max-w-xl mx-auto p-6 sm:p-10 rounded-[1.5rem] md:rounded-[2rem] border-2 border-dotted border-amber-200 bg-amber-50/30 flex flex-col items-center gap-5">
+        <div className="w-full max-w-xl mx-auto p-6 sm:p-8 rounded-[1.5rem] border-2 border-dotted border-amber-200 bg-amber-50/30 flex flex-col items-center gap-4">
           <div className="text-center space-y-1">
             <h4 className="text-slate-900 font-black text-[10px] sm:text-xs uppercase tracking-[0.2em]">Support the Project</h4>
             <p className="text-[9px] sm:text-[10px] text-emerald-600 font-bold uppercase tracking-tight">
