@@ -17,8 +17,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-emerald-100/50 h-20 flex items-center px-4 md:px-6">
+    <div className="flex flex-col h-dvh bg-white">
+      <header className="shrink-0 z-50 bg-white/80 backdrop-blur-md border-b border-emerald-100/50 h-20 flex items-center px-4 md:px-6">
         <nav className="flex w-full justify-between items-center max-w-7xl mx-auto gap-2">
           <Link href="/" className="shrink min-w-0 group">
             <div className="flex items-center gap-1.5 font-black text-emerald-600 tracking-tighter transition-colors group-hover:text-emerald-900">
@@ -59,16 +59,12 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       {/* Mobile Menu - Slide from Right */}
       {isMenuOpen && (
         <>
-          {/* Overlay */}
           <div 
             className="fixed inset-0 bg-black/20 z-40 md:hidden"
             onClick={() => setIsMenuOpen(false)}
           />
-          
-          {/* Menu Panel - Slide from right */}
           <div className="fixed top-0 right-0 h-full w-72 bg-white shadow-2xl z-50 md:hidden animate-in slide-in-from-right duration-300">
             <div className="flex flex-col h-full">
-              {/* Menu Header */}
               <div className="flex items-center justify-between p-6 border-b border-slate-100">
                 <span className="text-sm font-black uppercase text-emerald-600">Menu</span>
                 <button
@@ -78,8 +74,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                   <X size={20} className="text-slate-500" />
                 </button>
               </div>
-
-              {/* Menu Items */}
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
                 <a
                   href="https://www.facebook.com/kutinyuu"
@@ -121,8 +115,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                   </button>
                 </SupportModal>
               </div>
-
-              {/* Menu Footer */}
               <div className="p-6 border-t border-slate-100">
                 <p className="text-[9px] text-slate-400 font-medium text-center">
                   © {new Date().getFullYear()} Kutiit
