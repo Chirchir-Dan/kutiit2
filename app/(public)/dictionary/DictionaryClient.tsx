@@ -50,9 +50,8 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
     });
   }, [words]);
 
-  // 🔥 FIXED: Client-side search with cache
+  // Client-side search with cache
   const performClientSearch = useCallback((query: string) => {
-    // 🔥 FIX: If no query, show filtered words by type
     if (!query.trim()) {
       if (selectedType === "all") {
         setFilteredWords(words);
@@ -64,7 +63,6 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
 
     setIsSearching(true);
     
-    // Check client cache first
     const cacheKey = `client|${query}|${selectedType}`;
     const cached = clientSearchCache[cacheKey];
     
@@ -75,15 +73,12 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
       return;
     }
 
-    // Not in cache, perform search
     let results = fuse.search(query).map(result => result.item);
     
-    // Filter by type if needed
     const filtered = selectedType === "all" 
       ? results 
       : results.filter(w => w.word_type === selectedType);
     
-    // Store in client cache
     clientSearchCache[cacheKey] = {
       results: filtered,
       timestamp: Date.now()
@@ -97,7 +92,6 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
   const performAPISearch = useCallback(async (query: string) => {
     const cacheKey = `api|${query}|${selectedType}`;
     
-    // Check client cache first
     const cached = clientSearchCache[cacheKey];
     if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
       console.log('✅ Client cache hit (API):', query);
@@ -118,7 +112,6 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
       const data = await response.json();
       
       if (data.results) {
-        // Store in client cache
         clientSearchCache[cacheKey] = {
           results: data.results,
           timestamp: Date.now()
@@ -129,16 +122,14 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
       }
     } catch (error) {
       console.error('Search error:', error);
-      // Fallback to client search if API fails
       performClientSearch(query);
     } finally {
       setIsSearching(false);
     }
   }, [selectedType, performClientSearch]);
 
-  // 🔥 FIXED: Smart search with debounce
+  // Smart search with debounce
   const performSearch = useCallback((query: string) => {
-    // 🔥 FIX: If no query, show filtered words by type
     if (!query.trim()) {
       if (selectedType === "all") {
         setFilteredWords(words);
@@ -148,13 +139,11 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
       return;
     }
 
-    // Use client search for short queries (fast, no DB hit)
     if (query.length <= 3) {
       performClientSearch(query);
       return;
     }
 
-    // Use API search for longer queries (more accurate, with cache)
     const timer = setTimeout(() => {
       performAPISearch(query);
     }, 500);
@@ -170,9 +159,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
 
   // Clear cache when needed
   const clearSearchCache = useCallback(async () => {
-    // Clear client cache
     Object.keys(clientSearchCache).forEach(key => delete clientSearchCache[key]);
-    // Clear server cache
     try {
       await fetch('/api/search/clear-cache', { method: 'POST' });
       console.log('🗑️ Cache cleared');
@@ -190,7 +177,6 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
     }
   };
 
-  // ... (keep all the existing renderLingueeLine and WordDetailContent functions exactly as they are)
   const renderLingueeLine = (line: string) => {
     if (!line.includes("-")) return <p className="mb-2 text-slate-700">{line}</p>;
     const [nandi, english] = line.split("-");
@@ -244,19 +230,28 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
           </div>
         </div>
 
+        {/* 🔥 FIXED: Noun Forms - Indefinite and Definite on separate lines */}
         {hasNounForms && (
           <div className="mb-10 p-6 bg-slate-50 rounded-[2rem] border border-slate-100 shadow-sm">
             <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4">Noun Forms</h4>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-6">
               <div>
-                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Singular</span>
-                <p className="text-sm font-bold text-slate-900">{word.singular_indefinite || "—"}</p>
-                {word.singular_definite && <p className="text-[10px] text-emerald-600 font-medium bg-emerald-50/50 px-1.5 py-0.5 rounded-md inline-block mt-1">{word.singular_definite}</p>}
+                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-2 tracking-wider">Singular</span>
+                <div className="space-y-2">
+                  <p className="text-sm font-bold text-slate-900">{word.singular_indefinite || "—"}</p>
+                  {word.singular_definite && (
+                    <p className="text-sm text-emerald-600 font-medium bg-emerald-50/50 px-2 py-1 rounded-md inline-block">{word.singular_definite}</p>
+                  )}
+                </div>
               </div>
               <div>
-                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Plural</span>
-                <p className="text-sm font-bold text-slate-900">{word.plural_indefinite || "—"}</p>
-                {word.plural_definite && <p className="text-[10px] text-emerald-600 font-medium bg-emerald-50/50 px-1.5 py-0.5 rounded-md inline-block mt-1">{word.plural_definite}</p>}
+                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-2 tracking-wider">Plural</span>
+                <div className="space-y-2">
+                  <p className="text-sm font-bold text-slate-900">{word.plural_indefinite || "—"}</p>
+                  {word.plural_definite && (
+                    <p className="text-sm text-emerald-600 font-medium bg-emerald-50/50 px-2 py-1 rounded-md inline-block">{word.plural_definite}</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -313,7 +308,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
               <Input 
                 placeholder="Search words..." 
-                className="pl-10 h-12 bg-slate-50 border-none rounded-xl w-full font-bold text-sm placeholder:text-slate-300 focus-visible:ring-emerald-500" 
+                className="pl-10 h-12 bg-slate-50 border-none rounded-xl w-full font-normal text-sm placeholder:text-slate-300 focus-visible:ring-emerald-500" 
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
               />
@@ -418,8 +413,9 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
         )}
       </section>
 
+      {/* 🔥 FIXED: Modal height */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[600px] w-[95vw] h-[92vh] rounded-[3rem] p-0 flex flex-col border-none bg-white shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogContent className="sm:max-w-[600px] w-[95vw] max-h-[85vh] rounded-[3rem] p-0 flex flex-col border-none bg-white shadow-2xl overflow-hidden [&>button]:hidden">
           <VisuallyHidden.Root>
             <DialogHeader>
               <DialogTitle>{selectedWord?.entry_name || "Word Details"}</DialogTitle>
