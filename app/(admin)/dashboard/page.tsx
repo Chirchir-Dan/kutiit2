@@ -50,15 +50,15 @@ const EditorFields = ({
   const allSelected = editForm?.dialects?.length === DIALECTS.length;
 
   return (
-    <div className="space-y-8 py-2">
+    <div className="space-y-6 py-2">
       {/* 1. Grammar Category */}
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">Grammar Category</label>
+        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Grammar Category</label>
         <select 
           name="word_type" 
           value={editForm?.word_type || "noun"} 
           onChange={handleInputChange} 
-          className="w-full h-12 rounded-xl border-2 border-slate-100 bg-white px-4 text-sm font-bold outline-none focus:border-emerald-500 appearance-none cursor-pointer"
+          className="w-full h-14 rounded-2xl border-2 border-slate-200 bg-white px-5 text-base font-normal text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all appearance-none cursor-pointer"
         >
           <optgroup label="Standard Parts of Speech">
             <option value="noun">Noun</option>
@@ -81,175 +81,189 @@ const EditorFields = ({
         </select>
       </div>
 
-      {/* 2. Main Inputs */}
-      <div className={`grid grid-cols-1 ${isRiddle ? "" : "md:grid-cols-2"} gap-6`}>
-        <div className="space-y-2">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-            {isRiddle ? "Tangoch" : isProverbOrSaying ? "saying/proverb" : " word"}
-          </label>
-          <Input 
-            name="entry_name" 
-            value={editForm?.entry_name || ""} 
-            onChange={handleInputChange} 
-            placeholder={isRiddle ? "e.g., Kirginyuu kipkeleny tulwo" : "Enter word..."}
-            className="h-12 bg-white border-slate-200 rounded-xl font-bold" 
-          />
-        </div>
-
-        {!isRiddle && (
-          <div className="space-y-2 animate-in fade-in">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-              {editForm?.word_type === 'saying' ? "Meaning" : isProverbOrSaying ? "Meaning" : "Translations"}
-            </label>
-            {/* Multiple Translations Input */}
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <Input 
-                  name="translation_input"
-                  value={editForm?.translation_input || ""}
-                  onChange={handleInputChange}
-                  onKeyDown={handleTranslationKeyDown}
-                  placeholder="Type translation and press Enter..."
-                  className="h-12 bg-white border-slate-200 rounded-xl flex-1"
-                />
-                <Button
-                  type="button"
-                  onClick={handleAddTranslation}
-                  variant="outline"
-                  className="h-12 px-4 rounded-xl border-slate-200"
-                >
-                  <Plus size={16} />
-                </Button>
-              </div>
-              <p className="text-[10px] text-slate-400 ml-1">Press Enter to add multiple translations</p>
-              
-              {/* Translation Tags */}
-              {editForm?.translations && editForm.translations.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2 p-3 bg-slate-50/80 rounded-xl border border-slate-100 min-h-[50px]">
-                  {editForm.translations.map((translation: string, index: number) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium"
-                    >
-                      {translation}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTranslation(index)}
-                        className="ml-1 hover:text-red-500 transition-colors"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-              {(!editForm?.translations || editForm.translations.length === 0) && (
-                <p className="text-xs text-slate-400 mt-1">No translations added yet</p>
-              )}
-            </div>
-          </div>
-        )}
+      {/* 2. Word Entry */}
+      <div className="space-y-2">
+        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">
+          {isRiddle ? "Tangoch" : isProverbOrSaying ? "Proverb / Saying" : "Word"}
+        </label>
+        <Input 
+          name="entry_name" 
+          value={editForm?.entry_name || ""} 
+          onChange={handleInputChange} 
+          placeholder={isRiddle ? "e.g., Kirginyuu kipkeleny tulwo" : "Enter word..."}
+          className="h-14 bg-white border-2 border-slate-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all" 
+        />
       </div>
 
-      {/* ... Specific morphology fields (Noun/Verb/Riddle) ... */}
-      {isRiddle && (
-        <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
-          <label className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 ml-1">
-            <HelpCircle size={14} /> Walutiet
+      {/* 3. Translations */}
+      {!isRiddle && (
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">
+            {editForm?.word_type === 'saying' ? "Meaning" : isProverbOrSaying ? "Meaning" : "Translations"}
           </label>
-          <Input name="answer" placeholder="Nee walutiet?" value={editForm?.answer || ""} onChange={handleInputChange} className="h-12 bg-emerald-50 border-emerald-100 rounded-xl font-bold text-emerald-600 focus-visible:ring-emerald-500 placeholder:text-emerald-300" />
+          <div className="flex gap-2">
+            <Input 
+              name="translation_input"
+              value={editForm?.translation_input || ""}
+              onChange={handleInputChange}
+              onKeyDown={handleTranslationKeyDown}
+              placeholder="Type translation and press Enter..."
+              className="h-14 bg-white border-2 border-slate-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all flex-1"
+            />
+            <Button
+              type="button"
+              onClick={handleAddTranslation}
+              variant="outline"
+              className="h-14 px-6 rounded-2xl border-2 border-slate-200 hover:border-emerald-400 hover:bg-emerald-50"
+            >
+              <Plus size={18} className="text-slate-500" />
+            </Button>
+          </div>
+          <p className="text-[10px] text-slate-400 ml-1">Press Enter to add multiple translations</p>
+          
+          {/* Translation Tags */}
+          {editForm?.translations && editForm.translations.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2 p-4 bg-slate-50 rounded-2xl border border-slate-200 min-h-[60px]">
+              {editForm.translations.map((translation: string, index: number) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center gap-1 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl text-sm font-medium"
+                >
+                  {translation}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTranslation(index)}
+                    className="ml-1 hover:text-red-500 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          {(!editForm?.translations || editForm.translations.length === 0) && (
+            <p className="text-sm text-slate-400 mt-1">No translations added yet</p>
+          )}
         </div>
       )}
 
+      {/* 4. Riddle Answer */}
+      {isRiddle && (
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-emerald-700 uppercase tracking-wider flex items-center gap-2 ml-1">
+            <HelpCircle size={14} /> Walutiet
+          </label>
+          <Input 
+            name="answer" 
+            placeholder="Nee walutiet?" 
+            value={editForm?.answer || ""} 
+            onChange={handleInputChange} 
+            className="h-14 bg-white border-2 border-emerald-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-emerald-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all" 
+          />
+        </div>
+      )}
+
+      {/* 5. Noun Forms */}
       {isNoun && (
-        <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100 animate-in fade-in">
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> 
-          {/* Singular Section */}
+        <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-200 space-y-6">
           <div className="space-y-3">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b pb-1">Singular</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 pb-2">Singular</p>
             <div className="flex gap-2">
               <Input 
                 name="singular_indefinite" 
-                placeholder="tany" 
+                placeholder="Indefinite: tany" 
                 value={editForm?.singular_indefinite || ""} 
                 onChange={handleInputChange} 
-                className="bg-white flex-1 w-full" 
+                className="h-12 bg-white border-slate-200 rounded-xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500" 
               />
               <Input 
                 name="singular_definite" 
-                placeholder="teta" 
+                placeholder="Definite: teta" 
                 value={editForm?.singular_definite || ""} 
                 onChange={handleInputChange} 
-                className="bg-white flex-1 w-full" 
+                className="h-12 bg-white border-emerald-200 rounded-xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500" 
               />
             </div>
           </div>
 
-          {/* Plural Section */}
           <div className="space-y-3">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b pb-1">Plural</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 pb-2">Plural</p>
             <div className="flex gap-2">
               <Input 
                 name="plural_indefinite" 
-                placeholder="tich" 
+                placeholder="Indefinite: tich" 
                 value={editForm?.plural_indefinite || ""} 
                 onChange={handleInputChange} 
-                className="bg-white flex-1 w-full"  
+                className="h-12 bg-white border-slate-200 rounded-xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500" 
               />
               <Input 
                 name="plural_definite" 
-                placeholder="tuga" 
+                placeholder="Definite: tuga" 
                 value={editForm?.plural_definite || ""} 
                 onChange={handleInputChange} 
-                className="bg-white flex-1 w-full" 
+                className="h-12 bg-white border-emerald-200 rounded-xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500" 
               />
             </div>
           </div>
         </div>
-        </div>
       )}
 
+      {/* 6. Verb Forms */}
       {isVerb && (
-        <div className="bg-amber-50/30 p-5 rounded-2xl border border-amber-100 space-y-2 animate-in fade-in">
-          <label className="text-[10px] font-black text-amber-800 uppercase tracking-widest flex items-center gap-2 ml-1">
-            <Zap size={12} /> Imperative
+        <div className="bg-amber-50/20 p-6 rounded-3xl border border-amber-200/50 space-y-2">
+          <label className="text-xs font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-2 ml-1">
+            <Zap size={14} className="text-amber-500" /> Imperative
           </label>
-          <Input name="imperative" placeholder="e.g. Cham!" value={editForm?.imperative || ""} onChange={handleInputChange} className="h-12 bg-white border-amber-100 rounded-xl" />
+          <Input 
+            name="imperative" 
+            placeholder="e.g. Cham!" 
+            value={editForm?.imperative || ""} 
+            onChange={handleInputChange} 
+            className="h-14 bg-white border-amber-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-amber-500 focus:border-amber-500 transition-all" 
+          />
         </div>
       )}
 
+      {/* 7. Usage Examples */}
       {!isProverbOrSaying && !isRiddle && (
-        <div className="space-y-2 animate-in fade-in">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
-            <Languages size={14} className="text-emerald-600" /> Usage Examples
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2 ml-1">
+            <Languages size={14} className="text-emerald-500" /> Usage Examples
           </label>
-          <Textarea name="examples" value={editForm?.examples || ""} onChange={handleInputChange} className="min-h-[100px] bg-white border-slate-200 rounded-2xl p-4 font-mono text-sm leading-relaxed" />
+          <Textarea 
+            name="examples" 
+            value={editForm?.examples || ""} 
+            onChange={handleInputChange} 
+            placeholder="Enter example sentences (one per line)"
+            className="min-h-[120px] bg-white border-2 border-slate-200 rounded-2xl p-5 text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all resize-none" 
+          />
         </div>
       )}
 
+      {/* 8. Notes & Context */}
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
-          <MessageSquareQuote size={14} className="text-emerald-600" /> Notes & Context
+        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2 ml-1">
+          <MessageSquareQuote size={14} className="text-emerald-500" /> Notes & Context
         </label>
         <Textarea 
           name="notes" 
           value={editForm?.notes || ""} 
           onChange={handleInputChange} 
           placeholder="Cultural significance or grammar tips..."
-          className="min-h-[100px] bg-slate-50/50 border-slate-200 rounded-2xl p-4 text-sm italic" 
+          className="min-h-[120px] bg-white border-2 border-slate-200 rounded-2xl p-5 text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all resize-none" 
         />
       </div>
 
-      {/* 3. DIALECT SELECTION (Moved to Bottom) */}
-      <div className="pt-6 border-t border-slate-100 space-y-4 pb-10">
+      {/* 9. DIALECT SELECTION */}
+      <div className="pt-6 border-t border-slate-200 space-y-4">
         <div className="flex items-center justify-between px-1">
-          <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
-            <MapPin size={12} /> Dialect Scope
+          <label className="text-xs font-semibold text-blue-600 uppercase tracking-wider flex items-center gap-2">
+            <MapPin size={14} /> Dialect Scope
           </label>
           <button 
             type="button"
             onClick={onToggleAllDialects}
-            className="text-[9px] font-black uppercase text-blue-500 hover:text-blue-700 transition-colors bg-blue-50 px-2 py-1 rounded-md"
+            className="text-[10px] font-semibold uppercase text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 px-3 py-1.5 rounded-md border border-blue-200"
           >
             {allSelected ? "Deselect All" : "Select All"}
           </button>
@@ -260,13 +274,13 @@ const EditorFields = ({
             <div 
               key={dialect} 
               onClick={() => onDialectChange(dialect)}
-              className={`flex items-center justify-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${
+              className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 cursor-pointer transition-all ${
                 editForm?.dialects?.includes(dialect) 
                 ? "bg-blue-600 border-blue-600 text-white shadow-sm" 
-                : "bg-white border-slate-200 text-slate-400 hover:border-blue-300"
+                : "bg-white border-slate-200 text-slate-500 hover:border-blue-300"
               }`}
             >
-              <span className="text-[10px] font-bold uppercase tracking-tight">{dialect}</span>
+              <span className="text-[10px] font-medium uppercase tracking-tight">{dialect}</span>
             </div>
           ))}
         </div>
@@ -288,7 +302,7 @@ export default function AdminDashboard() {
   const [isSearching, setIsSearching] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [error, setError] = useState<string | null>(null); // 🔥 NEW: For validation errors
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch all words initially
   useEffect(() => { 
@@ -394,7 +408,7 @@ export default function AdminDashboard() {
       translations: translations,
       translation_input: "" 
     });
-    setError(null); // Clear any previous errors
+    setError(null);
     if (window.innerWidth < 768) setIsModalOpen(true);
   };
 
@@ -457,26 +471,21 @@ export default function AdminDashboard() {
     setIsModalOpen(true);
   };
 
-  // FIXED: Save with validation
   const handleSave = async () => {
     if (!editForm) return;
     
-    // Validation: Check required fields
     setError(null);
     
-    // Check if word has a name
     if (!editForm.entry_name?.trim()) {
       setError("Please enter a word");
       return;
     }
     
-    // Check if it has translations (for non-riddle types)
     if (editForm.word_type !== 'riddle' && (!editForm.translations || editForm.translations.length === 0)) {
       setError("Please add at least one translation");
       return;
     }
     
-    // Check if riddle has an answer
     if (editForm.word_type === 'riddle' && !editForm.answer?.trim()) {
       setError("Please enter the answer for this riddle");
       return;
@@ -484,7 +493,6 @@ export default function AdminDashboard() {
     
     setSaving(true);
 
-    // IMPORTANT: Remove temporary fields before saving
     const { translation_input, ...cleanData } = editForm;
     
     const saveData = { 
@@ -680,7 +688,6 @@ export default function AdminDashboard() {
                 <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900 truncate">{editForm.entry_name || "New Entry"}</h1>
               </div>
               <div className="flex flex-col items-end gap-2">
-                {/* 🔥 NEW: Error message display */}
                 {error && (
                   <div className="text-red-500 text-xs font-bold bg-red-50 px-3 py-1 rounded-lg border border-red-200">
                     ⚠️ {error}
@@ -762,7 +769,6 @@ export default function AdminDashboard() {
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto p-8 bg-white">
-            {/* 🔥 NEW: Error message in modal */}
             {error && (
               <div className="mb-4 text-red-500 text-xs font-bold bg-red-50 px-3 py-2 rounded-lg border border-red-200">
                 ⚠️ {error}
