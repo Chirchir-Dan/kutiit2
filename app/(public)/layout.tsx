@@ -125,8 +125,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       </main>
 
       {/* Footer - Ultra Compact */}
-      <footer className="shrink-0 border-t bg-white px-4 md:px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[7px] md:text-[8px] font-black uppercase tracking-widest text-emerald-600 h-6">
+      <footer className="shrink-0 border-t bg-white h-8 flex items-center px-4 md:px-6">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-emerald-600 w-full">
           <a href="mailto:kutiitadmin@gmail.com" className="hover:text-emerald-900 transition-colors shrink-0">
             Email
           </a>
