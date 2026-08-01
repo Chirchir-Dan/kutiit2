@@ -329,22 +329,23 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                 )}
               </div>
 
-              {isNoun && (
+             {isNoun && (
                 <div className="bg-slate-50/30 p-6 rounded-[2rem] border-2 border-slate-100/50 space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-2 ml-2">Singular Forms</p>
-                      <div className="space-y-3">
-                        <Input name="singular_indefinite" placeholder="Indefinite: e.g. tany" value={form.singular_indefinite} onChange={handleInputChange} className="bg-white border-slate-100 rounded-xl font-bold" />
-                        <Input name="singular_definite" placeholder="Definite: e.g. teta" value={form.singular_definite} onChange={handleInputChange} className="bg-white border-emerald-100 rounded-xl font-bold text-emerald-700" />
-                      </div>
+                  {/* Singular Forms - Full Width */}
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-2 ml-2">Singular Forms</p>
+                    <div className="space-y-3">
+                      <Input name="singular_indefinite" placeholder="Indefinite: e.g. tany" value={form.singular_indefinite} onChange={handleInputChange} className="h-14 bg-white border-slate-100 rounded-xl font-bold" />
+                      <Input name="singular_definite" placeholder="Definite: e.g. teta" value={form.singular_definite} onChange={handleInputChange} className="h-14 bg-white border-emerald-100 rounded-xl font-bold text-emerald-700" />
                     </div>
-                    <div className="space-y-4">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-2 ml-2">Plural Forms</p>
-                      <div className="space-y-3">
-                        <Input name="plural_indefinite" placeholder="indefinite: e.g. tich" value={form.plural_indefinite} onChange={handleInputChange} className="bg-white border-slate-100 rounded-xl font-bold" />
-                        <Input name="plural_definite" placeholder="definite: e.g. tuga" value={form.plural_definite} onChange={handleInputChange} className="bg-white border-emerald-100 rounded-xl font-bold text-emerald-700" />
-                      </div>
+                  </div>
+
+                  {/* Plural Forms - Full Width */}
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-2 ml-2">Plural Forms</p>
+                    <div className="space-y-3">
+                      <Input name="plural_indefinite" placeholder="Indefinite: e.g. tich" value={form.plural_indefinite} onChange={handleInputChange} className="h-14 bg-white border-slate-100 rounded-xl font-bold" />
+                      <Input name="plural_definite" placeholder="Definite: e.g. tuga" value={form.plural_definite} onChange={handleInputChange} className="h-14 bg-white border-emerald-100 rounded-xl font-bold text-emerald-700" />
                     </div>
                   </div>
                 </div>
