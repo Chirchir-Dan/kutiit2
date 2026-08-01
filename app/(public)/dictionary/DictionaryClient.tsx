@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { 
-  Search, ChevronRight, X, MessageSquareQuote, Quote, Frown, Languages, Plus 
+  Search, ChevronRight, X, MessageSquareQuote, Quote, Frown, Languages, Plus, 
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +31,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
   const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedType, setSelectedType] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState<boolean>(false);
 
   // Get unique word types for filter
   const wordTypes = ["all", ...new Set(words.map(w => w.word_type).filter(Boolean))];
@@ -331,21 +334,30 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
           
           {/* Type Filter */}
           <div className="flex flex-wrap items-center gap-2 mt-3">
-            <div className="flex flex-wrap gap-1.5 flex-1">
-              {wordTypes.map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setSelectedType(type)}
-                  className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all ${
-                    selectedType === type
-                      ? "bg-emerald-600 text-white"
-                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                  }`}
-                >
-                  {type === "all" ? "All" : type}
-                </button>
-              ))}
-            </div>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all bg-slate-100 text-slate-500 hover:bg-slate-200"
+              >
+                {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                {showFilters ? "Hide Filters" : "Show Filters"}
+              </button>
+              {showFilters && (
+                <div className="flex flex-wrap gap-1.5 flex-1">
+                  {wordTypes.map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setSelectedType(type)}
+                      className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all ${
+                      selectedType === type
+                        ? "bg-emerald-600 text-white"
+                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                    }`}
+                  >
+                    {type === "all" ? "All" : type}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

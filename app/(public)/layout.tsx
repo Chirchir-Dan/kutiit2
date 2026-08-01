@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Mail, BookOpen, Menu, X, Heart, GraduationCap } from "lucide-react";
+import { Mail, BookOpen, Menu, X, Heart, GraduationCap, ChevronDown, ChevronUp } from "lucide-react";
 import { ContactModal } from "@/components/shared/ContactModal";
 import { SupportModal } from "@/components/shared/SupportModal";
 
@@ -39,9 +39,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               Learn
             </Link>
             <ContactModal>
-              <button className="bg-emerald-600 hover:bg-emerald-900 text-white rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black uppercase px-4 md:px-6 h-9 md:h-10 shadow-md hover:shadow-lg transition-all active:scale-95 shrink-0 ml-1 cursor-pointer">
+              <span className="bg-emerald-600 hover:bg-emerald-900 text-white rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black uppercase px-4 md:px-6 h-9 md:h-10 shadow-md hover:shadow-lg transition-all active:scale-95 shrink-0 ml-1 inline-flex items-center justify-center cursor-pointer">
                 Contact
-              </button>
+              </span>
             </ContactModal>
           </div>
 
@@ -56,7 +56,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         </nav>
       </header>
 
-      {/* Mobile Menu - Slide from Right */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
         <>
           <div 
@@ -99,20 +99,14 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                   <GraduationCap size={20} /> Learn Nandi
                 </Link>
                 <ContactModal>
-                  <button
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 text-sm font-medium text-slate-700 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+                  <span className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 text-sm font-medium text-slate-700 transition-colors cursor-pointer">
                     <Mail size={20} /> Contact
-                  </button>
+                  </span>
                 </ContactModal>
                 <SupportModal>
-                  <button
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 text-sm font-medium text-slate-700 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+                  <span className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 text-sm font-medium text-slate-700 transition-colors cursor-pointer">
                     <Heart size={20} className="text-rose-500" /> Support the Project
-                  </button>
+                  </span>
                 </SupportModal>
               </div>
               <div className="p-6 border-t border-slate-100">
@@ -130,9 +124,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         {children}
       </main>
 
-      {/* Footer */}
-      <footer className="shrink-0 border-t bg-white py-1.5 px-4 md:px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[8px] md:text-[9px] font-black uppercase tracking-widest text-emerald-600">
+      {/* Footer - Very Compact */}
+      <footer className="shrink-0 border-t bg-white py-1 px-4 md:px-6">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[7px] md:text-[8px] font-black uppercase tracking-widest text-emerald-600">
           <a href="mailto:kutiitadmin@gmail.com" className="hover:text-emerald-900 transition-colors shrink-0">
             Email
           </a>
