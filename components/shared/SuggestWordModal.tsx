@@ -34,9 +34,9 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
     entry_name: initialSearch || "",
     word_type: "noun",
     dialects: [""], 
-    translations: [], // 🔥 NEW: Array for multiple translations
-    translation_input: "", // 🔥 NEW: Temporary input field
-    translation_en: "", // Keep for backward compatibility
+    translations: [],
+    translation_input: "",
+    translation_en: "",
     singular_indefinite: "",
     singular_definite: "",
     plural_indefinite: "",
@@ -52,7 +52,6 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // 🔥 NEW: Translation handlers
   const handleAddTranslation = () => {
     if (!form.translation_input?.trim()) return;
     const newTranslation = form.translation_input.trim();
@@ -101,7 +100,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
     if (!form.entry_name.trim()) return false;
     if (form.dialects.length === 0) return false;
     if (isRiddle) return form.answer.trim().length > 0 && turnstileToken !== null;
-    return form.translations.length > 0 && turnstileToken !== null; // 🔥 CHANGED: Check translations array
+    return form.translations.length > 0 && turnstileToken !== null;
   };
 
   const handleSubmit = async () => {
@@ -118,11 +117,10 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
 
     setSaving(true);
     
-    // 🔥 NEW: Prepare data for submission
     const submitData = {
       ...form,
-      translation_en: form.translations[0] || "", // Keep first translation for backward compatibility
-      translation_input: undefined, // Remove temporary field
+      translation_en: form.translations[0] || "",
+      translation_input: undefined,
     };
     
     const { error } = await supabase.from("suggestions").insert([submitData]);
@@ -137,7 +135,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
         setTurnstileToken(null);
         setForm({ 
           entry_name: "", word_type: "noun", dialects: [], 
-          translations: [], translation_input: "", // 🔥 NEW: Reset translations
+          translations: [], translation_input: "",
           translation_en: "", 
           singular_indefinite: "", singular_definite: "", 
           plural_indefinite: "", plural_definite: "", 
@@ -165,7 +163,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                 <DialogTitle className="text-2xl font-black uppercase text-slate-900 tracking-tighter leading-none">
                   Contribute
                 </DialogTitle>
-                <p className="text-emerald-600/70 text-[10px] font-black uppercase tracking-[0.2em] mt-2 flex items-center gap-1">
+                <p className="text-emerald-600/70 text-[10px] font-medium uppercase tracking-[0.2em] mt-2 flex items-center gap-1">
                   <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
                   Build the Kalenjin Heritage
                 </p>
@@ -206,63 +204,57 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                 />
               </div>
 
-              <div className="space-y-3">
-                <label className="text-[11px] font-black text-emerald-600 uppercase tracking-[0.2em] ml-2">Grammar Category</label>
-                <div className="relative group">
-                  <select 
-                    name="word_type" 
-                    value={form.word_type} 
-                    onChange={handleInputChange} 
-                    className="w-full h-14 rounded-2xl border-2 border-slate-100 bg-slate-50/50 px-5 text-base font-bold outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all appearance-none cursor-pointer text-slate-700"
-                  >
-                    <optgroup label="Standard Parts of Speech">
-                      <option value="noun">Noun</option>
-                      <option value="verb">Verb</option>
-                      <option value="adjective">Adjective</option>
-                      <option value="adverb">Adverb</option>
-                      <option value="pronoun">Pronoun</option>
-                      <option value="preposition">Preposition</option>
-                      <option value="conjunction">Conjunction</option>
-                      <option value="interjection">Interjection</option>
-                      <option value="expression">Expression</option>
-                      <option value="number">Number</option>
-                      <option value="particle">Particle</option>
-                    </optgroup>
-                    <optgroup label="Traditional Literature">
-                      <option value="proverb">Kalewenet</option>
-                      <option value="riddle">Tangoch</option>
-                      <option value="saying">Saying</option>   
-                    </optgroup>
-                  </select>
-                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                    <Zap size={18} className="text-emerald-600" />
-                  </div>
-                </div>
+              {/* Grammar Category */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">
+                  Grammar Category
+                </label>
+                <select 
+                  name="word_type" 
+                  value={form.word_type} 
+                  onChange={handleInputChange} 
+                  className="w-full h-14 rounded-2xl border-2 border-slate-200 bg-white px-5 text-base font-normal text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all appearance-none cursor-pointer"
+                >
+                  <optgroup label="Standard Parts of Speech">
+                    <option value="noun">Noun</option>
+                    <option value="verb">Verb</option>
+                    <option value="adjective">Adjective</option>
+                    <option value="adverb">Adverb</option>
+                    <option value="pronoun">Pronoun</option>
+                    <option value="preposition">Preposition</option>
+                    <option value="conjunction">Conjunction</option>
+                    <option value="interjection">Interjection</option>
+                    <option value="expression">Expression</option>
+                    <option value="number">Number</option>
+                    <option value="particle">Particle</option>
+                  </optgroup>
+                  <optgroup label="Traditional Literature">
+                    <option value="proverb">Kalewenet</option>
+                    <option value="riddle">Tangoch</option>
+                    <option value="saying">Saying</option>   
+                  </optgroup>
+                </select>
               </div>
 
-              <div className="space-y-3">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
-                  {isRiddle ? "Tangoch" : isProverbOrSaying ? "Proverb/Saying" : "Word"}
+              {/* Word / Entry Name */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">
+                  {isRiddle ? "Tangoch" : isProverbOrSaying ? "Proverb / Saying" : "Word"}
                 </label>
                 <Input 
                   name="entry_name" 
                   value={form.entry_name} 
-                  placeholder={
-                  isNoun? "e.g. Teta" :
-                   isVerb ? "e.g. Cham" :
-                  isRiddle ? "kirginyuu kipkelenye tulwo?" :
-                  isProverbOrSaying ? "e.g. Proverb/Saying" :
-                   ""
-                }
+                  placeholder={isNoun ? "e.g. Teta" : isVerb ? "e.g. Cham" : isRiddle ? "kirginyuu kipkelenye tulwo?" : isProverbOrSaying ? "e.g. Proverb / Saying" : "Enter word..."}
                   onChange={handleInputChange} 
-                  className="h-14 bg-slate-50/50 border-2 border-slate-100 rounded-2xl text-lg focus-visible:ring-emerald-500 focus:bg-white shadow-none font-bold" 
+                  className="h-14 bg-white border-2 border-slate-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all" 
                 />
               </div>
 
+              {/* Translations / Meaning */}
               <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                 {isRiddle ? (
-                   <div className="space-y-3 p-6 bg-emerald-50/30 rounded-3xl border-2 border-emerald-100/50 shadow-sm">
-                    <label className="text-[11px] font-black text-emerald-700 uppercase tracking-[0.2em] flex items-center gap-2 ml-1">
+                  <div className="space-y-2 p-6 bg-emerald-50/30 rounded-3xl border-2 border-emerald-100/50">
+                    <label className="text-xs font-semibold text-emerald-700 uppercase tracking-wider flex items-center gap-2 ml-1">
                       <HelpCircle size={14} /> Walutiet
                     </label>
                     <Input 
@@ -270,25 +262,23 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                       placeholder="Answer to the tangoch..."
                       value={form.answer} 
                       onChange={handleInputChange} 
-                      className="h-14 bg-white border-emerald-100 rounded-2xl font-black text-emerald-900 focus-visible:ring-emerald-500" 
+                      className="h-14 bg-white border-emerald-200 rounded-2xl text-base font-normal text-emerald-800 placeholder:text-emerald-400 focus-visible:ring-emerald-500" 
                     />
                   </div>
                 ) : (
-                  // 🔥 CHANGED: Multiple translations input
-                  <div className="space-y-3">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">
                       {isProverbOrSaying ? "Meaning" : "Translations"}
                     </label>
                     
-                    {/* Translation Input with Enter key support */}
                     <div className="flex gap-2">
                       <Input 
                         name="translation_input"
-                        placeholder={isProverbOrSaying ? "What does it mean? (press Enter)" : (isVerb ? "e.g To love" : isNoun?"e.g Cow":"Type translation and press Enter")}
+                        placeholder={isProverbOrSaying ? "What does it mean? (press Enter)" : isVerb ? "e.g. To love" : isNoun ? "e.g. Cow" : "Type translation and press Enter"}
                         value={form.translation_input} 
                         onChange={handleInputChange}
                         onKeyDown={handleTranslationKeyDown}
-                        className="h-14 bg-slate-50/50 border-2 border-slate-100 rounded-2xl focus-visible:ring-emerald-500 focus:bg-white font-bold flex-1" 
+                        className="h-14 bg-white border-2 border-slate-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all flex-1" 
                       />
                       <Button
                         type="button"
@@ -297,18 +287,17 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                         className="h-14 px-6 rounded-2xl border-2 border-slate-200 hover:border-emerald-400 hover:bg-emerald-50"
                         disabled={!form.translation_input?.trim()}
                       >
-                        <Plus size={18} />
+                        <Plus size={18} className="text-slate-500" />
                       </Button>
                     </div>
-                    <p className="text-[10px] text-slate-400 ml-2">Press Enter to add multiple translations</p>
+                    <p className="text-[10px] text-slate-400 ml-1">Press Enter to add multiple translations</p>
 
-                    {/* Translation Tags */}
                     {form.translations.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3 p-4 bg-slate-50/80 rounded-2xl border-2 border-slate-100 min-h-[60px]">
+                      <div className="flex flex-wrap gap-2 mt-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 min-h-[60px]">
                         {form.translations.map((translation: string, index: number) => (
                           <span
                             key={index}
-                            className="inline-flex items-center gap-1 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl text-sm font-bold"
+                            className="inline-flex items-center gap-1 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl text-sm font-medium"
                           >
                             {translation}
                             <button
@@ -323,91 +312,94 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                       </div>
                     )}
                     {form.translations.length === 0 && (
-                      <p className="text-sm text-slate-400 mt-1 ml-2">No translations added yet</p>
+                      <p className="text-sm text-slate-400 mt-1">No translations added yet</p>
                     )}
                   </div>
                 )}
               </div>
 
-             {isNoun && (
-                <div className="bg-slate-50/30 p-6 rounded-[2rem] border-2 border-slate-100/50 space-y-6">
-                  {/* Singular Forms - Full Width */}
-                  <div className="space-y-4">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-2 ml-2">Singular Forms</p>
+              {/* Noun Forms */}
+              {isNoun && (
+                <div className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-200 space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 pb-2">Singular Forms</p>
                     <div className="space-y-3">
-                      <Input name="singular_indefinite" placeholder="Indefinite: e.g. tany" value={form.singular_indefinite} onChange={handleInputChange} className="h-14 bg-white border-slate-100 rounded-xl font-bold" />
-                      <Input name="singular_definite" placeholder="Definite: e.g. teta" value={form.singular_definite} onChange={handleInputChange} className="h-14 bg-white border-emerald-100 rounded-xl font-bold text-emerald-700" />
+                      <Input name="singular_indefinite" placeholder="Indefinite: e.g. tany" value={form.singular_indefinite} onChange={handleInputChange} className="h-14 bg-white border-slate-200 rounded-xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500" />
+                      <Input name="singular_definite" placeholder="Definite: e.g. teta" value={form.singular_definite} onChange={handleInputChange} className="h-14 bg-white border-emerald-200 rounded-xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500" />
                     </div>
                   </div>
 
-                  {/* Plural Forms - Full Width */}
-                  <div className="space-y-4">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-2 ml-2">Plural Forms</p>
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 pb-2">Plural Forms</p>
                     <div className="space-y-3">
-                      <Input name="plural_indefinite" placeholder="Indefinite: e.g. tich" value={form.plural_indefinite} onChange={handleInputChange} className="h-14 bg-white border-slate-100 rounded-xl font-bold" />
-                      <Input name="plural_definite" placeholder="Definite: e.g. tuga" value={form.plural_definite} onChange={handleInputChange} className="h-14 bg-white border-emerald-100 rounded-xl font-bold text-emerald-700" />
+                      <Input name="plural_indefinite" placeholder="Indefinite: e.g. tich" value={form.plural_indefinite} onChange={handleInputChange} className="h-14 bg-white border-slate-200 rounded-xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500" />
+                      <Input name="plural_definite" placeholder="Definite: e.g. tuga" value={form.plural_definite} onChange={handleInputChange} className="h-14 bg-white border-emerald-200 rounded-xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500" />
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* Verb Forms */}
               {isVerb && (
-                <div className="bg-emerald-50/20 p-6 rounded-3xl border-2 border-emerald-100/30 space-y-3">
-                  <label className="text-[11px] font-black text-slate-700 uppercase tracking-widest flex items-center gap-2 ml-1">
-                    <Zap size={14} className="text-emerald-500" /> Command Form
+                <div className="bg-amber-50/20 p-6 rounded-3xl border border-amber-200/50 space-y-2">
+                  <label className="text-xs font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-2 ml-1">
+                    <Zap size={14} className="text-amber-500" /> Command Form
                   </label>
-                  <Input name="imperative" placeholder="e.g. Cham!" value={form.imperative} onChange={handleInputChange} className="h-14 bg-white border-none rounded-xl font-bold text-emerald-900" />
+                  <Input name="imperative" placeholder="e.g. Cham!" value={form.imperative} onChange={handleInputChange} className="h-14 bg-white border-amber-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-amber-500" />
                 </div>
               )}
+
+              {/* Examples */}
               {!isProverbOrSaying && !isRiddle && (
-                <div className="space-y-3">
-                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 ml-2">
-                    <Languages size={14} className="text-emerald-400" /> Examples
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2 ml-1">
+                    <Languages size={14} className="text-emerald-500" /> Examples
                   </label>
                   <Textarea 
                     name="examples" 
-                    placeholder="Provide both kalenjin and english, separated by a dash e.g Hello - Chamgei"
+                    placeholder="Provide both Kalenjin and English, separated by a dash e.g. Hello - Chamgei"
                     value={form.examples} 
                     onChange={handleInputChange} 
-                    className="min-h-[100px] bg-slate-50/50 border-2 border-slate-100 rounded-2xl p-5 font-mono text-sm focus-visible:ring-emerald-500 focus:bg-white" 
+                    className="min-h-[100px] bg-white border-2 border-slate-200 rounded-2xl p-5 text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all resize-none" 
                   />
                 </div>
               )}
 
-              <div className="space-y-3">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 ml-2">
-                  <MessageSquareQuote size={14} className="text-emerald-400" /> Notes
+              {/* Notes */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2 ml-1">
+                  <MessageSquareQuote size={14} className="text-emerald-500" /> Notes
                 </label>
                 <Textarea 
                   name="notes" 
                   value={form.notes} 
                   onChange={handleInputChange} 
-                  placeholder="any context? related words? variations?" 
-                  className="min-h-[100px] bg-slate-100/30 border-none rounded-2xl p-5 text-base italic shadow-inner focus-visible:ring-emerald-500 focus:bg-white" 
+                  placeholder="Any context? Related words? Variations?"
+                  className="min-h-[100px] bg-white border-2 border-slate-200 rounded-2xl p-5 text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all resize-none" 
                 />
               </div>
 
-              {/* DIALECT SELECTION - MOVED TO BOTTOM */}
-              <div className="space-y-4 pt-4 border-t border-slate-50">
-                <div className="flex items-center justify-between ml-2">
-                  <label className="text-[11px] font-black text-blue-600 uppercase tracking-[0.2em] flex items-center gap-2">
+              {/* Dialects */}
+              <div className="space-y-4 pt-4 border-t border-slate-200">
+                <div className="flex items-center justify-between ml-1">
+                  <label className="text-xs font-semibold text-blue-600 uppercase tracking-wider flex items-center gap-2">
                     <MapPin size={14} /> Applicable Dialects
                   </label>
                   
-                  <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 cursor-pointer" onClick={() => toggleUniversal(!isUniversal)}>
-                     <Checkbox 
-                        id="universal" 
-                        checked={isUniversal}
-                        onCheckedChange={toggleUniversal}
-                        className="border-blue-400 data-[state=checked]:bg-blue-600"
-                      />
-                      <label htmlFor="universal" className="text-[10px] font-black text-blue-700 uppercase tracking-wider cursor-pointer flex items-center gap-1">
-                        <Globe size={12} /> Universal
-                      </label>
+                  <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 cursor-pointer" onClick={() => toggleUniversal(!isUniversal)}>
+                    <Checkbox 
+                      id="universal" 
+                      checked={isUniversal}
+                      onCheckedChange={toggleUniversal}
+                      className="border-blue-400 data-[state=checked]:bg-blue-600"
+                    />
+                    <label htmlFor="universal" className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider cursor-pointer flex items-center gap-1">
+                      <Globe size={12} /> Universal
+                    </label>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-6 bg-blue-50/30 rounded-[2rem] border-2 border-blue-100/50">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-6 bg-blue-50/30 rounded-[2rem] border border-blue-200/50">
                   {DIALECTS.map((dialect) => (
                     <div key={dialect} className="flex items-center space-x-2">
                       <Checkbox 
@@ -416,7 +408,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                         onCheckedChange={() => handleDialectChange(dialect)}
                         className="border-blue-300 data-[state=checked]:bg-blue-600"
                       />
-                      <label htmlFor={dialect} className="text-xs font-bold text-slate-700 cursor-pointer select-none">
+                      <label htmlFor={dialect} className="text-xs font-medium text-slate-600 cursor-pointer select-none">
                         {dialect}
                       </label>
                     </div>
@@ -424,6 +416,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                 </div>
               </div>
 
+              {/* Turnstile */}
               <div className="flex justify-center py-2">
                 <Turnstile
                   siteKey="0x4AAAAAAC0n6ihaIamC4RCT"
@@ -433,11 +426,12 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                 />
               </div>
 
+              {/* Submit */}
               <div className="space-y-3 pt-4">
                 <Button 
                   onClick={handleSubmit} 
                   disabled={saving || !isFormValid()} 
-                  className="w-full bg-slate-900 hover:bg-black text-white h-16 rounded-[1.5rem] font-black uppercase text-sm tracking-[0.2em] shadow-xl transition-all disabled:opacity-20 group"
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white h-16 rounded-[1.5rem] font-bold uppercase text-sm tracking-[0.15em] shadow-xl transition-all disabled:opacity-30"
                 >
                   {saving ? (
                     <Loader2 className="animate-spin" />
@@ -449,7 +443,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                 </Button>
                 
                 {!isFormValid() && form.entry_name && (
-                  <p className="text-center text-[10px] font-black uppercase text-emerald-600 tracking-widest animate-pulse flex items-center justify-center gap-1">
+                  <p className="text-center text-[10px] font-medium uppercase text-emerald-600 tracking-widest animate-pulse flex items-center justify-center gap-1">
                     <AlertCircle size={12} /> 
                     {!turnstileToken 
                       ? "Human verification required" 
