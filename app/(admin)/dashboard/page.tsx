@@ -457,11 +457,11 @@ export default function AdminDashboard() {
     setIsModalOpen(true);
   };
 
-  // 🔥 FIXED: Save with validation
+  // FIXED: Save with validation
   const handleSave = async () => {
     if (!editForm) return;
     
-    // 🔥 Validation: Check required fields
+    // Validation: Check required fields
     setError(null);
     
     // Check if word has a name
@@ -483,12 +483,14 @@ export default function AdminDashboard() {
     }
     
     setSaving(true);
+
+    // IMPORTANT: Remove temporary fields before saving
+    const { translation_input, ...cleanData } = editForm;
     
     const saveData = { 
-      ...editForm, 
-      translation_input: undefined,
-      translation_en: editForm.translations?.[0] || "",
-      translations: editForm.translations || []
+      ...cleanData, 
+      translation_en: cleanData.translations?.[0] || "",
+      translations: cleanData.translations || []
     };
     
     const { error: supabaseError } = editForm.id 
@@ -514,12 +516,12 @@ export default function AdminDashboard() {
     setSaving(true);
     setError(null);
     
-    const { id, created_at, user_email, translation_input, ...wordData } = editForm;
+    const { id, created_at, user_email, translation_input, ...cleanData } = editForm;
     
     const insertData = {
-      ...wordData,
-      translation_en: wordData.translations?.[0] || "",
-      translations: wordData.translations || [],
+      ...cleanData,
+      translation_en: cleanData.translations?.[0] || "",
+      translations: cleanData.translations || [],
       is_verified: true
     };
     
