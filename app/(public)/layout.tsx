@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Mail, BookOpen, Menu, X, Heart, GraduationCap, ChevronDown, ChevronUp } from "lucide-react";
+import { Mail, BookOpen, Menu, X, Heart, GraduationCap } from "lucide-react";
 import { ContactModal } from "@/components/shared/ContactModal";
 import { SupportModal } from "@/components/shared/SupportModal";
 
@@ -17,8 +17,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-dvh bg-white">
-      <header className="shrink-0 z-50 bg-white/80 backdrop-blur-md border-b border-emerald-100/50 h-20 flex items-center px-4 md:px-6">
+    <div className="flex flex-col h-dvh bg-white overflow-hidden">
+      <header className="shrink-0 z-50 bg-white/80 backdrop-blur-md border-b border-emerald-100/50 h-14 flex items-center px-4 md:px-6">
         <nav className="flex w-full justify-between items-center max-w-7xl mx-auto gap-2">
           <Link href="/" className="shrink min-w-0 group">
             <div className="flex items-center gap-1.5 font-black text-emerald-600 tracking-tighter transition-colors group-hover:text-emerald-900">
@@ -119,14 +119,14 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         </>
       )}
 
-      {/* Main Content */}
+      {/* Main Content - Takes remaining space */}
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
 
-      {/* Footer - Ultra Compact */}
-      <footer className="shrink-0 border-t bg-white h-8 flex items-center px-4 md:px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-emerald-600 w-full">
+      {/* Footer - Very minimal, no extra space */}
+      <footer className="shrink-0 border-t bg-white h-7 flex items-center px-4 md:px-6">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[8px] md:text-[9px] font-black uppercase tracking-widest text-emerald-600 w-full">
           <a href="mailto:kutiitadmin@gmail.com" className="hover:text-emerald-900 transition-colors shrink-0">
             Email
           </a>
@@ -140,7 +140,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           </Link>
           <span className="text-slate-200">|</span>
           <span className="shrink-0 text-slate-400 font-bold">
-            © {new Date().getFullYear()} Kutiit | All Rights Reserved
+            © {new Date().getFullYear()} Kutiit
           </span>
         </div>
       </footer>
