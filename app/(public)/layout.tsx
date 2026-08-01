@@ -140,7 +140,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           </Link>
           <span className="text-slate-200">|</span>
           <span className="shrink-0 text-slate-400 font-bold">
-            © {new Date().getFullYear()} Kutiit
+            © {new Date().getFullYear()} Kutiit | All Rights Reserved
           </span>
         </div>
       </footer>
