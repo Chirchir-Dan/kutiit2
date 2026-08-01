@@ -15,8 +15,6 @@ const FacebookIcon = ({ size = 18 }: { size?: number }) => (
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [contactTrigger, setContactTrigger] = useState<React.ReactNode | null>(null);
-  const [supportTrigger, setSupportTrigger] = useState<React.ReactNode | null>(null);
 
   return (
     <div className="flex flex-col h-dvh bg-white">
@@ -41,12 +39,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               Learn
             </Link>
             <ContactModal>
-              <Button 
-                size="sm" 
-                className="bg-emerald-600 hover:bg-emerald-900 text-white rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black uppercase px-4 md:px-6 h-9 md:h-10 shadow-md hover:shadow-lg transition-all active:scale-95 shrink-0 ml-1"
-              >
+              <button className="bg-emerald-600 hover:bg-emerald-900 text-white rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black uppercase px-4 md:px-6 h-9 md:h-10 shadow-md hover:shadow-lg transition-all active:scale-95 shrink-0 ml-1 cursor-pointer">
                 Contact
-              </Button>
+              </button>
             </ContactModal>
           </div>
 
