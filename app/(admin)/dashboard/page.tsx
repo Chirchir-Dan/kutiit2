@@ -730,31 +730,34 @@ export default function AdminDashboard() {
 
       {/* MOBILE MODAL */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="w-[95vw] max-w-[550px] h-[90vh] p-0 flex flex-col border-none rounded-[2rem] overflow-hidden bg-white shadow-2xl [&>button]:hidden">
-          <DialogHeader className="p-6 border-b bg-white shrink-0 flex flex-row items-center justify-between space-y-0">
-            <div className="flex flex-col truncate pr-4">
-              <span className="text-[10px] font-black text-emerald-600 uppercase block mb-0.5">
-                {editForm?.word_type}
-              </span>
-              <DialogTitle className="text-lg font-black uppercase text-slate-900 truncate">
-                {view === "suggestions" ? "Review Suggestion" : "Edit Entry"}
-              </DialogTitle>
-              <DialogDescription className="sr-only">
-                Form for editing entries and reviewing suggestions.
-              </DialogDescription>
-            </div>
-            <div className="flex gap-2 items-center">
-              <Button 
-                onClick={view === "suggestions" ? handleApproveSuggestion : handleSave} 
-                disabled={saving} 
-                size="sm" 
-                className="bg-emerald-600 rounded-xl h-10 px-6 text-[10px] font-black uppercase"
-              >
-                {saving ? <Loader2 className="animate-spin h-4 w-4" /> : "SAVE"}
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="rounded-full h-10 w-10">
-                <X size={20} />
-              </Button>
+        <DialogContent className="sm:max-w-[650px] w-[95vw] max-h-[92vh] rounded-[3rem] p-0 flex flex-col border-none bg-white shadow-2xl overflow-hidden [&>button]:hidden">
+          <DialogHeader className="p-8 pb-6 bg-emerald-50/50 shrink-0 relative overflow-hidden border-b border-emerald-100/50">
+            <div className="flex flex-row items-center justify-between relative z-10">
+              <div>
+                <DialogTitle className="text-2xl font-black uppercase text-slate-900 tracking-tighter">
+                  {editForm?.id ? "Edit Entry" : "New Entry"}
+                </DialogTitle>
+                <p className="text-emerald-600/70 text-[10px] font-black uppercase tracking-[0.2em] mt-1">
+                  {editForm?.id ? "Update word in dictionary" : "Expand the Kalenjin Dictionary"}
+                </p>
+              </div>
+              <div className="flex gap-2 items-center">
+                <Button 
+                  onClick={view === "suggestions" ? handleApproveSuggestion : handleSave} 
+                  disabled={saving} 
+                  className="bg-emerald-600 rounded-2xl h-12 px-8 text-[10px] font-black uppercase hover:bg-emerald-700"
+                >
+                  {saving ? <Loader2 className="animate-spin h-5 w-5" /> : "SAVE"}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setIsModalOpen(false)} 
+                  className="rounded-full h-10 w-10 bg-white hover:bg-emerald-100 text-slate-400 border border-emerald-100"
+                >
+                  <X size={20} />
+                </Button>
+              </div>
             </div>
           </DialogHeader>
 
