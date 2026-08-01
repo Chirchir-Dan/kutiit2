@@ -124,9 +124,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         {children}
       </main>
 
-      {/* Footer - Very Compact */}
-      <footer className="shrink-0 border-t bg-white py-1 px-4 md:px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[7px] md:text-[8px] font-black uppercase tracking-widest text-emerald-600">
+      {/* Footer - Ultra Compact */}
+      <footer className="shrink-0 border-t bg-white px-4 md:px-6">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[7px] md:text-[8px] font-black uppercase tracking-widest text-emerald-600 h-6">
           <a href="mailto:kutiitadmin@gmail.com" className="hover:text-emerald-900 transition-colors shrink-0">
             Email
           </a>
@@ -140,7 +140,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           </Link>
           <span className="text-slate-200">|</span>
           <span className="shrink-0 text-slate-400 font-bold">
-            © {new Date().getFullYear()} Kutiit
+            © {new Date().getFullYear()} Kutiit | All Rights Reserved
           </span>
         </div>
       </footer>

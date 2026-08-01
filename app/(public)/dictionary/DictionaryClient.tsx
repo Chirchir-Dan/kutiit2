@@ -333,30 +333,40 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
           </div>
           
           {/* Type Filter */}
+         {/* Type Filter - Collapsible with X button */}
           <div className="flex flex-wrap items-center gap-2 mt-3">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all bg-slate-100 text-slate-500 hover:bg-slate-200"
-              >
-                {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                {showFilters ? "Hide Filters" : "Show Filters"}
-              </button>
-              {showFilters && (
+            {showFilters ? (
+              <div className="flex flex-wrap items-center gap-2 w-full">
                 <div className="flex flex-wrap gap-1.5 flex-1">
                   {wordTypes.map((type) => (
                     <button
                       key={type}
                       onClick={() => setSelectedType(type)}
                       className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all ${
-                      selectedType === type
-                        ? "bg-emerald-600 text-white"
-                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                    }`}
-                  >
-                    {type === "all" ? "All" : type}
-                  </button>
-                ))}
+                        selectedType === type
+                          ? "bg-emerald-600 text-white"
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      }`}
+                    >
+                      {type === "all" ? "All" : type}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="p-1 rounded-full hover:bg-slate-100 transition-colors shrink-0"
+                  aria-label="Hide filters"
+                >
+                  <X size={16} className="text-slate-400" />
+                </button>
               </div>
+            ) : (
+              <button
+                onClick={() => setShowFilters(true)}
+                className="px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all bg-slate-100 text-slate-500 hover:bg-slate-200"
+              >
+                Filters
+              </button>
             )}
           </div>
         </div>
