@@ -15,6 +15,8 @@ const FacebookIcon = ({ size = 18 }: { size?: number }) => (
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [contactTrigger, setContactTrigger] = useState<React.ReactNode | null>(null);
+  const [supportTrigger, setSupportTrigger] = useState<React.ReactNode | null>(null);
 
   return (
     <div className="flex flex-col h-dvh bg-white">
@@ -39,7 +41,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               Learn
             </Link>
             <ContactModal>
-              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-900 text-white rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black uppercase px-4 md:px-6 h-9 md:h-10 shadow-md hover:shadow-lg transition-all active:scale-95 shrink-0 ml-1">
+              <Button 
+                size="sm" 
+                className="bg-emerald-600 hover:bg-emerald-900 text-white rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black uppercase px-4 md:px-6 h-9 md:h-10 shadow-md hover:shadow-lg transition-all active:scale-95 shrink-0 ml-1"
+              >
                 Contact
               </Button>
             </ContactModal>
@@ -131,8 +136,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       </main>
 
       {/* Footer */}
-      <footer className="shrink-0 border-t bg-white py-3 px-4 md:px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-emerald-600">
+      <footer className="shrink-0 border-t bg-white py-1.5 px-4 md:px-6">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-x-2 text-[8px] md:text-[9px] font-black uppercase tracking-widest text-emerald-600">
           <a href="mailto:kutiitadmin@gmail.com" className="hover:text-emerald-900 transition-colors shrink-0">
             Email
           </a>
@@ -145,8 +150,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             Admin
           </Link>
           <span className="text-slate-200">|</span>
-          <span className="pt-1 shrink-0 text-slate-400 font-bold">
-            © {new Date().getFullYear()} Kutiit | All Rights Reserved
+          <span className="shrink-0 text-slate-400 font-bold">
+            © {new Date().getFullYear()} Kutiit
           </span>
         </div>
       </footer>
