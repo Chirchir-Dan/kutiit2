@@ -95,6 +95,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
   const isRiddle = form.word_type === "riddle";
   const isNoun = form.word_type === "noun";
   const isVerb = form.word_type === "verb";
+  const isName = form.word_type === "name";
 
   const isFormValid = () => {
     if (!form.entry_name.trim()) return false;
@@ -217,6 +218,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                 >
                   <optgroup label="Standard Parts of Speech">
                     <option value="noun">Noun</option>
+                    <option value="name">Name</option>
                     <option value="verb">Verb</option>
                     <option value="adjective">Adjective</option>
                     <option value="adverb">Adverb</option>
@@ -244,7 +246,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                 <Input 
                   name="entry_name" 
                   value={form.entry_name} 
-                  placeholder={isNoun ? "e.g. Teta" : isVerb ? "e.g. Cham" : isRiddle ? "kirginyuu kipkelenye tulwo?" : isProverbOrSaying ? "e.g. Proverb / Saying" : "Enter word..."}
+                  placeholder={isNoun ? "e.g. Teta" : isVerb ? "e.g. Cham" : isName ? "e.g. Kipng'ung'uny" : isRiddle ? "kirginyuu kipkelenye tulwo?" : isProverbOrSaying ? "e.g. Proverb / Saying" : "Enter word..."}
                   onChange={handleInputChange} 
                   className="h-14 bg-white border-2 border-slate-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all" 
                 />
@@ -274,7 +276,7 @@ export default function SuggestWordModal({ isOpen, onOpenChange, initialSearch, 
                     <div className="flex gap-2">
                       <Input 
                         name="translation_input"
-                        placeholder={isProverbOrSaying ? "What does it mean? (press Enter)" : isVerb ? "e.g. To love" : isNoun ? "e.g. Cow" : "Type translation and press Enter"}
+                        placeholder={isProverbOrSaying ? "What does it mean? (press Enter)" : isVerb ? "e.g. To love" : isNoun ? "e.g. Cow" : isName ? "e.g. Kipng'ung'uny" : "Type translation and press Enter"}
                         value={form.translation_input} 
                         onChange={handleInputChange}
                         onKeyDown={handleTranslationKeyDown}

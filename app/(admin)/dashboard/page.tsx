@@ -46,6 +46,7 @@ const EditorFields = ({
   const isRiddle = editForm?.word_type === "riddle";
   const isNoun = editForm?.word_type === "noun";
   const isVerb = editForm?.word_type === "verb";
+  const isName = editForm?.word_type === "name";
 
   const allSelected = editForm?.dialects?.length === DIALECTS.length;
 
@@ -62,6 +63,7 @@ const EditorFields = ({
         >
           <optgroup label="Standard Parts of Speech">
             <option value="noun">Noun</option>
+            <option value="name">Name</option>
             <option value="verb">Verb</option>
             <option value="adjective">Adjective</option>
             <option value="adverb">Adverb</option>
@@ -84,13 +86,13 @@ const EditorFields = ({
       {/* 2. Word Entry */}
       <div className="space-y-2">
         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">
-          {isRiddle ? "Tangoch" : isProverbOrSaying ? "Proverb / Saying" : "Word"}
+          {isRiddle ? "Tangoch" : isProverbOrSaying ? "Proverb / Saying" : isName ? "Name" : "Word"}
         </label>
         <Input 
           name="entry_name" 
           value={editForm?.entry_name || ""} 
           onChange={handleInputChange} 
-          placeholder={isRiddle ? "e.g., Kirginyuu kipkeleny tulwo" : "Enter word..."}
+          placeholder={isRiddle ? "e.g., Kirginyuu kipkeleny tulwo" : isName ? "e.g., Kipng'ung'uny" : "Enter word..."}
           className="h-14 bg-white border-2 border-slate-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all" 
         />
       </div>
@@ -99,7 +101,7 @@ const EditorFields = ({
       {!isRiddle && (
         <div className="space-y-2">
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">
-            {editForm?.word_type === 'saying' ? "Meaning" : isProverbOrSaying ? "Meaning" : "Translations"}
+            {editForm?.word_type === 'saying' ? "Meaning" : isProverbOrSaying ? "Meaning" : isName ? "Name" : "Translations"}
           </label>
           <div className="flex gap-2">
             <Input 
@@ -107,7 +109,7 @@ const EditorFields = ({
               value={editForm?.translation_input || ""}
               onChange={handleInputChange}
               onKeyDown={handleTranslationKeyDown}
-              placeholder="Type translation and press Enter..."
+              placeholder={isName ? "e.g., makerer" : "Type translation and press Enter..."}
               className="h-14 bg-white border-2 border-slate-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all flex-1"
             />
             <Button
