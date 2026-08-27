@@ -101,7 +101,7 @@ const EditorFields = ({
       {!isRiddle && (
         <div className="space-y-2">
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">
-            {editForm?.word_type === 'saying' ? "Meaning" : isProverbOrSaying ? "Meaning" : isName ? "Name" : "Translations"}
+            {editForm?.word_type === 'saying' ? "Meaning" : isProverbOrSaying ? "Meaning" : isName ? "Meaning" : "Translations"}
           </label>
           <div className="flex gap-2">
             <Input 
@@ -109,7 +109,7 @@ const EditorFields = ({
               value={editForm?.translation_input || ""}
               onChange={handleInputChange}
               onKeyDown={handleTranslationKeyDown}
-              placeholder={isName ? "e.g., makerer" : "Type translation and press Enter..."}
+              placeholder={isName ? "meanig of name" : "Type translation and press Enter..."}
               className="h-14 bg-white border-2 border-slate-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all flex-1"
             />
             <Button
