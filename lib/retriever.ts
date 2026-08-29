@@ -24,11 +24,9 @@ const stopWords = new Set([
   'say', 'saying', 'said'
 ])
 
-// Simple English stemmer: strips common suffixes to match word variants
 function stemWord(word: string): string {
   let stemmed = word.toLowerCase()
   
-  // Strip common suffixes
   const suffixes = ['ing', 'ed', 'es', 's', 'ly']
   for (const suffix of suffixes) {
     if (stemmed.endsWith(suffix) && stemmed.length - suffix.length >= 3) {
@@ -40,7 +38,7 @@ function stemWord(word: string): string {
   return stemmed
 }
 
-export async function retrieveRelevantWords(userQuery: string, limit = 20): Promise<Word[]> {
+export async function retrieveRelevantWords(userQuery: string, limit = 25): Promise<Word[]> {
   const keywords = userQuery
     .toLowerCase()
     .replace(/[^a-z\s]/g, '')
@@ -55,34 +53,48 @@ export async function retrieveRelevantWords(userQuery: string, limit = 20): Prom
   const supabaseServer = getServerSupabase()
 
   for (const keyword of keywords) {
-    // Try exact match first
+    // First try: exact match on translation_en (highest priority)
     let { data, error } = await supabaseServer
       .from('words')
       .select('*')
       .ilike('translation_en', `%${keyword}%`)
-      .limit(10)
+      .limit(15)
 
     if (error) {
       console.error('Retriever error:', error)
       continue
     }
 
-    // If no results, try a broader search with just the first 3 letters
-    if (!data || data.length === 0) {
-      const shortKeyword = keyword.substring(0, 3)
-      const broadResult = await supabaseServer
-        .from('words')
-        .select('*')
-        .ilike('translation_en', `%${shortKeyword}%`)
-        .limit(10)
-      
-      if (broadResult.data) {
-        data = broadResult.data
+    if (data) {
+      for (const entry of data as Word[]) {
+        if (!seenIds.has(entry.id)) {
+          seenIds.add(entry.id)
+          allResults.push(entry)
+        }
       }
     }
 
-    if (data) {
-      for (const entry of data as Word[]) {
+    // If we didn't find enough, search examples and notes too
+    if (allResults.length < limit) {
+      let broadData: Word[] = []
+      
+      const exampleResult = await supabaseServer
+        .from('words')
+        .select('*')
+        .ilike('examples', `%${keyword}%`)
+        .limit(10)
+      
+      if (exampleResult.data) broadData = broadData.concat(exampleResult.data as Word[])
+      
+      const notesResult = await supabaseServer
+        .from('words')
+        .select('*')
+        .ilike('notes', `%${keyword}%`)
+        .limit(10)
+      
+      if (notesResult.data) broadData = broadData.concat(notesResult.data as Word[])
+
+      for (const entry of broadData) {
         if (!seenIds.has(entry.id)) {
           seenIds.add(entry.id)
           allResults.push(entry)
