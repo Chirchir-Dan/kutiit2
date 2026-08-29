@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     console.log('GEMINI_API_KEY exists:', !!geminiKey)
     console.log('GEMINI_API_KEY prefix:', geminiKey ? geminiKey.substring(0, 5) : 'none')
     
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiKey}`
     
     const response = await fetch(geminiUrl, {
       method: 'POST',
