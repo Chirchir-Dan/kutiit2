@@ -27,7 +27,11 @@ export async function POST(request: NextRequest) {
     const prompt = buildPrompt(message, retrievedWords)
 
     // Step 3: Call Gemini API
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`
+    const geminiKey = process.env.GEMINI_API_KEY
+    console.log('GEMINI_API_KEY exists:', !!geminiKey)
+    console.log('GEMINI_API_KEY prefix:', geminiKey ? geminiKey.substring(0, 5) : 'none')
+    
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`
     
     const response = await fetch(geminiUrl, {
       method: 'POST',
@@ -42,6 +46,9 @@ export async function POST(request: NextRequest) {
     })
 
     const data = await response.json()
+    console.log('Gemini response status:', response.status)
+    console.log('Gemini response body:', JSON.stringify(data).substring(0, 2000))
+
     const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.'
 
     // Step 4: Validate the output
