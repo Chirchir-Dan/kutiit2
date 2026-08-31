@@ -43,55 +43,71 @@ export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): V
     
     for (const form of formFields) {
       if (form) {
-        validForms.add(form.toLowerCase().trim())
-        validForms.add(stripTones(form))
+        // Split multi-word forms
+        for (const part of form.split(/\s+/)) {
+          validForms.add(part.toLowerCase().trim())
+          validForms.add(stripTones(part))
+        }
       }
     }
   }
 
-  // Extract only the Nandi sentence(s) from the reply
-  // Look for lines that are likely Nandi: they come after "Nandi translation:" or are standalone lines
-  const lines = aiOutput.split('\n').map(line => line.trim())
-  const nandiLines: string[] = []
+  // The AI is instructed to put Nandi translation after "Nandi translation:" 
+  // and before "English meaning:"
+  // Let's find all Nandi words by looking for lines with Nandi text
+  const lines = aiOutput.split('\n')
+  let nandiText = ''
   
-  let inNandiSection = false
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
     const lowerLine = line.toLowerCase()
     
-    if (lowerLine.includes('nandi translation') || lowerLine.includes('nandi component')) {
-      inNandiSection = true
+    // Skip English explanation sections
+    if (lowerLine.startsWith('english meaning') || 
+        lowerLine.startsWith('grammatical explanation') || 
+        lowerLine.startsWith('⚠️')) {
+      break
+    }
+    
+    // Skip lines that are clearly English
+    if (lowerLine.startsWith('nandi translation') || 
+        lowerLine.startsWith('nandi component') ||
+        lowerLine.startsWith('nandi word') ||
+        lowerLine.startsWith('database availability')) {
       continue
     }
     
-    // Stop when we hit English sections
-    if (lowerLine.includes('english meaning') || lowerLine.includes('grammatical explanation') || lowerLine.includes('⚠️ warning')) {
-      inNandiSection = false
-      continue
-    }
-    
-    // Collect lines while in Nandi section, skipping lines that are clearly English
-    if (inNandiSection && line.length > 0 && !line.startsWith('*') && !line.startsWith('-') && !line.startsWith('b)')) {
-      nandiLines.push(line)
-    }
-  }
-
-  // If no clear Nandi section found, fall back to checking bold/italic lines only
-  if (nandiLines.length === 0) {
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if ((trimmed.startsWith('*') || trimmed.startsWith('**')) && trimmed.length > 2) {
-        nandiLines.push(trimmed.replace(/\*/g, '').trim())
+    // Collect lines that could contain Nandi (has asterisks or is after "Nandi translation:")
+    if (line.includes('*') || line.includes(':')) {
+      // Extract words between asterisks or after colons
+      const nandiPart = line.replace(/^[^:]*:\s*/, '').replace(/\*/g, ' ').trim()
+      if (nandiPart) {
+        nandiText += ' ' + nandiPart
       }
     }
   }
 
-  // Extract potential Nandi words
-  const nandiText = nandiLines.join(' ')
+  // If we couldn't find Nandi text, check the whole first paragraph
+  if (!nandiText.trim()) {
+    nandiText = aiOutput.split('\n\n')[0] || ''
+  }
+
+  // Clean and extract words
   const aiNandiWords = nandiText
     .toLowerCase()
     .replace(/[^a-zàáâãäåèéêëìíîïòóôõöùúûü\s:-]/g, ' ')
     .split(/\s+/)
-    .filter(w => w.length > 1)
+    .filter(w => w.length > 1 && ![
+      'the', 'and', 'for', 'with', 'from', 'this', 'that', 'these', 'those',
+      'don', 'have', 'has', 'had', 'not', 'are', 'was', 'were', 'will', 'would',
+      'could', 'should', 'can', 'may', 'might', 'must', 'shall', 'there', 'here',
+      'where', 'when', 'why', 'what', 'which', 'who', 'whom', 'whose', 'how',
+      'nandi', 'translation', 'english', 'meaning', 'grammatical', 'explanation',
+      'database', 'word', 'words', 'component', 'components', 'availability',
+      'exact', 'third-person', 'third', 'person', 'singular', 'verb', 'form',
+      'is', 'coming', 'come', 'to', 'in', 'on', 'at', 'by', 'of', 'my', 'yet',
+      'he', 'she', 'it', 'they', 'you', 'your', 'my', 'our', 'their'
+    ].includes(w))
 
   const unknownWords: string[] = []
   
