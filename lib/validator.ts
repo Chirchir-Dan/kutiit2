@@ -1,3 +1,5 @@
+import rules from '@/data/rules.json'
+
 interface Word {
   singular_indefinite: string | null
   singular_definite: string | null
@@ -28,9 +30,10 @@ function stripTones(word: string): string {
 }
 
 export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): ValidationResult {
-  // Build a set of known Nandi word roots from retrieved words
+  // Build a set of known Nandi forms
   const knownRoots = new Set<string>()
   
+  // Add forms from retrieved dictionary words
   for (const word of retrievedWords) {
     const formFields = [
       word.singular_indefinite,
@@ -43,6 +46,31 @@ export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): V
     
     for (const form of formFields) {
       if (form) {
+        for (const part of form.split(/\s+/)) {
+          knownRoots.add(part.toLowerCase().trim())
+          knownRoots.add(stripTones(part))
+        }
+      }
+    }
+  }
+
+  // Add irregular verb forms from rules.json
+  const rulesData = rules as any
+  const irregularVerbs = rulesData.irregular_verbs || {}
+
+  for (const verbName of Object.keys(irregularVerbs)) {
+    const verbData = irregularVerbs[verbName]
+    
+    if (verbData.imperative_sg) {
+      knownRoots.add(verbData.imperative_sg.toLowerCase())
+      knownRoots.add(stripTones(verbData.imperative_sg))
+    }
+    if (verbData.imperative_pl) {
+      knownRoots.add(verbData.imperative_pl.toLowerCase())
+      knownRoots.add(stripTones(verbData.imperative_pl))
+    }
+    if (verbData.present) {
+      for (const form of Object.values(verbData.present) as string[]) {
         for (const part of form.split(/\s+/)) {
           knownRoots.add(part.toLowerCase().trim())
           knownRoots.add(stripTones(part))
@@ -86,7 +114,6 @@ export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): V
     .map(w => w.replace(/[.,!?;:()]/g, '').trim())
     .filter(w => w.length > 2)
 
-  // English words that are not Nandi
   const englishWords = new Set([
     'translation', 'meaning', 'explanation', 'grammatical', 'nandi',
     'english', 'present', 'imperfective', 'irregular', 'definite',
@@ -106,14 +133,11 @@ export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): V
   for (const word of aiNandiWords) {
     const cleanWord = word.replace(/[.,!?;:()]/g, '')
     
-    // Skip English words
     if (englishWords.has(cleanWord)) continue
     
-    // Check if this word or a variant is known
     const isKnown = 
       knownRoots.has(cleanWord) ||
       knownRoots.has(stripTones(cleanWord)) ||
-      // Check if the word contains a known root (for conjugated forms like kasusa containing sus)
       Array.from(knownRoots).some(root => 
         root.length >= 3 && (cleanWord.includes(root) || root.includes(cleanWord))
       )
