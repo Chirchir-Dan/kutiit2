@@ -28,7 +28,7 @@ function stripTones(word: string): string {
 }
 
 export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): ValidationResult {
-  // Build a set of all valid Nandi forms
+  // Build a set of all valid Nandi forms from retrieved words
   const validForms = new Set<string>()
   
   for (const word of retrievedWords) {
@@ -43,7 +43,6 @@ export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): V
     
     for (const form of formFields) {
       if (form) {
-        // Split multi-word forms
         for (const part of form.split(/\s+/)) {
           validForms.add(part.toLowerCase().trim())
           validForms.add(stripTones(part))
@@ -52,69 +51,70 @@ export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): V
     }
   }
 
-  // The AI is instructed to put Nandi translation after "Nandi translation:" 
-  // and before "English meaning:"
-  // Let's find all Nandi words by looking for lines with Nandi text
+  // Extract ONLY the Nandi translation line
   const lines = aiOutput.split('\n')
-  let nandiText = ''
+  let nandiLine = ''
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim()
     const lowerLine = line.toLowerCase()
     
-    // Skip English explanation sections
-    if (lowerLine.startsWith('english meaning') || 
-        lowerLine.startsWith('grammatical explanation') || 
-        lowerLine.startsWith('⚠️')) {
+    if (lowerLine.startsWith('nandi translation:')) {
+      // Get everything after "Nandi translation:" on this line
+      nandiLine = line.replace(/^[^:]*:\s*/i, '').trim()
+      
+      // Also include the next line if it doesn't start an English section
+      if (i + 1 < lines.length) {
+        const nextLine = lines[i + 1].trim()
+        if (nextLine && 
+            !nextLine.toLowerCase().startsWith('english') && 
+            !nextLine.toLowerCase().startsWith('grammatical') &&
+            !nextLine.toLowerCase().startsWith('⚠️')) {
+          nandiLine += ' ' + nextLine
+        }
+      }
       break
     }
-    
-    // Skip lines that are clearly English
-    if (lowerLine.startsWith('nandi translation') || 
-        lowerLine.startsWith('nandi component') ||
-        lowerLine.startsWith('nandi word') ||
-        lowerLine.startsWith('database availability')) {
-      continue
-    }
-    
-    // Collect lines that could contain Nandi (has asterisks or is after "Nandi translation:")
-    if (line.includes('*') || line.includes(':')) {
-      // Extract words between asterisks or after colons
-      const nandiPart = line.replace(/^[^:]*:\s*/, '').replace(/\*/g, ' ').trim()
-      if (nandiPart) {
-        nandiText += ' ' + nandiPart
+  }
+
+  // If no "Nandi translation:" line, look for bold/italic Nandi text
+  if (!nandiLine) {
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (trimmed.startsWith('*') && !trimmed.toLowerCase().includes('english') && !trimmed.toLowerCase().includes('nandi')) {
+        nandiLine += ' ' + trimmed.replace(/\*/g, ' ').trim()
       }
     }
   }
 
-  // If we couldn't find Nandi text, check the whole first paragraph
-  if (!nandiText.trim()) {
-    nandiText = aiOutput.split('\n\n')[0] || ''
+  // If still empty, use first non-empty line
+  if (!nandiLine.trim()) {
+    nandiLine = lines.find(l => l.trim().length > 0) || ''
   }
 
-  // Clean and extract words
-  const aiNandiWords = nandiText
+  // Extract words
+  const aiNandiWords = nandiLine
     .toLowerCase()
     .replace(/[^a-zàáâãäåèéêëìíîïòóôõöùúûü\s:-]/g, ' ')
     .split(/\s+/)
-    .filter(w => w.length > 1 && ![
-      'the', 'and', 'for', 'with', 'from', 'this', 'that', 'these', 'those',
-      'don', 'have', 'has', 'had', 'not', 'are', 'was', 'were', 'will', 'would',
-      'could', 'should', 'can', 'may', 'might', 'must', 'shall', 'there', 'here',
-      'where', 'when', 'why', 'what', 'which', 'who', 'whom', 'whose', 'how',
-      'nandi', 'translation', 'english', 'meaning', 'grammatical', 'explanation',
-      'database', 'word', 'words', 'component', 'components', 'availability',
-      'exact', 'third-person', 'third', 'person', 'singular', 'verb', 'form',
-      'is', 'coming', 'come', 'to', 'in', 'on', 'at', 'by', 'of', 'my', 'yet',
-      'he', 'she', 'it', 'they', 'you', 'your', 'my', 'our', 'their'
-    ].includes(w))
+    .map(w => w.replace(/[.,!?;:()]/g, '').trim())
+    .filter(w => w.length > 1)
+
+  const englishStopWords = new Set([
+    'translation', 'meaning', 'explanation', 'grammatical', 'nandi',
+    'english', 'present', 'imperfective', 'irregular', 'definite',
+    'noun', 'indefinite', 'root', 'precedes', 'subject', 'verb',
+    'word', 'words', 'person', 'singular', 'plural', 'form', 'forms'
+  ])
 
   const unknownWords: string[] = []
   
   for (const word of aiNandiWords) {
-    const cleanWord = word.replace(/[.,!?;:()]/g, '')
-    if (cleanWord && !validForms.has(cleanWord) && !validForms.has(stripTones(cleanWord))) {
-      unknownWords.push(cleanWord)
+    if (word && 
+        !validForms.has(word) && 
+        !validForms.has(stripTones(word)) &&
+        !englishStopWords.has(word)) {
+      unknownWords.push(word)
     }
   }
 
