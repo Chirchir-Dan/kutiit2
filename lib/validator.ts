@@ -28,8 +28,8 @@ function stripTones(word: string): string {
 }
 
 export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): ValidationResult {
-  // Build a set of all valid Nandi forms from retrieved words
-  const validForms = new Set<string>()
+  // Build a set of known Nandi word roots from retrieved words
+  const knownRoots = new Set<string>()
   
   for (const word of retrievedWords) {
     const formFields = [
@@ -44,14 +44,14 @@ export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): V
     for (const form of formFields) {
       if (form) {
         for (const part of form.split(/\s+/)) {
-          validForms.add(part.toLowerCase().trim())
-          validForms.add(stripTones(part))
+          knownRoots.add(part.toLowerCase().trim())
+          knownRoots.add(stripTones(part))
         }
       }
     }
   }
 
-  // Extract ONLY the Nandi translation line
+  // Extract the Nandi translation line
   const lines = aiOutput.split('\n')
   let nandiLine = ''
   
@@ -60,10 +60,8 @@ export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): V
     const lowerLine = line.toLowerCase()
     
     if (lowerLine.startsWith('nandi translation:')) {
-      // Get everything after "Nandi translation:" on this line
       nandiLine = line.replace(/^[^:]*:\s*/i, '').trim()
       
-      // Also include the next line if it doesn't start an English section
       if (i + 1 < lines.length) {
         const nextLine = lines[i + 1].trim()
         if (nextLine && 
@@ -77,44 +75,51 @@ export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): V
     }
   }
 
-  // If no "Nandi translation:" line, look for bold/italic Nandi text
   if (!nandiLine) {
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if (trimmed.startsWith('*') && !trimmed.toLowerCase().includes('english') && !trimmed.toLowerCase().includes('nandi')) {
-        nandiLine += ' ' + trimmed.replace(/\*/g, ' ').trim()
-      }
-    }
+    nandiLine = lines.find(l => l.trim().length > 0 && !l.toLowerCase().includes('nandi translation')) || ''
   }
 
-  // If still empty, use first non-empty line
-  if (!nandiLine.trim()) {
-    nandiLine = lines.find(l => l.trim().length > 0) || ''
-  }
-
-  // Extract words
   const aiNandiWords = nandiLine
     .toLowerCase()
     .replace(/[^a-zàáâãäåèéêëìíîïòóôõöùúûü\s:-]/g, ' ')
     .split(/\s+/)
     .map(w => w.replace(/[.,!?;:()]/g, '').trim())
-    .filter(w => w.length > 1)
+    .filter(w => w.length > 2)
 
-  const englishStopWords = new Set([
+  // English words that are not Nandi
+  const englishWords = new Set([
     'translation', 'meaning', 'explanation', 'grammatical', 'nandi',
     'english', 'present', 'imperfective', 'irregular', 'definite',
     'noun', 'indefinite', 'root', 'precedes', 'subject', 'verb',
-    'word', 'words', 'person', 'singular', 'plural', 'form', 'forms'
+    'word', 'words', 'person', 'singular', 'plural', 'form', 'forms',
+    'the', 'and', 'for', 'with', 'from', 'this', 'that', 'these',
+    'those', 'have', 'has', 'had', 'not', 'are', 'was', 'were',
+    'will', 'would', 'could', 'should', 'can', 'may', 'might',
+    'must', 'shall', 'there', 'here', 'where', 'when', 'why',
+    'what', 'which', 'who', 'whom', 'whose', 'how', 'is', 'to',
+    'in', 'on', 'at', 'by', 'of', 'my', 'yet', 'he', 'she', 'it',
+    'they', 'you', 'your', 'our', 'their', 'rd', 'nd', 'st', 'th'
   ])
 
   const unknownWords: string[] = []
   
   for (const word of aiNandiWords) {
-    if (word && 
-        !validForms.has(word) && 
-        !validForms.has(stripTones(word)) &&
-        !englishStopWords.has(word)) {
-      unknownWords.push(word)
+    const cleanWord = word.replace(/[.,!?;:()]/g, '')
+    
+    // Skip English words
+    if (englishWords.has(cleanWord)) continue
+    
+    // Check if this word or a variant is known
+    const isKnown = 
+      knownRoots.has(cleanWord) ||
+      knownRoots.has(stripTones(cleanWord)) ||
+      // Check if the word contains a known root (for conjugated forms like kasusa containing sus)
+      Array.from(knownRoots).some(root => 
+        root.length >= 3 && (cleanWord.includes(root) || root.includes(cleanWord))
+      )
+    
+    if (!isKnown) {
+      unknownWords.push(cleanWord)
     }
   }
 
