@@ -16,7 +16,7 @@ function formatWordEntry(word: Word): string {
   if (word.singular_definite) forms.push(`  singular definite: ${word.singular_definite}`)
   if (word.plural_indefinite) forms.push(`  plural indefinite: ${word.plural_indefinite}`)
   if (word.plural_definite) forms.push(`  plural definite: ${word.plural_definite}`)
-  if (word.imperative) forms.push(`  imperative: ${word.imperative}`)
+  if (word.imperative) forms.push(`  imperative singular: ${word.imperative}`)
   if (word.examples) forms.push(`  examples: ${word.examples}`)
 
   return `WORD: ${word.translation_en} (${word.word_type})
@@ -39,6 +39,45 @@ RULES:
 5. If the user asks about grammar, explain using examples from the word list.
 6. Be honest about uncertainty. If you're not sure, say so.
 7. IMPORTANT: When translating, put the Nandi sentence FIRST, then the English, then the explanation.
+
+NANDI VERB CONJUGATION RULES:
+
+CLASS I VERBS (infinitive starts with ke-):
+- Drop the ke- prefix to get the root.
+- Imperative singular: root
+- Imperative plural: o-root
+- Present imperfective:
+  1sg: a-root-e
+  2sg: i-root-e
+  3sg: root-e
+  1pl: ki-root-e
+  2pl: o-root-e
+  3pl: root-e
+- Example: kesus (to bite) → root sus → 3sg: suse; imperative: sus, osus
+
+CLASS II VERBS (infinitive starts with ki-):
+- Drop the ki- prefix to get the root.
+- Imperative singular: i-root
+- Imperative plural: o-root
+- Present imperfective:
+  1sg: a-root-ii
+  2sg: i-root-ii
+  3sg: i-root-i
+  1pl: ki-root-ii
+  2pl: o-root-ii
+  3pl: i-root-i
+- Example: kilul (to fell) → root lul → 3sg: iluli; imperative: ilul, olul
+
+IRREGULAR VERBS:
+- kepwa (to come): infinitive sg nyoo, pl opwaa; imperative nyoo, opwaa.
+  Present: 1sg anyone, 2sg inyone, 3sg nyone, 1pl kipwane, 2pl opwane, 3pl pwane.
+- kelapat (to run): imperative lapat, orwai.
+  Present: 1sg alapatii, 2sg ilapatii, 3sg lapati, 1pl kirwae, 2pl orwae, 3pl rwae.
+
+IMPORTANT CONJUGATION NOTES:
+- If the verb in the word list is marked "irregular" or matches one of the irregular examples above, use the explicit forms given.
+- If you are unsure whether a verb is Class I or Class II, look at its infinitive prefix (ke- vs ki-) in the word list.
+- Always use the correct stem. Some verbs change stems between singular and plural (e.g., kelapat: lapat- singular, rwa- plural).
 
 RELEVANT WORD LIST:
 ${retrievedWords.map(w => formatWordEntry(w)).join('\n')}
