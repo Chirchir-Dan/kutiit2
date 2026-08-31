@@ -1,152 +1,226 @@
 {
-  "verb_conjugation": {
-    "present_future": {
-      "description": "Present and future tense are identical. Time words distinguish meaning.",
+  "verb_system": {
+    "verb_classes": {
       "class_i": {
-        "prefixes": {
-          "1sg": "a-",
-          "2sg": "i-",
-          "3sg": "",
-          "1pl": "ki-",
-          "2pl": "o-",
-          "3pl": ""
-        },
-        "suffix": "-e",
-        "example": "kesus → asuse (1sg), suse (3sg)"
+        "infinitive_prefix": "ke-",
+        "description": "Regular verbs starting with ke-"
       },
       "class_ii": {
-        "prefixes": {
-          "1sg": "a-",
-          "2sg": "i-",
-          "3sg": "i-",
-          "1pl": "ki-",
-          "2pl": "o-",
-          "3pl": "i-"
-        },
-        "suffix_1sg_2sg_1pl_2pl": "-ii",
-        "suffix_3sg_3pl": "-i",
-        "example": "kilul → alulii (1sg), iluli (3sg)"
-      }
-    },
-    "simple_past": {
-      "today": {
-        "class_i": {
-          "prefixes": {
-            "1sg": "ka-",
-            "2sg": "ke-",
-            "3sg": "ka-",
-            "1pl": "kaki-",
-            "2pl": "ko-",
-            "3pl": "ka-"
-          },
-          "suffix": "",
-          "example": "kesus → kasus (1sg/3sg)"
-        },
-        "class_ii": {
-          "prefixes": {
-            "1sg": "ka-",
-            "2sg": "ke-",
-            "3sg": "ke-",
-            "1pl": "kaki-",
-            "2pl": "ko-",
-            "3pl": "ke-"
-          },
-          "suffix": "",
-          "example": "kilul → kalul (1sg), kelul (3sg)"
-        }
+        "infinitive_prefix": "ki-",
+        "description": "Regular verbs starting with ki-"
       },
-      "yesterday": {
-        "class_i": {
-          "prefixes": {
-            "1sg": "koa-",
-            "2sg": "koi-",
-            "3sg": "ko-",
-            "1pl": "koki-",
-            "2pl": "koo-",
-            "3pl": "ko-"
-          },
-          "suffix": "",
-          "example": "kesus → koasus (1sg), kosus (3sg)"
-        },
-        "class_ii": {
-          "prefixes": {
-            "1sg": "koa-",
-            "2sg": "koi-",
-            "3sg": "koi-",
-            "1pl": "koki-",
-            "2pl": "koo-",
-            "3pl": "koi-"
-          },
-          "suffix": "",
-          "example": "kilul → koalul (1sg), koilul (3sg)"
-        }
-      },
-      "day_before_and_back": {
-        "class_i": {
-          "prefixes": {
-            "1sg": "kia-",
-            "2sg": "kii-",
-            "3sg": "ki-",
-            "1pl": "kiki-",
-            "2pl": "kio-",
-            "3pl": "ki-"
-          },
-          "suffix": "",
-          "example": "kesus → kiasus (1sg), kisus (3sg)"
-        },
-        "class_ii": {
-          "prefixes": {
-            "1sg": "kia-",
-            "2sg": "kii-",
-            "3sg": "kii-",
-            "1pl": "kiki-",
-            "2pl": "kio-",
-            "3pl": "kii-"
-          },
-          "suffix": "",
-          "example": "kilul → kialul (1sg), kiilul (3sg)"
-        }
-      }
-    },
-    "perfect": {
-      "today": {
-        "prefixes": {
-          "1sg": "kaa-",
-          "2sg": "kai-",
-          "3sg": "kako-",
-          "1pl": "kake-",
-          "2pl": "kao-",
-          "3pl": "kako-"
-        },
-        "suffix": "",
-        "example": "kesus → kaasus (1sg), kakosus (3sg)"
-      },
-      "yesterday": {
-        "prefixes": {
-          "1sg": "koa-",
-          "2sg": "koi-",
-          "3sg": "koko-",
-          "1pl": "koke-",
-          "2pl": "koo-",
-          "3pl": "koko-"
-        },
-        "suffix": "",
-        "example": "kesus → koasus (1sg), kokosus (3sg)"
-      },
-      "day_before_and_back": {
-        "prefixes": {
-          "1sg": "kia-",
-          "2sg": "kii-",
-          "3sg": "kiko-",
-          "1pl": "kike-",
-          "2pl": "kio-",
-          "3pl": "kiko-"
-        },
-        "suffix": "",
-        "example": "kesus → kiasus (1sg), kikosus (3sg)"
+      "irregular": {
+        "description": "Verbs that do not follow regular patterns. Full paradigms stored in irregular_verbs section."
       }
     }
   },
+
+  "present_future": {
+    "description": "Present and future tense are identical. Time words distinguish meaning.",
+    "class_i": {
+      "subject_prefixes": {
+        "1sg": "a-",
+        "2sg": "i-",
+        "3sg": "",
+        "1pl": "ki-",
+        "2pl": "o-",
+        "3pl": ""
+      },
+      "base_suffix": "-e",
+      "object_suffixes": {
+        "1sg": "-ö",
+        "2sg": "-in",
+        "3sg": "-e",
+        "1pl": "-ech",
+        "2pl": "-ök",
+        "3pl": "-e"
+      },
+      "example": {
+        "verb": "kesus",
+        "meaning": "to bite",
+        "root": "sus",
+        "present_3sg_no_object": "suse",
+        "with_1sg_object": "susö",
+        "with_2sg_object": "susin",
+        "with_3sg_object": "suse",
+        "with_1pl_object": "susech",
+        "with_2pl_object": "susök",
+        "with_3pl_object": "suse"
+      }
+    },
+    "class_ii": {
+      "subject_prefixes": {
+        "1sg": "a-",
+        "2sg": "i-",
+        "3sg": "i-",
+        "1pl": "ki-",
+        "2pl": "o-",
+        "3pl": "i-"
+      },
+      "base_suffix_1sg_2sg_1pl_2pl": "-ii",
+      "base_suffix_3sg_3pl": "-i",
+      "object_suffixes": {
+        "1sg": "-ö",
+        "2sg": "-in",
+        "3sg": "-i",
+        "1pl": "-ech",
+        "2pl": "-ök",
+        "3pl": "-i"
+      },
+      "example": {
+        "verb": "kilul",
+        "meaning": "to fell",
+        "root": "lul",
+        "present_3sg_no_object": "iluli",
+        "with_1sg_object": "ilulö",
+        "with_2sg_object": "ilulin",
+        "with_3sg_object": "iluli",
+        "with_1pl_object": "ilulech",
+        "with_2pl_object": "ilulök",
+        "with_3pl_object": "iluli"
+      }
+    }
+  },
+
+  "simple_past": {
+    "description": "Simple past distinguishes three temporal levels: today, yesterday, day before yesterday and back.",
+    "object_suffixes": {
+      "1sg": "-a",
+      "2sg": "-in",
+      "3sg": "",
+      "1pl": "-ech",
+      "2pl": "-ak",
+      "3pl": ""
+    },
+    "today": {
+      "class_i": {
+        "subject_prefixes": {
+          "1sg": "ka-",
+          "2sg": "ke-",
+          "3sg": "ka-",
+          "1pl": "kaki-",
+          "2pl": "ko-",
+          "3pl": "ka-"
+        }
+      },
+      "class_ii": {
+        "subject_prefixes": {
+          "1sg": "ka-",
+          "2sg": "ke-",
+          "3sg": "ke-",
+          "1pl": "kaki-",
+          "2pl": "ko-",
+          "3pl": "ke-"
+        }
+      },
+      "example": {
+        "verb": "kesus",
+        "root": "sus",
+        "class_i_3sg": "kasus",
+        "class_ii_3sg_example_verb": "kelul"
+      }
+    },
+    "yesterday": {
+      "class_i": {
+        "subject_prefixes": {
+          "1sg": "koa-",
+          "2sg": "koi-",
+          "3sg": "ko-",
+          "1pl": "koki-",
+          "2pl": "koo-",
+          "3pl": "ko-"
+        }
+      },
+      "class_ii": {
+        "subject_prefixes": {
+          "1sg": "koa-",
+          "2sg": "koi-",
+          "3sg": "koi-",
+          "1pl": "koki-",
+          "2pl": "koo-",
+          "3pl": "koi-"
+        }
+      }
+    },
+    "day_before_and_back": {
+      "class_i": {
+        "subject_prefixes": {
+          "1sg": "kia-",
+          "2sg": "kii-",
+          "3sg": "ki-",
+          "1pl": "kiki-",
+          "2pl": "kio-",
+          "3pl": "ki-"
+        }
+      },
+      "class_ii": {
+        "subject_prefixes": {
+          "1sg": "kia-",
+          "2sg": "kii-",
+          "3sg": "kii-",
+          "1pl": "kiki-",
+          "2pl": "kio-",
+          "3pl": "kii-"
+        }
+      }
+    }
+  },
+
+  "perfect": {
+    "description": "Perfect tense distinguishes three temporal levels: today, yesterday, day before yesterday and back.",
+    "object_suffixes": {
+      "1sg": "-a",
+      "2sg": "-in",
+      "3sg": "",
+      "1pl": "-ech",
+      "2pl": "-ak",
+      "3pl": ""
+    },
+    "today": {
+      "subject_prefixes": {
+        "1sg": "kaa-",
+        "2sg": "kai-",
+        "3sg": "kako-",
+        "1pl": "kake-",
+        "2pl": "kao-",
+        "3pl": "kako-"
+      }
+    },
+    "yesterday": {
+      "subject_prefixes": {
+        "1sg": "koa-",
+        "2sg": "koi-",
+        "3sg": "koko-",
+        "1pl": "koke-",
+        "2pl": "koo-",
+        "3pl": "koko-"
+      }
+    },
+    "day_before_and_back": {
+      "subject_prefixes": {
+        "1sg": "kia-",
+        "2sg": "kii-",
+        "3sg": "kiko-",
+        "1pl": "kike-",
+        "2pl": "kio-",
+        "3pl": "kiko-"
+      }
+    },
+    "example": {
+      "verb": "kesus",
+      "root": "sus",
+      "today_1sg_with_2sg_object": "kaasusin",
+      "today_1sg_with_3sg_object": "kaasus",
+      "today_3sg_with_1sg_object": "kakosusa",
+      "today_3sg_with_2pl_object": "kakosusak"
+    }
+  },
+
+  "verb_structure": {
+    "description": "The general structure of a Nandi verb form is: TENSE_PREFIX(subject) + ROOT + OBJECT_SUFFIX(object). The tense prefix encodes both tense and subject. The object suffix encodes the object.",
+    "formula": "TENSE_PREFIX + ROOT + OBJECT_SUFFIX"
+  },
+
   "time_words": {
     "today": "rani",
     "yesterday": "amut",
@@ -156,16 +230,19 @@
     "now": "nguno",
     "just_now": "ngunitok"
   },
+
   "word_order": {
     "basic": "VSO",
     "description": "Verb-Subject-Object is the default word order."
   },
+
   "noun_morphology": {
     "definiteness": {
       "description": "Nouns have primary (indefinite) and secondary (definite) forms. The definite form is used when referring to a specific, known entity.",
       "example": "chii (a person) vs chito (the person); piich (people) vs piik (the people)"
     }
   },
+
   "irregular_verbs": {
     "kepwa": {
       "meaning": "to come",
