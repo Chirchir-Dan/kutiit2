@@ -51,7 +51,7 @@ ${retrievedWords.map(w => formatWordEntry(w)).join('\n')}
 
   const userPrompt = `USER QUERY: ${userQuery}
 
-Respond using ONLY the words and forms in the RELEVANT WORD LIST above, and the GRAMMAR RULES provided.`
+Respond using ONLY the words and forms in the RELEVANT WORD LIST above, and the GRAMMAR RULES provided. Apply the tense and object suffix rules when translating.`
 
   return systemPrompt + userPrompt
 }
