@@ -1,0 +1,210 @@
+{
+  "verb_conjugation": {
+    "present_future": {
+      "description": "Present and future tense are identical. Time words distinguish meaning.",
+      "class_i": {
+        "prefixes": {
+          "1sg": "a-",
+          "2sg": "i-",
+          "3sg": "",
+          "1pl": "ki-",
+          "2pl": "o-",
+          "3pl": ""
+        },
+        "suffix": "-e",
+        "example": "kesus → asuse (1sg), suse (3sg)"
+      },
+      "class_ii": {
+        "prefixes": {
+          "1sg": "a-",
+          "2sg": "i-",
+          "3sg": "i-",
+          "1pl": "ki-",
+          "2pl": "o-",
+          "3pl": "i-"
+        },
+        "suffix_1sg_2sg_1pl_2pl": "-ii",
+        "suffix_3sg_3pl": "-i",
+        "example": "kilul → alulii (1sg), iluli (3sg)"
+      }
+    },
+    "simple_past": {
+      "today": {
+        "class_i": {
+          "prefixes": {
+            "1sg": "ka-",
+            "2sg": "ke-",
+            "3sg": "ka-",
+            "1pl": "kaki-",
+            "2pl": "ko-",
+            "3pl": "ka-"
+          },
+          "suffix": "",
+          "example": "kesus → kasus (1sg/3sg)"
+        },
+        "class_ii": {
+          "prefixes": {
+            "1sg": "ka-",
+            "2sg": "ke-",
+            "3sg": "ke-",
+            "1pl": "kaki-",
+            "2pl": "ko-",
+            "3pl": "ke-"
+          },
+          "suffix": "",
+          "example": "kilul → kalul (1sg), kelul (3sg)"
+        }
+      },
+      "yesterday": {
+        "class_i": {
+          "prefixes": {
+            "1sg": "koa-",
+            "2sg": "koi-",
+            "3sg": "ko-",
+            "1pl": "koki-",
+            "2pl": "koo-",
+            "3pl": "ko-"
+          },
+          "suffix": "",
+          "example": "kesus → koasus (1sg), kosus (3sg)"
+        },
+        "class_ii": {
+          "prefixes": {
+            "1sg": "koa-",
+            "2sg": "koi-",
+            "3sg": "koi-",
+            "1pl": "koki-",
+            "2pl": "koo-",
+            "3pl": "koi-"
+          },
+          "suffix": "",
+          "example": "kilul → koalul (1sg), koilul (3sg)"
+        }
+      },
+      "day_before_and_back": {
+        "class_i": {
+          "prefixes": {
+            "1sg": "kia-",
+            "2sg": "kii-",
+            "3sg": "ki-",
+            "1pl": "kiki-",
+            "2pl": "kio-",
+            "3pl": "ki-"
+          },
+          "suffix": "",
+          "example": "kesus → kiasus (1sg), kisus (3sg)"
+        },
+        "class_ii": {
+          "prefixes": {
+            "1sg": "kia-",
+            "2sg": "kii-",
+            "3sg": "kii-",
+            "1pl": "kiki-",
+            "2pl": "kio-",
+            "3pl": "kii-"
+          },
+          "suffix": "",
+          "example": "kilul → kialul (1sg), kiilul (3sg)"
+        }
+      }
+    },
+    "perfect": {
+      "today": {
+        "prefixes": {
+          "1sg": "kaa-",
+          "2sg": "kai-",
+          "3sg": "kako-",
+          "1pl": "kake-",
+          "2pl": "kao-",
+          "3pl": "kako-"
+        },
+        "suffix": "",
+        "example": "kesus → kaasus (1sg), kakosus (3sg)"
+      },
+      "yesterday": {
+        "prefixes": {
+          "1sg": "koa-",
+          "2sg": "koi-",
+          "3sg": "koko-",
+          "1pl": "koke-",
+          "2pl": "koo-",
+          "3pl": "koko-"
+        },
+        "suffix": "",
+        "example": "kesus → koasus (1sg), kokosus (3sg)"
+      },
+      "day_before_and_back": {
+        "prefixes": {
+          "1sg": "kia-",
+          "2sg": "kii-",
+          "3sg": "kiko-",
+          "1pl": "kike-",
+          "2pl": "kio-",
+          "3pl": "kiko-"
+        },
+        "suffix": "",
+        "example": "kesus → kiasus (1sg), kikosus (3sg)"
+      }
+    }
+  },
+  "time_words": {
+    "today": "rani",
+    "yesterday": "amut",
+    "day_before_yesterday": "oin",
+    "tomorrow": "mutai",
+    "after_tomorrow": "tun ko oin",
+    "now": "nguno",
+    "just_now": "ngunitok"
+  },
+  "word_order": {
+    "basic": "VSO",
+    "description": "Verb-Subject-Object is the default word order."
+  },
+  "noun_morphology": {
+    "definiteness": {
+      "description": "Nouns have primary (indefinite) and secondary (definite) forms. The definite form is used when referring to a specific, known entity.",
+      "example": "chii (a person) vs chito (the person); piich (people) vs piik (the people)"
+    }
+  },
+  "irregular_verbs": {
+    "kepwa": {
+      "meaning": "to come",
+      "imperative_sg": "nyoo",
+      "imperative_pl": "opwaa",
+      "present": {
+        "1sg": "anyone",
+        "2sg": "inyone",
+        "3sg": "nyone",
+        "1pl": "kipwane",
+        "2pl": "opwane",
+        "3pl": "pwane"
+      }
+    },
+    "kelapat": {
+      "meaning": "to run",
+      "imperative_sg": "lapat",
+      "imperative_pl": "orwai",
+      "present": {
+        "1sg": "alapatii",
+        "2sg": "ilapatii",
+        "3sg": "lapati",
+        "1pl": "kirwae",
+        "2pl": "orwae",
+        "3pl": "rwae"
+      }
+    },
+    "kepa": {
+      "meaning": "to go",
+      "imperative_sg": "ui",
+      "imperative_pl": "opa",
+      "present": {
+        "1sg": "awendi",
+        "2sg": "iwendi",
+        "3sg": "wendi",
+        "1pl": "kipendi",
+        "2pl": "opendi",
+        "3pl": "pendi"
+      }
+    }
+  }
+}
