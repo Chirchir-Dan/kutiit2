@@ -13,6 +13,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [mode, setMode] = useState<'translate' | 'chat'>('translate')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -35,29 +36,20 @@ export default function ChatPage() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage.content })
+        body: JSON.stringify({ message: userMessage.content, mode })
       })
 
       const data = await response.json()
 
       if (data.error) {
-        const errorMessage: Message = { 
-          role: 'assistant', 
-          content: `Error: ${data.error}` 
-        }
+        const errorMessage: Message = { role: 'assistant', content: `Error: ${data.error}` }
         setMessages(prev => [...prev, errorMessage])
       } else {
-        const assistantMessage: Message = { 
-          role: 'assistant', 
-          content: data.reply 
-        }
+        const assistantMessage: Message = { role: 'assistant', content: data.reply }
         setMessages(prev => [...prev, assistantMessage])
       }
     } catch (error) {
-      const errorMessage: Message = { 
-        role: 'assistant', 
-        content: 'Network error. Please try again.' 
-      }
+      const errorMessage: Message = { role: 'assistant', content: 'Network error. Please try again.' }
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
@@ -71,13 +63,38 @@ export default function ChatPage() {
     }
   }
 
+  const switchMode = (newMode: 'translate' | 'chat') => {
+    setMode(newMode)
+    setMessages([])
+  }
+
   return (
     <div className="flex flex-col h-screen max-w-3xl mx-auto px-4">
       {/* Header */}
       <div className="py-4 border-b">
-        <h1 className="text-xl font-bold">Nandi AI Chat</h1>
-        <p className="text-sm text-gray-500">
-          Ask questions in English, get answers in Nandi
+        <div className="flex justify-between items-center">
+          <h1 className="text-xl font-bold">Nandi AI</h1>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => switchMode('translate')}
+              variant={mode === 'translate' ? 'default' : 'outline'}
+              size="sm"
+            >
+              Translate
+            </Button>
+            <Button 
+              onClick={() => switchMode('chat')}
+              variant={mode === 'chat' ? 'default' : 'outline'}
+              size="sm"
+            >
+              Chat
+            </Button>
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 mt-1">
+          {mode === 'translate' 
+            ? 'Ask questions in English, get answers in Nandi' 
+            : 'Talk naturally. The AI responds as a Nandi-speaking companion.'}
         </p>
       </div>
 
@@ -85,9 +102,13 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto py-4 space-y-4">
         {messages.length === 0 && (
           <div className="text-center text-gray-400 mt-20">
-            <p className="text-lg">Start a conversation</p>
+            <p className="text-lg">
+              {mode === 'translate' ? 'Start a conversation' : 'Start chatting'}
+            </p>
             <p className="text-sm mt-2">
-              Try: &quot;How do I say &apos;the person is coming&apos; in Nandi?&quot;
+              {mode === 'translate' 
+                ? 'Try: "How do I say \'the person is coming\' in Nandi?"' 
+                : 'Try: "I am tired and it is hot"'}
             </p>
           </div>
         )}
@@ -127,7 +148,7 @@ export default function ChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about Nandi..."
+            placeholder={mode === 'translate' ? 'Ask about Nandi...' : 'Say something...'}
             disabled={isLoading}
             className="flex-1"
           />
