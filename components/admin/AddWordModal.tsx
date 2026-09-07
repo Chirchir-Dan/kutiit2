@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { X, Plus, Loader2 } from "lucide-react";
 
 interface AddWordModalProps {
@@ -21,8 +22,17 @@ export default function AddWordModal({ isOpen, onClose, onWordAdded }: AddWordMo
   const [currentTranslation, setCurrentTranslation] = useState("");
   const [partOfSpeech, setPartOfSpeech] = useState("");
   const [example, setExample] = useState("");
+  const [isIrregular, setIsIrregular] = useState(false);
+  const [present1sg, setPresent1sg] = useState("");
+  const [present2sg, setPresent2sg] = useState("");
+  const [present3sg, setPresent3sg] = useState("");
+  const [present1pl, setPresent1pl] = useState("");
+  const [present2pl, setPresent2pl] = useState("");
+  const [present3pl, setPresent3pl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const isVerb = partOfSpeech.trim().toLowerCase() === 'verb';
 
   const handleAddTranslation = () => {
     const trimmed = currentTranslation.trim();
@@ -71,6 +81,13 @@ export default function AddWordModal({ isOpen, onClose, onWordAdded }: AddWordMo
           translations: translations,
           partOfSpeech: partOfSpeech.trim() || null,
           example: example.trim() || null,
+          isIrregular: isIrregular,
+          present1sg: present1sg.trim() || null,
+          present2sg: present2sg.trim() || null,
+          present3sg: present3sg.trim() || null,
+          present1pl: present1pl.trim() || null,
+          present2pl: present2pl.trim() || null,
+          present3pl: present3pl.trim() || null,
         }),
       });
 
@@ -85,6 +102,13 @@ export default function AddWordModal({ isOpen, onClose, onWordAdded }: AddWordMo
       setCurrentTranslation('');
       setPartOfSpeech('');
       setExample('');
+      setIsIrregular(false);
+      setPresent1sg('');
+      setPresent2sg('');
+      setPresent3sg('');
+      setPresent1pl('');
+      setPresent2pl('');
+      setPresent3pl('');
       onWordAdded();
       onClose();
     } catch (err) {
@@ -93,6 +117,15 @@ export default function AddWordModal({ isOpen, onClose, onWordAdded }: AddWordMo
       setLoading(false);
     }
   };
+
+  const irregularFields = [
+    { label: "Present 1sg (I)", value: present1sg, setter: setPresent1sg, placeholder: "e.g., anyone" },
+    { label: "Present 2sg (you)", value: present2sg, setter: setPresent2sg, placeholder: "e.g., inyone" },
+    { label: "Present 3sg (he/she)", value: present3sg, setter: setPresent3sg, placeholder: "e.g., nyone" },
+    { label: "Present 1pl (we)", value: present1pl, setter: setPresent1pl, placeholder: "e.g., kipwane" },
+    { label: "Present 2pl (you all)", value: present2pl, setter: setPresent2pl, placeholder: "e.g., opwane" },
+    { label: "Present 3pl (they)", value: present3pl, setter: setPresent3pl, placeholder: "e.g., pwane" },
+  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -122,7 +155,7 @@ export default function AddWordModal({ isOpen, onClose, onWordAdded }: AddWordMo
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-8 bg-white">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Kalenjin Word - Full Width */}
+            {/* Kalenjin Word */}
             <div className="space-y-2">
               <Label htmlFor="word" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
                 Kalenjin Word <span className="text-red-500">*</span>
@@ -137,7 +170,7 @@ export default function AddWordModal({ isOpen, onClose, onWordAdded }: AddWordMo
               />
             </div>
 
-            {/* Translations - Full Width */}
+            {/* Translations */}
             <div className="space-y-2">
               <Label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
                 Translations <span className="text-red-500">*</span>
@@ -163,7 +196,6 @@ export default function AddWordModal({ isOpen, onClose, onWordAdded }: AddWordMo
               </div>
               <p className="text-[10px] text-slate-400">Press Enter to add multiple translations</p>
 
-              {/* Translation Tags */}
               {translations.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3 p-4 bg-slate-50/80 rounded-2xl border-2 border-slate-100 min-h-[60px]">
                   {translations.map((translation, index) => (
@@ -184,12 +216,9 @@ export default function AddWordModal({ isOpen, onClose, onWordAdded }: AddWordMo
                   ))}
                 </div>
               )}
-              {translations.length === 0 && (
-                <p className="text-sm text-slate-400 mt-1">No translations added yet</p>
-              )}
             </div>
 
-            {/* Part of Speech - Full Width */}
+            {/* Part of Speech */}
             <div className="space-y-2">
               <Label htmlFor="partOfSpeech" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
                 Part of Speech
@@ -204,7 +233,48 @@ export default function AddWordModal({ isOpen, onClose, onWordAdded }: AddWordMo
               />
             </div>
 
-            {/* Example - Full Width */}
+            {/* Irregular Verb Section */}
+            {isVerb && (
+              <div className="space-y-3 p-5 bg-amber-50/50 rounded-2xl border-2 border-amber-100">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="isIrregular"
+                    checked={isIrregular}
+                    onCheckedChange={(checked) => setIsIrregular(checked === true)}
+                    disabled={loading}
+                  />
+                  <Label htmlFor="isIrregular" className="text-sm font-bold text-slate-700 cursor-pointer">
+                    Irregular verb (does not follow regular ke-/ki- patterns)
+                  </Label>
+                </div>
+
+                {isIrregular && (
+                  <div className="space-y-4 mt-4">
+                    <p className="text-[11px] font-black text-amber-600 uppercase tracking-[0.2em]">
+                      Present Tense Forms
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {irregularFields.map((field) => (
+                        <div key={field.label} className="space-y-1">
+                          <Label className="text-[10px] font-bold text-slate-500">
+                            {field.label}
+                          </Label>
+                          <Input
+                            value={field.value}
+                            onChange={(e) => field.setter(e.target.value)}
+                            placeholder={field.placeholder}
+                            className="h-12 bg-white border-2 border-amber-100 rounded-xl text-base focus-visible:ring-amber-500"
+                            disabled={loading}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Example */}
             <div className="space-y-2">
               <Label htmlFor="example" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
                 Example Sentence
@@ -220,7 +290,7 @@ export default function AddWordModal({ isOpen, onClose, onWordAdded }: AddWordMo
               />
             </div>
 
-            {/* Error message */}
+            {/* Error */}
             {error && (
               <div className="p-4 bg-red-50 border-2 border-red-200 rounded-2xl">
                 <p className="text-sm text-red-600 font-bold">⚠️ {error}</p>

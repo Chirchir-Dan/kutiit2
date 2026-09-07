@@ -10,6 +10,7 @@ interface Word {
   entry_name: string | null
   examples: string | null
   imperative: string | null
+  imperative_plural: string | null
 }
 
 function formatWordEntry(word: Word): string {
@@ -19,6 +20,7 @@ function formatWordEntry(word: Word): string {
   if (word.plural_indefinite) forms.push(`  plural indefinite: ${word.plural_indefinite}`)
   if (word.plural_definite) forms.push(`  plural definite: ${word.plural_definite}`)
   if (word.imperative) forms.push(`  imperative singular: ${word.imperative}`)
+  if (word.imperative_plural) forms.push(`  imperative plural: ${word.imperative_plural}`)
   if (word.examples) forms.push(`  examples: ${word.examples}`)
 
   return `WORD: ${word.translation_en} (${word.word_type})

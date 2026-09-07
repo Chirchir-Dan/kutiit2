@@ -7,6 +7,7 @@ interface Word {
   plural_definite: string | null
   entry_name: string | null
   imperative: string | null
+  imperative_plural: string | null
 }
 
 export interface ValidationResult {
@@ -41,6 +42,7 @@ export function validateNandiOutput(aiOutput: string, retrievedWords: Word[]): V
       word.plural_indefinite,
       word.plural_definite,
       word.imperative,
+      word.imperative_plural,
       word.entry_name
     ]
     

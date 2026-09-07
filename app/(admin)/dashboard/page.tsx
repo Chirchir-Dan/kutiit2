@@ -214,17 +214,90 @@ const EditorFields = ({
 
       {/* 6. Verb Forms */}
       {isVerb && (
-        <div className="bg-amber-50/20 p-6 rounded-3xl border border-amber-200/50 space-y-2">
-          <label className="text-xs font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-2 ml-1">
-            <Zap size={14} className="text-amber-500" /> Imperative
-          </label>
-          <Input 
-            name="imperative" 
-            placeholder="e.g. Cham!" 
-            value={editForm?.imperative || ""} 
-            onChange={handleInputChange} 
-            className="h-14 bg-white border-amber-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-amber-500 focus:border-amber-500 transition-all" 
-          />
+        <div className="bg-amber-50/20 p-6 rounded-3xl border border-amber-200/50 space-y-5">
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-2 ml-1">
+              <Zap size={14} className="text-amber-500" /> Imperative (Singular)
+            </label>
+            <Input 
+              name="imperative" 
+              placeholder="e.g. Cham!" 
+              value={editForm?.imperative || ""} 
+              onChange={handleInputChange} 
+              className="h-14 bg-white border-amber-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-amber-500 focus:border-amber-500 transition-all" 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-2 ml-1">
+              <Zap size={14} className="text-amber-500" /> Imperative (Plural)
+            </label>
+            <Input 
+              name="imperative_plural" 
+              placeholder="e.g. Ochaamu!" 
+              value={editForm?.imperative_plural || ""} 
+              onChange={handleInputChange} 
+              className="h-14 bg-white border-amber-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-amber-500 focus:border-amber-500 transition-all" 
+            />
+         </div>
+
+          {/* Irregular Verb Checkbox */}
+          <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border-2 border-amber-100">
+            <input
+              type="checkbox"
+              id="is_irregular"
+              name="is_irregular"
+              checked={editForm?.is_irregular || false}
+              onChange={(e) => {
+                const syntheticEvent = {
+                  target: {
+                    name: 'is_irregular',
+                    value: e.target.checked
+                  }
+                };
+                handleInputChange(syntheticEvent);
+              }}
+              className="w-5 h-5 accent-amber-600"
+            />
+            <label htmlFor="is_irregular" className="text-sm font-bold text-slate-700 cursor-pointer">
+              Irregular verb (does not follow regular ke-/ki- patterns)
+            </label>
+          </div>
+
+          {/* Present Tense Forms for Irregular */}
+          {editForm?.is_irregular && (
+            <div className="space-y-4">
+              <p className="text-xs font-black text-amber-600 uppercase tracking-[0.2em]">
+                Present Tense Forms (required for irregular verbs)
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500">1sg (I)</label>
+                  <Input name="present_1sg" placeholder="e.g., anyone" value={editForm?.present_1sg || ""} onChange={handleInputChange} className="h-12 bg-white border-amber-200 rounded-xl text-base" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500">2sg (you)</label>
+                  <Input name="present_2sg" placeholder="e.g., inyone" value={editForm?.present_2sg || ""} onChange={handleInputChange} className="h-12 bg-white border-amber-200 rounded-xl text-base" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500">3sg (he/she)</label>
+                  <Input name="present_3sg" placeholder="e.g., nyone" value={editForm?.present_3sg || ""} onChange={handleInputChange} className="h-12 bg-white border-amber-200 rounded-xl text-base" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500">1pl (we)</label>
+                  <Input name="present_1pl" placeholder="e.g., kipwane" value={editForm?.present_1pl || ""} onChange={handleInputChange} className="h-12 bg-white border-amber-200 rounded-xl text-base" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500">2pl (you all)</label>
+                  <Input name="present_2pl" placeholder="e.g., opwane" value={editForm?.present_2pl || ""} onChange={handleInputChange} className="h-12 bg-white border-amber-200 rounded-xl text-base" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500">3pl (they)</label>
+                  <Input name="present_3pl" placeholder="e.g., pwane" value={editForm?.present_3pl || ""} onChange={handleInputChange} className="h-12 bg-white border-amber-200 rounded-xl text-base" />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -467,9 +540,12 @@ export default function AdminDashboard() {
       entry_name: "", word_type: "noun", dialects: [], 
       translations: [], translation_input: "",
       translation_en: "", 
-      examples: "", notes: "", imperative: "", answer: "",
+      examples: "", notes: "", imperative: "", imperative_plural: "", answer: "",
       singular_indefinite: "", singular_definite: "",
-      plural_indefinite: "", plural_definite: "", is_verified: true
+      plural_indefinite: "", plural_definite: "", is_verified: true,
+      is_irregular: false,
+      present_1sg: "", present_2sg: "", present_3sg: "",
+      present_1pl: "", present_2pl: "", present_3pl: ""
     });
     setSelectedWord(null);
     setIsModalOpen(true);

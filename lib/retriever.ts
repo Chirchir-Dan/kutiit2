@@ -11,7 +11,15 @@ interface Word {
   entry_name: string | null
   examples: string | null
   imperative: string | null
+  imperative_plural: string | null
   notes: string | null
+  is_irregular: boolean | null
+  present_1sg: string | null
+  present_2sg: string | null
+  present_3sg: string | null
+  present_1pl: string | null
+  present_2pl: string | null
+  present_3pl: string | null
 }
 
 const stopWords = new Set([
@@ -53,7 +61,6 @@ export async function retrieveRelevantWords(userQuery: string, limit = 25): Prom
   const supabaseServer = getServerSupabase()
 
   for (const keyword of keywords) {
-    // First try: exact match on translation_en (highest priority)
     let { data, error } = await supabaseServer
       .from('words')
       .select('*')
@@ -74,7 +81,6 @@ export async function retrieveRelevantWords(userQuery: string, limit = 25): Prom
       }
     }
 
-    // If we didn't find enough, search examples and notes too
     if (allResults.length < limit) {
       let broadData: Word[] = []
       
