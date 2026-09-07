@@ -234,7 +234,7 @@ const EditorFields = ({
             </label>
             <Input 
               name="imperative_plural" 
-              placeholder="e.g. Ochaamu!" 
+              placeholder="e.g. Ocham!" 
               value={editForm?.imperative_plural || ""} 
               onChange={handleInputChange} 
               className="h-14 bg-white border-amber-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-slate-400 focus-visible:ring-amber-500 focus:border-amber-500 transition-all" 
@@ -260,7 +260,7 @@ const EditorFields = ({
               className="w-5 h-5 accent-amber-600"
             />
             <label htmlFor="is_irregular" className="text-sm font-bold text-slate-700 cursor-pointer">
-              Irregular verb (does not follow regular ke-/ki- patterns)
+              Irregular verb (verb stem changes in singular and plural)
             </label>
           </div>
 
@@ -268,7 +268,7 @@ const EditorFields = ({
           {editForm?.is_irregular && (
             <div className="space-y-4">
               <p className="text-xs font-black text-amber-600 uppercase tracking-[0.2em]">
-                Present Tense Forms (required for irregular verbs)
+                Present Tense Forms (all required for irregular verbs) <span className="text-red-500">*</span>
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
@@ -570,7 +570,27 @@ export default function AdminDashboard() {
       setError("Please enter the answer for this riddle");
       return;
     }
-    
+
+    if (editForm.word_type === 'verb' && editForm.is_irregular) {
+      const requiredPresentForms = [
+        'present_1sg',
+        'present_2sg',
+        'present_3sg',
+        'present_1pl',
+        'present_2pl',
+        'present_3pl'
+      ];
+
+      const missingForms = requiredPresentForms.filter(
+        field => !editForm[field]?.trim()
+      );
+
+      if (missingForms.length > 0) {
+        setError(`Please enter all 6 present tense forms: ${missingForms.join(', ')}`);
+        return;
+      }
+    }
+
     setSaving(true);
 
     const { translation_input, ...cleanData } = editForm;
