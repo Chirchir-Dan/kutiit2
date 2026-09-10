@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { 
@@ -380,6 +380,8 @@ export default function AdminDashboard() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [showIrregularOnly, setShowIrregularOnly] = useState(false);
 
   // Fetch all words initially
   useEffect(() => { 
@@ -669,6 +671,8 @@ export default function AdminDashboard() {
     setSelectedWord(null);
     setEditForm(null);
     setError(null);
+    setSelectedType("all");
+    setShowIrregularOnly(false);
     if (newView === "words") {
       fetchWords();
     } else {
@@ -677,6 +681,28 @@ export default function AdminDashboard() {
   };
 
   const currentList = view === "words" ? words : suggestions;
+
+  // Unique word types from loaded words
+  const wordTypes = useMemo(() => {
+    const types = new Set(words.map(w => w.word_type).filter(Boolean));
+    return ["all", ...Array.from(types)];
+  }, [words]);
+
+  // Apply filters
+  const filteredList = useMemo(() => {
+    let result = currentList;
+    
+    if (view === "words") {
+      if (selectedType !== "all") {
+        result = result.filter(w => w.word_type === selectedType);
+      }
+      if (showIrregularOnly) {
+        result = result.filter(w => w.is_irregular === true);
+      }
+    }
+    
+    return result;
+  }, [currentList, selectedType, showIrregularOnly, view]);
 
   return (
     <div className="flex h-full">
@@ -740,11 +766,43 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+
+          {view === "words" && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-1">
+                {wordTypes.map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setSelectedType(type)}
+                    className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase transition-all ${
+                      selectedType === type
+                        ? "bg-emerald-600 text-white"
+                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                    }`}
+                  >
+                    {type === "all" ? "All" : type}
+                  </button>
+                ))}
+              </div>
+              
+              <label className="flex items-center gap-2 cursor-pointer px-1">
+                <input
+                  type="checkbox"
+                  checked={showIrregularOnly}
+                  onChange={(e) => setShowIrregularOnly(e.target.checked)}
+                  className="w-3.5 h-3.5 accent-amber-600"
+                />
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  Irregular verbs only
+                </span>
+              </label>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {currentList.length > 0 ? (
-            currentList.map((item) => (
+          {filteredList.length > 0 ? (
+            filteredList.map((item) => (
               <button 
                 key={item.id} 
                 onClick={() => handleSelect(item)} 
