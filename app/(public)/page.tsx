@@ -20,7 +20,7 @@ export default function LandingPage() {
       <div className="space-y-6 w-full px-2">
         <div className="space-y-2">
           <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tight leading-[0.9]">
-            <span className="text-emerald-600">Kalenjin</span>
+            <span className="text-emerald-600">Nandi</span>
             <span className="text-slate-900"> Dictionary</span>
           </h1>
           <p className="text-[10px] sm:text-xs md:text-lg text-emerald-600 font-bold uppercase tracking-[0.2em]">
@@ -30,7 +30,7 @@ export default function LandingPage() {
         
         <div className="max-w-2xl mx-auto">
           <p className="text-sm sm:text-base md:text-lg font-medium text-slate-600 leading-relaxed">
-            Kutiit is a comprehensive database for Kalenjin words, phrases, riddles and proverbs. 
+            Kutiit is a comprehensive database for Nandi words, phrases, riddles and proverbs. 
             Search the resource below to explore the language.
           </p>
         </div>
