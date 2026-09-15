@@ -11,6 +11,7 @@ export async function POST() {
       .from('words')
       .select('id, entry_name, translation_en, translations, word_type, notes')
       .is('embedding', null)
+      .limit(50)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -60,7 +61,7 @@ export async function POST() {
       processed++
 
       // Small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 700))
     }
 
     return NextResponse.json({
