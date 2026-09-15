@@ -41,19 +41,19 @@ export default function AdminDashboard() {
     handleSave: saveWord,
     handleApproveSuggestion: approveSuggestion,
     handleRejectSuggestion: rejectSuggestion
-  } = useWordEditor(
-    async () => {
+  } = useWordEditor({
+    onAfterSave: async () => {
       await fetchWords();
       setIsModalOpen(false);
       setSelectedWord(null);
     },
-    async () => {
+    onAfterApprove: async () => {
       await fetchWords();
       await fetchSuggestions();
       setIsModalOpen(false);
       setSelectedWord(null);
     }
-  );
+  });
 
   const handleSelect = (word: any) => {
     selectWord(word);
