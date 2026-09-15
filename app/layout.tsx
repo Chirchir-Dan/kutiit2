@@ -3,42 +3,58 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: {
-    default: "Kutiit | The Universal Kalenjin Dictionary",
+    default: "Kutiit | The Nandi Dictionary",
     template: "%s | Kutiit"
   },
-  description: "The premier open-source digital platform for the Kalenjin languages. Explore our comprehensive dictionary, proverbs, and cultural resources for Nandi, Kipsigis, Marakwet, Keiyo, Pokot, Tugen, Sabaot, and Terik.",
+  description:
+    "An open-source digital platform for the Nandi language. Explore our comprehensive dictionary of words, proverbs, riddles, and cultural wisdom, with verified meanings and example sentences.",
   keywords: [
-    "English-Kalenjin Dictionary", "Kalenjin Proverbs", "Nandi Language Resources", "Kipsigis Dictionary", "kalenjing to English", "Marakwet Language", "Keiyo Dictionary", "Pokot Language Resources", "Tugen Dictionary", "Sabaot Language", "Terik Dictionary", 
-    "Kalenjin Dictionary", "Nandi Language", "Kipsigis Dictionary", "Kalenjin Proverbs", 
-    "Kutiit", "Linguistics Kenya", "Marakwet language", "Keiyo", "Pokot", "Tugen", 
-    "Sabaot", "Terik", "Kalenjin Culture", "African Languages Digitalization", "tangoch riddles", "ng’olyot sayings", "kalwenet", "wise sayings", "language preservation", "Kalenjin grammar"
+    "Nandi Dictionary",
+    "Nandi Language",
+    "Nandi to English",
+    "English to Nandi",
+    "Nandi Proverbs",
+    "Nandi Riddles",
+    "Tangoch",
+    "Ng'olyot",
+    "Kalewenet",
+    "Nandi Grammar",
+    "Nandi Culture",
+    "Nilotic Languages",
+    "Kalenjin Languages",
+    "African Languages Digitalization",
+    "Language Preservation",
+    "Kutiit",
+    "Linguistics Kenya"
   ],
   authors: [{ name: "Kutiit Project" }],
-  metadataBase: new URL('https://kutiit.vercel.app'), // Replace with your actual domain
+  metadataBase: new URL("https://kutiit.vercel.app"),
   alternates: {
-    canonical: '/',
+    canonical: "/"
   },
   openGraph: {
-    title: "Kutiit | The Digital Home of Kalenjin Languages",
-    description: "Preserving and promoting the rich linguistic heritage of the Kalenjin people through an open digital textbook and dictionary.",
-    url: 'https://kutiit.com',
-    siteName: 'Kutiit',
-    locale: 'en_US',
-    type: 'website',
+    title: "Kutiit | The Nandi Dictionary",
+    description:
+      "Preserving and promoting the Nandi language through an open digital dictionary of words, meanings, and cultural wisdom.",
+    url: "https://kutiit.com",
+    siteName: "Kutiit",
+    locale: "en_US",
+    type: "website"
   },
   twitter: {
-    card: 'summary_large_image',
-    title: "Kutiit | Kalenjin Language Platform",
-    description: "Dictionary, proverbs, and grammar resources for all Kalenjin dialects.",
-  },
+    card: "summary_large_image",
+    title: "Kutiit | Nandi Language Platform",
+    description:
+      "A dictionary of Nandi words, proverbs, riddles, and grammar."
+  }
 };
 
 export default function RootLayout({
-  children,
+  children
 }: {
   children: React.ReactNode;
 }) {

@@ -53,7 +53,7 @@ export default function AdminMobileModal({
               <p className="text-emerald-600/70 text-[10px] font-black uppercase tracking-[0.2em] mt-1">
                 {editForm?.id
                   ? "Update word in dictionary"
-                  : "Expand the Kalenjin Dictionary"}
+                  : "Expand the Nandi Dictionary"}
               </p>
             </div>
             <div className="flex gap-2 items-center">

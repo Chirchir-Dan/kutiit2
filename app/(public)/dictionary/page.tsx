@@ -2,36 +2,36 @@ import { Metadata } from "next";
 import DictionaryClient from "./DictionaryClient";
 import { supabase } from "@/lib/supabase";
 
-// 1. Universal Kalenjin SEO Metadata
 export const metadata: Metadata = {
-  title: "Kutiit | The Universal Kalenjin Dictionary",
-  description: "The premier digital archive for the Kalenjin language family. Search words, translations, and proverbs across Nandi, Kipsigis, Keiyo, Tugen, Marakwet, Pokot, Sabiny (Sebei), and Sabaot dialects.",
+  title: "Kutiit | A Nandi Dictionary",
+  description:
+    "A comprehensive digital archive for the Nandi language. Search words, translations, proverbs, riddles, and sayings with verified meanings and example sentences.",
   keywords: [
-    "Kalenjin dictionary", 
-    "Kutiit", 
-    "Nandi dictionary", 
-    "Pokot dictionary", 
-    "Marakwet translation", 
-    "Tugen language", 
-    "Sabiny Sebei dictionary", 
-    "Sabaot wordlist",
-    "Kalenjin proverbs",
+    "Nandi dictionary",
+    "Kutiit",
+    "Nandi language",
+    "Nandi words",
+    "Nandi translation",
+    "Nandi proverbs",
+    "Nandi riddles",
+    "Tangoch",
+    "Ng'olyot",
+    "Kalewenet",
     "African linguistics",
-    "Tangoch riddles",
-    "Ng’olyot sayings",
-    "Kalwenet wisdom",
-    "Kalenjin language preservation",
-    "Kalenjin grammar",
+    "Nilotic languages",
+    "Kalenjin languages",
+    "Nandi grammar",
+    "Nandi language preservation",
   ],
   openGraph: {
-    title: "Kutiit - The Unified Kalenjin Language Platform",
-    description: "Preserving the rich linguistic heritage of the Kalenjin people across East Africa. and the world. Explore words, meanings, and cultural wisdom in one place.",
+    title: "Kutiit — A Nandi Dictionary",
+    description:
+      "Preserving the Nandi language through a living dictionary of words, meanings, and cultural wisdom. Explore, learn, and contribute.",
     type: "website",
   },
 };
 
-// 2. Set ISR to 1 hour
-export const revalidate = 3600; 
+export const revalidate = 3600;
 
 export default async function DictionaryPage() {
   const { data } = await supabase
