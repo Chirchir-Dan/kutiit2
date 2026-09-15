@@ -12,6 +12,7 @@ interface Word {
   entry_name: string | null;
   examples: string | null;
   imperative: string | null;
+  imperative_plural: string | null;
   notes: string | null;
   is_irregular: boolean | null;
   present_1sg: string | null;
@@ -23,7 +24,12 @@ interface Word {
   similarity?: number;
 }
 
-// Fallback: keyword search if embeddings fail or no matches
+export interface RetrievalResult {
+  words: Word[];
+  method: "vector" | "keyword" | "vector_empty" | "embedding_failed" | "vector_error";
+  topSimilarity?: number;
+}
+
 async function keywordSearch(
   userQuery: string,
   limit: number
@@ -78,19 +84,19 @@ async function keywordSearch(
 export async function retrieveRelevantWords(
   userQuery: string,
   limit = 15
-): Promise<Word[]> {
-  if (!userQuery.trim()) return [];
+): Promise<RetrievalResult> {
+  if (!userQuery.trim()) {
+    return { words: [], method: "keyword" };
+  }
 
   try {
-    // Generate embedding for the user's query
     const embedding = await generateEmbedding(userQuery);
 
     if (!embedding) {
-      console.warn("Embedding failed, falling back to keyword search");
-      return keywordSearch(userQuery, limit);
+      const words = await keywordSearch(userQuery, limit);
+      return { words, method: "embedding_failed" };
     }
 
-    // Vector search via Supabase RPC
     const supabase = getServerSupabase();
     const { data, error } = await supabase.rpc("match_words", {
       query_embedding: embedding,
@@ -100,17 +106,25 @@ export async function retrieveRelevantWords(
 
     if (error) {
       console.error("Vector search error:", error);
-      return keywordSearch(userQuery, limit);
+      const words = await keywordSearch(userQuery, limit);
+      return { words, method: "vector_error" };
     }
 
     if (!data || data.length === 0) {
-      console.warn("No vector matches, falling back to keyword search");
-      return keywordSearch(userQuery, limit);
+      const words = await keywordSearch(userQuery, limit);
+      return { words, method: "vector_empty" };
     }
 
-    return data as Word[];
+    const topSimilarity = (data[0] as Word)?.similarity;
+
+    return {
+      words: data as Word[],
+      method: "vector",
+      topSimilarity
+    };
   } catch (error) {
     console.error("Retriever error:", error);
-    return keywordSearch(userQuery, limit);
+    const words = await keywordSearch(userQuery, limit);
+    return { words, method: "vector_error" };
   }
 }
