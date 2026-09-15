@@ -20,7 +20,8 @@ export async function generateEmbedding(text: string): Promise<number[] | null> 
         model: 'models/gemini-embedding-001',
         content: {
           parts: [{ text: text.trim() }]
-        }
+        }, 
+        outputDimensionality: 768
       })
     })
 
