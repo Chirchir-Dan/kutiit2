@@ -46,7 +46,6 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
         "answer", 
         "notes", 
         "examples",
-        "dialects"
       ],
       threshold: 0.37,
       distance: 100,
@@ -288,14 +287,6 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
             <div className="p-6 bg-slate-50/80 rounded-[1.5rem] text-slate-600 text-base italic leading-relaxed border border-slate-100 shadow-sm">
                 {word.notes.split("\n").map((line: string, i: number) => <p key={i} className="mb-2 last:mb-0">{line}</p>)}
             </div>
-          </div>
-        )}
-
-        {word.dialects && word.dialects.length > 0 && (
-          <div className="mt-8 pt-4 border-t border-slate-100">
-            <p className="text-[11px] text-slate-400 font-medium italic">
-              {word.dialects.length > 4? `Dialects: Universal` : `Dialects: ${word.dialects.join(", ")}`}
-            </p>
           </div>
         )}
       </div>

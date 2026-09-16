@@ -82,7 +82,6 @@ export async function GET(request: Request) {
         "answer",
         "notes",
         "examples",
-        "dialects",
         "singular_indefinite",
         "singular_definite",
         "plural_indefinite",

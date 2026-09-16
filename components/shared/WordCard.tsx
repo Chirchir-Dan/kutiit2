@@ -23,17 +23,6 @@ export function WordCard({ word }: { word: any }) {
               </h3>
             </div>
             <p className="text-emerald-600 font-semibold italic">{word.translation_en}</p>
-            
-            {/* Dialect Badges */}
-            {word.dialects && word.dialects.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {word.dialects.map((d: string) => (
-                  <Badge key={d} variant="secondary" className="text-[8px] px-1.5 py-0 bg-slate-100 text-slate-500 border-none font-black uppercase">
-                    <MapPin size={8} className="mr-0.5" /> {d}
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
           
           {/* Universal Badge - Shows whatever type is in the DB (Adjective, etc) */}

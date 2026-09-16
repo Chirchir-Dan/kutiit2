@@ -1,3 +1,5 @@
+// lib/retriever.ts
+
 import { getServerSupabase } from "./supabase";
 import { generateEmbedding } from "./embeddings";
 
@@ -26,7 +28,12 @@ interface Word {
 
 export interface RetrievalResult {
   words: Word[];
-  method: "vector" | "keyword" | "vector_empty" | "embedding_failed" | "vector_error";
+  method:
+    | "vector"
+    | "keyword"
+    | "vector_empty"
+    | "embedding_failed"
+    | "vector_error";
   topSimilarity?: number;
 }
 
@@ -89,8 +96,15 @@ export async function retrieveRelevantWords(
     return { words: [], method: "keyword" };
   }
 
+  // Strip "Nandi" — everything in the DB is Nandi, so the word is noise
+  const cleanedQuery =
+    userQuery
+      .replace(/\bNandi\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim() || userQuery;
+
   try {
-    const embedding = await generateEmbedding(userQuery);
+    const embedding = await generateEmbedding(cleanedQuery);
 
     if (!embedding) {
       const words = await keywordSearch(userQuery, limit);

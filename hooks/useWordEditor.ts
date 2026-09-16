@@ -183,7 +183,6 @@ export function useWordEditor({
         ...cleanData,
         translation_en: cleanData.translations?.[0] || "",
         translations: cleanData.translations || [],
-        dialects: ["Nandi"]
       };
 
       const { error: supabaseError } = editForm.id
@@ -226,7 +225,6 @@ export function useWordEditor({
         ...cleanData,
         translation_en: cleanData.translations?.[0] || "",
         translations: cleanData.translations || [],
-        dialects: ["Nandi"],
         is_verified: true
       };
 

@@ -42,7 +42,6 @@ export default function SuggestWordModal({
   const [form, setForm] = useState<any>({
     entry_name: initialSearch || "",
     word_type: "noun",
-    dialects: ["Nandi"],
     translations: [],
     translation_input: "",
     translation_en: "",
@@ -138,7 +137,6 @@ export default function SuggestWordModal({
         setForm({
           entry_name: "",
           word_type: "noun",
-          dialects: ["Nandi"],
           translations: [],
           translation_input: "",
           translation_en: "",
