@@ -2,31 +2,35 @@
 
 import { Metadata } from "next";
 import { getWordOfTheDay } from "@/lib/wordOfTheDay";
+import { getNandiDate } from "@/lib/nandiDate";
 import WordOfTheDayClient from "./WordOfTheDayClient";
 
-export const revalidate = 3600; // refresh hourly (word changes daily)
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Word of the Day | Kutiit",
+  title: "Ng'olyot ap Rani | Kutiit",
   description:
     "One Nandi word every day. Learn a new word, its meaning, and an example sentence.",
   openGraph: {
-    title: "Nandi Word of the Day",
+    title: "Ng'olyot ap Rani — Nandi Word of the Day",
     description: "One new Nandi word every day.",
     type: "website"
   }
 };
 
 export default async function WordOfTheDayPage() {
-  const word = await getWordOfTheDay();
+  const [word, nandiDate] = await Promise.all([
+    getWordOfTheDay(),
+    getNandiDate()
+  ]);
 
   if (!word) {
     return (
       <div className="flex-1 flex items-center justify-center p-12">
-        <p className="text-slate-500">Mamii ng'olyot rani!.</p>
+        <p className="text-slate-500">No word available today.</p>
       </div>
     );
   }
 
-  return <WordOfTheDayClient word={word} />;
+  return <WordOfTheDayClient word={word} nandiDate={nandiDate} />;
 }
