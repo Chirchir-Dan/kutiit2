@@ -57,7 +57,10 @@ export default function WordOfTheDayClient({
   const [dateString, setDateString] = useState<string>("");
 
   useEffect(() => {
-    setDateString(formatNandiDate(new Date(), calendar));
+    const nairobiNow = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "Africa/Nairobi" })
+    );
+    setDateString(formatNandiDate(nairobiNow, calendar));
   }, [calendar]);
 
   const displayWord = word.entry_name || word.translation_en;

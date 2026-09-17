@@ -19,41 +19,19 @@ export interface WordOfTheDay {
   translations: string[] | null;
 }
 
-// Deterministic index based on date — same all day, changes at midnight
-function dateToIndex(date: Date, totalWords: number): number {
-  const dayNumber = Math.floor(date.getTime() / 86400000); // days since epoch
-  return Math.abs(dayNumber) % totalWords;
-}
-
 export async function getWordOfTheDay(): Promise<WordOfTheDay | null> {
   const supabase = getServerSupabase();
 
-  // Only pick from words with verified meanings and enough content
-  const { data: words, error } = await supabase
-    .from("words")
-    .select(
-      "id, entry_name, translation_en, word_type, singular_indefinite, singular_definite, plural_indefinite, plural_definite, imperative, imperative_plural, examples, notes, answer, translations"
-    )
-    .eq("is_verified", true)
-    .not("entry_name", "is", null)
-    .not("translation_en", "is", null)
-    .order("id", { ascending: true });
+  const { data, error } = await supabase.rpc("get_or_pick_word_of_the_day");
 
-  if (error || !words || words.length === 0) {
-    console.error("Word of the day fetch error:", error);
+  if (error) {
+    console.error("Word of the day error:", error);
     return null;
   }
 
-  // Filter to entries with real content
-  const validWords = words.filter(
-    (w) =>
-      w.entry_name &&
-      w.entry_name.trim().length > 0 &&
-      (w.translation_en?.trim().length > 0 || w.answer?.trim().length > 0)
-  );
+  if (!data || data.length === 0) {
+    return null;
+  }
 
-  if (validWords.length === 0) return null;
-
-  const index = dateToIndex(new Date(), validWords.length);
-  return validWords[index] as WordOfTheDay;
+  return data[0] as WordOfTheDay;
 }
