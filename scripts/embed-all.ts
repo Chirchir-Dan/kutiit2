@@ -34,7 +34,10 @@ function buildEmbeddingText(word: any): string {
   return parts.filter(Boolean).join(" ");
 }
 
-async function embed(text: string): Promise<number[] | null> {
+async function embed(
+  text: string,
+  attempt: number = 1
+): Promise<number[] | null> {
   const res = await fetch(`${GEMINI_EMBEDDING_URL}?key=${geminiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -46,19 +49,21 @@ async function embed(text: string): Promise<number[] | null> {
   });
 
   if (res.status === 429) {
-    const errorText = await res.text();
+    // Could be per-minute OR daily. We can't distinguish reliably.
+    // So always retry, with increasing backoff. If it's truly daily,
+    // the user can Ctrl+C manually.
+    const waitMs = Math.min(30000 * attempt, 120000); // 30s, 60s, 90s, 120s cap
+    console.log(
+      `   ⏸  Rate limit hit (attempt ${attempt}), waiting ${waitMs / 1000}s...`
+    );
+    await new Promise((r) => setTimeout(r, waitMs));
+    return embed(text, attempt + 1);
+  }
 
-    if (
-      errorText.includes("free_tier_requests") ||
-      errorText.includes("limit: 1000")
-    ) {
-      console.error("\n❌ Daily quota exhausted. Run again tomorrow.\n");
-      process.exit(1);
-    }
-
-    console.log("   ⏸  Rate limit hit, waiting 30s...");
-    await new Promise((r) => setTimeout(r, 30000));
-    return embed(text);
+  if (res.status === 503) {
+    console.log("   ⏸  Service unavailable, waiting 5s...");
+    await new Promise((r) => setTimeout(r, 5000));
+    return embed(text, attempt);
   }
 
   if (!res.ok) {
@@ -120,7 +125,8 @@ async function main() {
       console.log(`✓ ${processed}/${words.length} done (${failed} failed)`);
     }
 
-    await new Promise((r) => setTimeout(r, 200));
+    // 700ms = ~85 requests/minute, safely under Gemini's 100 RPM limit
+    await new Promise((r) => setTimeout(r, 700));
   }
 
   console.log(`\n✅ Done. ${processed} embedded, ${failed} failed.`);

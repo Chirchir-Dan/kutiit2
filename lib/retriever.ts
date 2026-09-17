@@ -100,6 +100,11 @@ export async function retrieveRelevantWords(
   const cleanedQuery =
     userQuery
       .replace(/\bNandi\b/gi, "")
+      .replace(
+        /\b(how do i say|how do you say|how to say|what is|what's|translate|in nandi|the word for)\b/gi,
+        ""
+      )
+      .replace(/['""]/g, "")
       .replace(/\s+/g, " ")
       .trim() || userQuery;
 
@@ -114,7 +119,7 @@ export async function retrieveRelevantWords(
     const supabase = getServerSupabase();
     const { data, error } = await supabase.rpc("match_words", {
       query_embedding: embedding,
-      match_threshold: 0.5,
+      match_threshold: 0.6,
       match_count: limit
     });
 
