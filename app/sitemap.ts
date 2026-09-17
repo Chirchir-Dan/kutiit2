@@ -18,21 +18,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 0.9,
     },
-    // 3. Contact Page (from app/(public)/contact/page.tsx)
+    // 3. Word of the Day Page (from app/(public)/word-of-the-day/page.tsx)
+     {
+      url: `${baseUrl}/word-of-the-day`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.85,
+    },
+
+    // 4. Contact Page (from app/(public)/contact/page.tsx)
     {
       url: `${baseUrl}/contact`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
     },
-    // 4. Login Page (from app/(auth)/login/page.tsx)
+    // 5. Login Page (from app/(auth)/login/page.tsx)
     {
       url: `${baseUrl}/login`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.3,
     },
-    // NOTE: We usually EXCLUDE /dashboard (admin) from sitemaps 
-    // because we don't want Google to try and index private pages.
+   
   ]
 }
