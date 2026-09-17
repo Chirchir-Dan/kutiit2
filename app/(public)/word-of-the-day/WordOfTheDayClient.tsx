@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BookOpen, ArrowLeft, Sparkles, Calendar } from "lucide-react";
 import type { NandiCalendar } from "@/lib/nandiDate";
+import { getWordTypeLabel } from "@/lib/wordTypeLabels";
 
 interface WordOfTheDayProps {
   word: {
@@ -84,7 +85,7 @@ export default function WordOfTheDayClient({
                 Ng&apos;olyot ap Rani
               </h1>
               <p className="text-[10px] text-emerald-50/90 font-bold uppercase tracking-[0.2em] mt-0.5">
-                {word.word_type}
+                {getWordTypeLabel(word.word_type)}
               </p>
             </div>
           </div>
