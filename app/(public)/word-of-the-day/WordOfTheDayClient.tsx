@@ -2,10 +2,11 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BookOpen, ArrowLeft, Sparkles, Calendar } from "lucide-react";
-import type { NandiDate } from "@/lib/nandiDate";
+import type { NandiCalendar } from "@/lib/nandiDate";
 
 interface WordOfTheDayProps {
   word: {
@@ -24,13 +25,41 @@ interface WordOfTheDayProps {
     answer: string | null;
     translations: string[] | null;
   };
-  nandiDate: NandiDate;
+  calendar: NandiCalendar;
+}
+
+function formatNandiDate(date: Date, calendar: NandiCalendar): string {
+  const dayEn = date
+    .toLocaleDateString("en-US", { weekday: "long" })
+    .toLowerCase();
+  const monthEn = date
+    .toLocaleDateString("en-US", { month: "long" })
+    .toLowerCase();
+
+  const dayName = calendar.dayNames[dayEn] || null;
+  const monthName = calendar.monthNames[monthEn] || null;
+  const dayOfMonth = date.getDate();
+  const year = date.getFullYear();
+
+  const parts: string[] = [];
+  if (dayName) parts.push(dayName);
+  parts.push(String(dayOfMonth));
+  if (monthName) parts.push(monthName);
+  parts.push(String(year));
+
+  return parts.join(", ");
 }
 
 export default function WordOfTheDayClient({
   word,
-  nandiDate
+  calendar
 }: WordOfTheDayProps) {
+  const [dateString, setDateString] = useState<string>("");
+
+  useEffect(() => {
+    setDateString(formatNandiDate(new Date(), calendar));
+  }, [calendar]);
+
   const displayWord = word.entry_name || word.translation_en;
   const displayMeaning =
     word.word_type === "riddle" && word.answer
@@ -39,48 +68,42 @@ export default function WordOfTheDayClient({
 
   return (
     <div className="flex-1 flex flex-col items-center px-4 py-12 md:py-16 max-w-3xl mx-auto w-full">
-      {/* Title line */}
-      <div className="text-center mb-10 space-y-2">
-        <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tighter">
-          Ng&apos;olyot ap Rani
-        </h1>
-        <div className="flex items-center justify-center gap-2">
-          <Calendar size={14} className="text-emerald-600" />
-          <span className="text-sm font-bold text-slate-500 tracking-wide">
-            {nandiDate.formatted}
-          </span>
-        </div>
-      </div>
-
-      {/* Card */}
+      {/* Card — everything inside */}
       <div className="w-full bg-white rounded-[2.5rem] border-[3px] border-emerald-600 shadow-[0_20px_60px_-15px_rgba(5,150,105,0.35)] overflow-hidden">
         {/* Header band */}
-        <div className="bg-emerald-600 px-8 py-5 flex items-center justify-between">
+        <div className="bg-emerald-600 px-8 py-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
-              <Sparkles size={20} className="text-white" />
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
+              <Sparkles size={22} className="text-white" />
             </div>
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-widest text-white">
+            <div className="min-w-0">
+              <h1 className="text-lg md:text-xl font-black uppercase tracking-tight text-white leading-tight">
                 Ng&apos;olyot ap Rani
-              </h2>
-              <p className="text-[10px] text-emerald-50/80 font-bold uppercase tracking-wider">
+              </h1>
+              <p className="text-[10px] text-emerald-50/90 font-bold uppercase tracking-[0.2em] mt-0.5">
                 {word.word_type}
               </p>
             </div>
           </div>
+
+          {/* Date */}
+          {dateString && (
+            <div className="flex items-center gap-2 mt-5 pt-5 border-t border-white/20">
+              <Calendar size={14} className="text-white/80 shrink-0" />
+              <span className="text-sm font-bold text-white tracking-wide">
+                {dateString}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Body */}
         <div className="p-8 md:p-12 space-y-10">
-          {/* The word */}
+          {/* The word — no label above it */}
           <div className="text-center space-y-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-              Today&apos;s word
-            </p>
-            <h3 className="text-5xl md:text-6xl font-black text-slate-900 uppercase tracking-tighter leading-none break-words">
+            <h2 className="text-5xl md:text-6xl font-black text-slate-900 uppercase tracking-tighter leading-none break-words">
               {displayWord}
-            </h3>
+            </h2>
             <div className="flex items-center justify-center gap-3 pt-3">
               <div className="h-[2px] w-12 bg-emerald-600" />
               <p className="text-2xl md:text-3xl font-bold text-emerald-700">
@@ -211,7 +234,7 @@ export default function WordOfTheDayClient({
         </div>
       </div>
 
-      {/* Back link */}
+      {/* Back link — outside card */}
       <Link
         href="/"
         className="mt-8 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-emerald-600 transition-colors flex items-center gap-2"

@@ -2,10 +2,10 @@
 
 import { Metadata } from "next";
 import { getWordOfTheDay } from "@/lib/wordOfTheDay";
-import { getNandiDate } from "@/lib/nandiDate";
+import { getNandiCalendar } from "@/lib/nandiDate";
 import WordOfTheDayClient from "./WordOfTheDayClient";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Ng'olyot ap Rani | Kutiit",
@@ -19,9 +19,9 @@ export const metadata: Metadata = {
 };
 
 export default async function WordOfTheDayPage() {
-  const [word, nandiDate] = await Promise.all([
+  const [word, calendar] = await Promise.all([
     getWordOfTheDay(),
-    getNandiDate()
+    getNandiCalendar()
   ]);
 
   if (!word) {
@@ -32,5 +32,5 @@ export default async function WordOfTheDayPage() {
     );
   }
 
-  return <WordOfTheDayClient word={word} nandiDate={nandiDate} />;
+  return <WordOfTheDayClient word={word} calendar={calendar} />;
 }
