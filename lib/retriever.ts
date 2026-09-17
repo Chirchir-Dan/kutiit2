@@ -7,11 +7,12 @@ interface Word {
   id: string;
   word_type: string;
   translation_en: string;
+  entry_name: string | null;
+  answer: string | null;
   singular_indefinite: string | null;
   singular_definite: string | null;
   plural_indefinite: string | null;
   plural_definite: string | null;
-  entry_name: string | null;
   examples: string | null;
   imperative: string | null;
   imperative_plural: string | null;
@@ -96,7 +97,6 @@ export async function retrieveRelevantWords(
     return { words: [], method: "keyword" };
   }
 
-  // Strip "Nandi" — everything in the DB is Nandi, so the word is noise
   const cleanedQuery =
     userQuery
       .replace(/\bNandi\b/gi, "")

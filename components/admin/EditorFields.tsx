@@ -1,10 +1,11 @@
+// components/admin/EditorFields.tsx
+
 "use client";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Languages,
-  Zap,
   MessageSquareQuote,
   HelpCircle
 } from "lucide-react";
@@ -68,7 +69,7 @@ export default function EditorFields({
         </select>
       </div>
 
-      {/* 2. Word Entry */}
+      {/* 2. Entry Name */}
       <div className="space-y-2">
         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">
           {isRiddle
@@ -94,47 +95,51 @@ export default function EditorFields({
         />
       </div>
 
-      {/* 3. Translations */}
-      {!isRiddle && (
-        <TranslationInput
-          translations={editForm?.translations || []}
-          inputValue={editForm?.translation_input || ""}
-          onInputChange={(value) =>
-            handleInputChange({ target: { name: "translation_input", value } })
-          }
-          onAdd={handleAddTranslation}
-          onRemove={handleRemoveTranslation}
-          onKeyDown={handleTranslationKeyDown}
-          label={
-            editForm?.word_type === "saying"
-              ? "Meaning"
-              : isProverbOrSaying
-              ? "Meaning"
-              : isName
-              ? "Meaning"
-              : "Translations"
-          }
-          placeholder={
-            isName ? "meaning of name" : "Type translation and press Enter..."
-          }
-        />
-      )}
-
-      {/* 4. Riddle Answer */}
+      {/* 3. Riddle Answer (Nandi) */}
       {isRiddle && (
-        <div className="space-y-2">
+        <div className="space-y-2 p-6 bg-emerald-50/30 rounded-3xl border-2 border-emerald-100/50">
           <label className="text-xs font-semibold text-emerald-700 uppercase tracking-wider flex items-center gap-2 ml-1">
-            <HelpCircle size={14} /> Walutiet
+            <HelpCircle size={14} /> Walutiet (Answer in Nandi)
           </label>
           <Input
             name="answer"
-            placeholder="Nee walutiet?"
+            placeholder="Nee walutiet? e.g., Koita"
             value={editForm?.answer || ""}
             onChange={handleInputChange}
-            className="h-14 bg-white border-2 border-emerald-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-emerald-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all"
+            className="h-14 bg-white border-emerald-200 rounded-2xl text-base font-normal text-slate-700 placeholder:text-emerald-400 focus-visible:ring-emerald-500 focus:border-emerald-500 transition-all"
           />
         </div>
       )}
+
+      {/* 4. Translations — shown for all types including riddles */}
+      <TranslationInput
+        translations={editForm?.translations || []}
+        inputValue={editForm?.translation_input || ""}
+        onInputChange={(value) =>
+          handleInputChange({ target: { name: "translation_input", value } })
+        }
+        onAdd={handleAddTranslation}
+        onRemove={handleRemoveTranslation}
+        onKeyDown={handleTranslationKeyDown}
+        label={
+          isRiddle
+            ? "Answer Translation (English)"
+            : editForm?.word_type === "saying"
+            ? "Meaning"
+            : isProverbOrSaying
+            ? "Meaning"
+            : isName
+            ? "Meaning"
+            : "Translations"
+        }
+        placeholder={
+          isRiddle
+            ? "English meaning of the answer, e.g., Stone"
+            : isName
+            ? "meaning of name"
+            : "Type translation and press Enter..."
+        }
+      />
 
       {/* 5. Noun Forms */}
       {isNoun && (

@@ -1,3 +1,5 @@
+// hooks/useWordEditor.ts
+
 "use client";
 
 import { useState, useCallback } from "react";
@@ -77,7 +79,13 @@ export function useWordEditor({
   }, []);
 
   const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | { target: { name: string; value: any } }) => {
+    (
+      e:
+        | React.ChangeEvent<
+            HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+          >
+        | { target: { name: string; value: any } }
+    ) => {
       setEditForm((prev: any) => {
         if (!prev) return prev;
         return { ...prev, [e.target.name]: e.target.value };
@@ -124,15 +132,17 @@ export function useWordEditor({
   const validate = useCallback((form: any): string | null => {
     if (!form?.entry_name?.trim()) return "Please enter a word";
 
-    if (
-      form.word_type !== "riddle" &&
-      (!form.translations || form.translations.length === 0)
-    ) {
-      return "Please add at least one translation";
-    }
-
-    if (form.word_type === "riddle" && !form.answer?.trim()) {
-      return "Please enter the answer for this riddle";
+    if (form.word_type === "riddle") {
+      if (!form.answer?.trim()) {
+        return "Please enter the answer (Walutiet) in Nandi";
+      }
+      if (!form.translations || form.translations.length === 0) {
+        return "Please add the English translation of the answer";
+      }
+    } else {
+      if (!form.translations || form.translations.length === 0) {
+        return "Please add at least one translation";
+      }
     }
 
     if (form.word_type === "verb" && form.is_irregular) {
@@ -154,15 +164,23 @@ export function useWordEditor({
   }, []);
 
   const buildEmbeddingText = (data: any): string => {
-    return [
-      data.entry_name,
-      data.translation_en,
-      ...(data.translations || []).slice(1),
-      data.word_type ? `(${data.word_type})` : "",
-      data.notes || ""
-    ]
-      .filter(Boolean)
-      .join(" ");
+    const clean = (s: string | null | undefined): string =>
+      (s || "").replace(/\bNandi\b/gi, "").trim();
+
+    const parts: string[] = [];
+
+    if (data.entry_name) parts.push(clean(data.entry_name));
+    if (data.translation_en) parts.push(clean(data.translation_en));
+
+    if (data.translations && data.translations.length > 0) {
+      parts.push(data.translations.map(clean).filter(Boolean).join(", "));
+    }
+
+    if (data.answer) parts.push(clean(data.answer));
+    if (data.word_type) parts.push(`(${data.word_type})`);
+    if (data.notes) parts.push(clean(data.notes));
+
+    return parts.filter(Boolean).join(" ");
   };
 
   const handleSave = useCallback(async () => {
@@ -182,7 +200,7 @@ export function useWordEditor({
       const saveData = {
         ...cleanData,
         translation_en: cleanData.translations?.[0] || "",
-        translations: cleanData.translations || [],
+        translations: cleanData.translations || []
       };
 
       const { error: supabaseError } = editForm.id

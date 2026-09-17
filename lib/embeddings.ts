@@ -51,11 +51,13 @@ export async function generateEmbedding(
   }
 }
 
-// Build the text that represents a word for embedding purposes
+// Build the text that represents a word for embedding purposes.
+// Handles nouns, verbs, proverbs, and riddles uniformly.
 export function buildEmbeddingText(word: {
   entry_name?: string | null;
   translation_en?: string | null;
   translations?: string[] | null;
+  answer?: string | null;
   word_type?: string | null;
   notes?: string | null;
 }): string {
@@ -66,9 +68,12 @@ export function buildEmbeddingText(word: {
 
   if (word.entry_name) parts.push(clean(word.entry_name));
   if (word.translation_en) parts.push(clean(word.translation_en));
-  if (word.translations && word.translations.length > 1) {
-    parts.push(word.translations.slice(1).map(clean).join(", "));
+
+  if (word.translations && word.translations.length > 0) {
+    parts.push(word.translations.map(clean).filter(Boolean).join(", "));
   }
+
+  if (word.answer) parts.push(clean(word.answer));
   if (word.word_type) parts.push(`(${word.word_type})`);
   if (word.notes) parts.push(clean(word.notes));
 
