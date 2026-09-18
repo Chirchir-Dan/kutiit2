@@ -49,22 +49,38 @@ function getWordSizeClass(word: string, isTraditional: boolean): string {
   return "text-2xl sm:text-3xl md:text-4xl";
 }
 
-export default function DictionaryClient({ initialWords }: { initialWords: any[] }) {
+export default function DictionaryClient({
+  initialWords
+}: {
+  initialWords: any[];
+}) {
   const [words] = useState<any[]>(initialWords);
   const [filteredWords, setFilteredWords] = useState<any[]>(initialWords);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedWord, setSelectedWord] = useState<any>(initialWords[0] || null);
+  const [selectedWord, setSelectedWord] = useState<any>(
+    initialWords[0] || null
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedType, setSelectedType] = useState<string>("all");
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
-  const wordTypes = ["all", ...new Set(words.map((w) => w.word_type).filter(Boolean))];
+  const wordTypes = [
+    "all",
+    ...new Set(words.map((w) => w.word_type).filter(Boolean))
+  ];
 
   const fuse = useMemo(() => {
     return new Fuse(words, {
-      keys: ["entry_name", "translation_en", "translations", "answer", "notes", "examples"],
+      keys: [
+        "entry_name",
+        "translation_en",
+        "translations",
+        "answer",
+        "notes",
+        "examples"
+      ],
       threshold: 0.37,
       distance: 100
     });
@@ -182,7 +198,9 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
   }, [searchQuery, selectedType, performSearch]);
 
   const clearSearchCache = useCallback(async () => {
-    Object.keys(clientSearchCache).forEach((key) => delete clientSearchCache[key]);
+    Object.keys(clientSearchCache).forEach(
+      (key) => delete clientSearchCache[key]
+    );
     try {
       await fetch("/api/search/clear-cache", { method: "POST" });
     } catch (error) {
@@ -201,7 +219,9 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
 
   const renderLingueeLine = (line: string) => {
     if (!line.includes("-")) {
-      return <p className="text-sm sm:text-base text-slate-700 text-center">{line}</p>;
+      return (
+        <p className="text-sm sm:text-base text-slate-700 text-center">{line}</p>
+      );
     }
     const [nandi, english] = line.split("-");
     return (
@@ -216,8 +236,16 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
     );
   };
 
-  const WordDetailContent = ({ word }: { word: any }) => {
-    const isTraditional = ["proverb", "saying", "riddle"].includes(word.word_type);
+  const WordDetailContent = ({
+    word,
+    onClose
+  }: {
+    word: any;
+    onClose?: () => void;
+  }) => {
+    const isTraditional = ["proverb", "saying", "riddle"].includes(
+      word.word_type
+    );
     const isRiddle = word.word_type === "riddle";
     const hasNounForms =
       word.singular_indefinite ||
@@ -231,11 +259,21 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
     const displayWord = word.entry_name || word.translation_en;
 
     return (
-      <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-right-4 duration-300 pb-12">
+      <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-right-4 duration-300 pb-4">
         <div className="w-full bg-white rounded-[1.5rem] sm:rounded-[2rem] border-[3px] border-emerald-600 shadow-[0_20px_60px_-15px_rgba(5,150,105,0.35)] overflow-hidden">
           {/* Header band */}
-          <div className="bg-emerald-600 px-4 sm:px-6 py-4 sm:py-5">
-            <div className="flex items-start gap-3 min-w-0">
+          <div className="bg-emerald-600 px-4 sm:px-6 py-4 sm:py-5 relative">
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur flex items-center justify-center transition-colors z-10"
+                aria-label="Close"
+              >
+                <X size={18} className="text-white" />
+              </button>
+            )}
+
+            <div className="flex items-start gap-3 min-w-0 pr-10">
               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0 mt-0.5">
                 {isTraditional ? (
                   <Quote size={20} className="text-white" />
@@ -245,9 +283,14 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
               </div>
               <div className="min-w-0 flex-1">
                 <h1
-                  className={`font-black text-white leading-tight [overflow-wrap:normal] [word-break:keep-all] ${
-                    getWordSizeClass(displayWord, isTraditional)
-                  } ${isTraditional ? "italic tracking-tight" : "uppercase tracking-tighter"}`}
+                  className={`font-black text-white leading-tight [overflow-wrap:normal] [word-break:keep-all] ${getWordSizeClass(
+                    displayWord,
+                    isTraditional
+                  )} ${
+                    isTraditional
+                      ? "italic tracking-tight"
+                      : "uppercase tracking-tighter"
+                  }`}
                 >
                   {displayWord}
                 </h1>
@@ -306,7 +349,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
                       <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                         Singular (indef.)
                       </span>
-                      <span className="font-bold text-slate-900 text-sm sm:text-base break-words">
+                      <span className="font-bold text-slate-900 text-xs sm:text-sm md:text-base [overflow-wrap:normal] [word-break:keep-all]">
                         {word.singular_indefinite}
                       </span>
                     </div>
@@ -316,7 +359,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
                       <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                         Singular (def.)
                       </span>
-                      <span className="font-bold text-emerald-700 text-sm sm:text-base break-words">
+                      <span className="font-bold text-emerald-700 text-xs sm:text-sm md:text-base [overflow-wrap:normal] [word-break:keep-all]">
                         {word.singular_definite}
                       </span>
                     </div>
@@ -326,7 +369,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
                       <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                         Plural (indef.)
                       </span>
-                      <span className="font-bold text-slate-900 text-sm sm:text-base break-words">
+                      <span className="font-bold text-slate-900 text-xs sm:text-sm md:text-base [overflow-wrap:normal] [word-break:keep-all]">
                         {word.plural_indefinite}
                       </span>
                     </div>
@@ -336,7 +379,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
                       <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                         Plural (def.)
                       </span>
-                      <span className="font-bold text-emerald-700 text-sm sm:text-base break-words">
+                      <span className="font-bold text-emerald-700 text-xs sm:text-sm md:text-base [overflow-wrap:normal] [word-break:keep-all]">
                         {word.plural_definite}
                       </span>
                     </div>
@@ -386,7 +429,8 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
             {word.notes && (
               <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border-2 border-slate-100">
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2 text-center flex items-center justify-center gap-2">
-                  <MessageSquareQuote size={14} className="text-emerald-500" /> Notes & Context
+                  <MessageSquareQuote size={14} className="text-emerald-500" />{" "}
+                  Notes &amp; Context
                 </p>
                 <p className="text-xs sm:text-sm text-slate-600 italic leading-relaxed whitespace-pre-wrap text-center break-words">
                   {word.notes}
@@ -473,7 +517,8 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
           {filteredWords.length > 0 ? (
             filteredWords.map((word) => {
               const sidebarTranslations =
-                word.translations || (word.translation_en ? [word.translation_en] : []);
+                word.translations ||
+                (word.translation_en ? [word.translation_en] : []);
 
               return (
                 <button
@@ -514,8 +559,12 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
               <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Frown size={32} />
               </div>
-              <h3 className="text-lg font-black uppercase text-slate-900">Not found</h3>
-              <p className="text-sm text-slate-500 mt-2">No words match your search.</p>
+              <h3 className="text-lg font-black uppercase text-slate-900">
+                Not found
+              </h3>
+              <p className="text-sm text-slate-500 mt-2">
+                No words match your search.
+              </p>
               <Button
                 onClick={clearSearch}
                 variant="ghost"
@@ -543,25 +592,22 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
       </section>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[600px] w-[95vw] max-h-[85vh] rounded-[1.5rem] sm:rounded-[2rem] p-0 flex flex-col border-none bg-slate-50 overflow-hidden [&>button]:hidden">
+        <DialogContent className="sm:max-w-[600px] w-[95vw] max-h-[90vh] rounded-[1.5rem] p-0 flex flex-col border-none bg-transparent shadow-none overflow-hidden [&>button]:hidden">
           <VisuallyHidden.Root>
             <DialogHeader>
-              <DialogTitle>{selectedWord?.entry_name || "Word Details"}</DialogTitle>
+              <DialogTitle>
+                {selectedWord?.entry_name || "Word Details"}
+              </DialogTitle>
               <DialogDescription>Full details</DialogDescription>
             </DialogHeader>
           </VisuallyHidden.Root>
-          <div className="p-4 border-b flex justify-end items-center bg-white sticky top-0 z-20 shrink-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsModalOpen(false)}
-              className="rounded-full bg-slate-50 h-10 w-10"
-            >
-              <X size={20} className="text-slate-500" />
-            </Button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4">
-            {selectedWord && <WordDetailContent word={selectedWord} />}
+          <div className="flex-1 overflow-y-auto py-4">
+            {selectedWord && (
+              <WordDetailContent
+                word={selectedWord}
+                onClose={() => setIsModalOpen(false)}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>

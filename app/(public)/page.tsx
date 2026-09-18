@@ -1,6 +1,8 @@
+// app/(public)/page.tsx
+
 "use client";
 
-import { useState, useEffect } from "react"; 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, Sparkles } from "lucide-react";
@@ -15,7 +17,6 @@ export default function LandingPage() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-start px-4 md:px-6 text-center max-w-5xl mx-auto space-y-10 md:space-y-16 pt-16 pb-20 overflow-x-hidden">
-      
       {/* HERO */}
       <div className="space-y-6 w-full px-2">
         <div className="space-y-2">
@@ -24,50 +25,47 @@ export default function LandingPage() {
             <span className="text-slate-900"> Dictionary</span>
           </h1>
           <p className="text-[10px] sm:text-xs md:text-lg text-emerald-600 font-bold uppercase tracking-[0.2em]">
-            Dictionary & Translation Resource
+            Dictionary &amp; Translation Resource
           </p>
         </div>
-        
+
         <div className="max-w-2xl mx-auto">
           <p className="text-sm sm:text-base md:text-lg font-medium text-slate-600 leading-relaxed">
-            Kutiit is a comprehensive database for Nandi words, phrases, riddles and proverbs. 
-            Search the resource below to explore the language.
+            Kutiit is a comprehensive database for Nandi words, phrases, riddles
+            and proverbs. Search the resource below to explore the language.
           </p>
         </div>
 
         {/* CORE ACTIONS */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-          <Button asChild className="bg-slate-900 hover:bg-black text-white px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-xl w-full sm:w-auto">
+          <Button
+            asChild
+            className="bg-slate-900 hover:bg-black text-white px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-xl w-full sm:w-auto"
+          >
             <Link href="/dictionary" className="flex items-center justify-center">
               <Search className="mr-2 h-4 w-4" /> Search Dictionary
             </Link>
           </Button>
 
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-          <Button asChild className="bg-slate-900 hover:bg-black text-white px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-xl w-full sm:w-auto">
-            <Link href="/dictionary" className="flex items-center justify-center">
-              <Search className="mr-2 h-4 w-4" /> Search Dictionary
-            </Link>
-          </Button>
-
-          <Button asChild variant="outline" className="border-2 border-emerald-200 hover:bg-emerald-50 text-emerald-700 px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest w-full sm:w-auto">
-            <Link href="/word-of-the-day" className="flex items-center justify-center">
+          <Button
+            asChild
+            variant="outline"
+            className="border-2 border-emerald-200 hover:bg-emerald-50 text-emerald-700 px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest w-full sm:w-auto"
+          >
+            <Link
+              href="/word-of-the-day"
+              className="flex items-center justify-center"
+            >
               <Sparkles className="mr-2 h-4 w-4" /> Word of the Day
             </Link>
           </Button>
 
           {mounted && (
             <SuggestWordModal>
-              <Button variant="outline" className="border-2 border-slate-200 hover:bg-slate-50 text-slate-900 px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest w-full sm:w-auto">
-                <Plus className="mr-2 h-4 w-4 text-emerald-600" /> Add Word
-              </Button>
-            </SuggestWordModal>
-          )}
-        </div>
-
-          {mounted && (
-            <SuggestWordModal>
-              <Button variant="outline" className="border-2 border-slate-200 hover:bg-slate-50 text-slate-900 px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest w-full sm:w-auto">
+              <Button
+                variant="outline"
+                className="border-2 border-slate-200 hover:bg-slate-50 text-slate-900 px-8 py-6 md:h-14 rounded-xl font-bold uppercase text-[10px] tracking-widest w-full sm:w-auto"
+              >
                 <Plus className="mr-2 h-4 w-4 text-emerald-600" /> Add Word
               </Button>
             </SuggestWordModal>
