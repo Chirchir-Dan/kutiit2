@@ -36,6 +36,19 @@ interface ClientCacheEntry {
 const clientSearchCache: Record<string, ClientCacheEntry> = {};
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
+// Scale font based on length so long words don't break mid-word
+function getWordSizeClass(word: string, isTraditional: boolean): string {
+  const len = word.length;
+  if (isTraditional) {
+    if (len > 30) return "text-base sm:text-lg md:text-xl";
+    if (len > 20) return "text-lg sm:text-xl md:text-2xl";
+    return "text-xl sm:text-2xl md:text-3xl";
+  }
+  if (len > 22) return "text-lg sm:text-xl md:text-2xl";
+  if (len > 16) return "text-xl sm:text-2xl md:text-3xl";
+  return "text-2xl sm:text-3xl md:text-4xl";
+}
+
 export default function DictionaryClient({ initialWords }: { initialWords: any[] }) {
   const [words] = useState<any[]>(initialWords);
   const [filteredWords, setFilteredWords] = useState<any[]>(initialWords);
@@ -188,15 +201,17 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
 
   const renderLingueeLine = (line: string) => {
     if (!line.includes("-")) {
-      return (
-        <p className="text-base text-slate-700 text-center">{line}</p>
-      );
+      return <p className="text-sm sm:text-base text-slate-700 text-center">{line}</p>;
     }
     const [nandi, english] = line.split("-");
     return (
       <div className="border-l-4 border-emerald-500 pl-4 py-1">
-        <p className="font-bold text-slate-900 text-base">{nandi.trim()}</p>
-        <p className="text-slate-500 italic text-sm mt-1">{english.trim()}</p>
+        <p className="font-bold text-slate-900 text-sm sm:text-base break-words">
+          {nandi.trim()}
+        </p>
+        <p className="text-slate-500 italic text-xs sm:text-sm mt-1 break-words">
+          {english.trim()}
+        </p>
       </div>
     );
   };
@@ -213,30 +228,30 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
     const translations =
       word.translations || (word.translation_en ? [word.translation_en] : []);
 
+    const displayWord = word.entry_name || word.translation_en;
+
     return (
       <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-right-4 duration-300 pb-12">
-        <div className="w-full bg-white rounded-[2rem] border-[3px] border-emerald-600 shadow-[0_20px_60px_-15px_rgba(5,150,105,0.35)] overflow-hidden">
+        <div className="w-full bg-white rounded-[1.5rem] sm:rounded-[2rem] border-[3px] border-emerald-600 shadow-[0_20px_60px_-15px_rgba(5,150,105,0.35)] overflow-hidden">
           {/* Header band */}
-          <div className="bg-emerald-600 px-6 py-5">
-            <div className="flex items-start gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0 mt-0.5">
+          <div className="bg-emerald-600 px-4 sm:px-6 py-4 sm:py-5">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0 mt-0.5">
                 {isTraditional ? (
-                  <Quote size={22} className="text-white" />
+                  <Quote size={20} className="text-white" />
                 ) : (
-                  <BookOpen size={22} className="text-white" />
+                  <BookOpen size={20} className="text-white" />
                 )}
               </div>
               <div className="min-w-0 flex-1">
                 <h1
-                  className={`font-black text-white leading-tight break-words ${
-                    isTraditional
-                      ? "text-xl md:text-2xl italic tracking-tight"
-                      : "text-2xl md:text-3xl uppercase tracking-tighter"
-                  }`}
+                  className={`font-black text-white leading-tight [overflow-wrap:normal] [word-break:keep-all] ${
+                    getWordSizeClass(displayWord, isTraditional)
+                  } ${isTraditional ? "italic tracking-tight" : "uppercase tracking-tighter"}`}
                 >
-                  {word.entry_name}
+                  {displayWord}
                 </h1>
-                <p className="text-xs text-emerald-50/90 font-bold uppercase tracking-[0.15em] mt-1">
+                <p className="text-[11px] sm:text-xs text-emerald-50/90 font-bold uppercase tracking-[0.15em] mt-1 truncate">
                   {getWordTypeLabel(word.word_type)}
                 </p>
               </div>
@@ -244,20 +259,20 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
           </div>
 
           {/* Body */}
-          <div className="p-6 md:p-8 space-y-6">
+          <div className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
             {/* Riddle Answer */}
             {isRiddle && word.answer && (
-              <div className="bg-emerald-50 rounded-2xl p-5 border-2 border-emerald-100 text-center">
+              <div className="bg-emerald-50 rounded-2xl p-4 sm:p-5 border-2 border-emerald-100 text-center">
                 <p className="text-xs font-black text-emerald-700 uppercase tracking-widest mb-2">
                   Walutiet
                 </p>
-                <p className="text-3xl md:text-4xl font-black text-emerald-900 uppercase tracking-tighter">
+                <p className="text-2xl sm:text-3xl md:text-4xl font-black text-emerald-900 uppercase tracking-tighter [overflow-wrap:normal]">
                   {word.answer}
                 </p>
               </div>
             )}
 
-            {/* Translations / Meaning */}
+            {/* Translations */}
             {!isRiddle && translations.length > 0 && (
               <div className="text-center space-y-2">
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400">
@@ -265,7 +280,10 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-2">
                   {translations.map((translation: string, index: number) => (
-                    <span key={index} className="text-xl md:text-2xl font-bold text-emerald-700">
+                    <span
+                      key={index}
+                      className="text-lg sm:text-xl md:text-2xl font-bold text-emerald-700 break-words"
+                    >
                       {translation}
                       {index < translations.length - 1 && (
                         <span className="text-slate-300 mx-2">•</span>
@@ -278,47 +296,47 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
 
             {/* Noun forms */}
             {hasNounForms && (
-              <div className="bg-slate-50 rounded-2xl p-5 border-2 border-slate-100">
+              <div className="bg-slate-50 rounded-2xl p-4 sm:p-5 border-2 border-slate-100">
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4 text-center">
                   Forms
                 </p>
-                <div className="grid grid-cols-2 gap-4 text-center">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 text-center">
                   {word.singular_indefinite && (
-                    <div>
-                      <span className="text-[11px] text-slate-400 uppercase block mb-1 font-bold">
+                    <div className="min-w-0">
+                      <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                         Singular (indef.)
                       </span>
-                      <span className="font-bold text-slate-900 text-lg">
+                      <span className="font-bold text-slate-900 text-sm sm:text-base break-words">
                         {word.singular_indefinite}
                       </span>
                     </div>
                   )}
                   {word.singular_definite && (
-                    <div>
-                      <span className="text-[11px] text-slate-400 uppercase block mb-1 font-bold">
+                    <div className="min-w-0">
+                      <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                         Singular (def.)
                       </span>
-                      <span className="font-bold text-emerald-700 text-lg">
+                      <span className="font-bold text-emerald-700 text-sm sm:text-base break-words">
                         {word.singular_definite}
                       </span>
                     </div>
                   )}
                   {word.plural_indefinite && (
-                    <div>
-                      <span className="text-[11px] text-slate-400 uppercase block mb-1 font-bold">
+                    <div className="min-w-0">
+                      <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                         Plural (indef.)
                       </span>
-                      <span className="font-bold text-slate-900 text-lg">
+                      <span className="font-bold text-slate-900 text-sm sm:text-base break-words">
                         {word.plural_indefinite}
                       </span>
                     </div>
                   )}
                   {word.plural_definite && (
-                    <div>
-                      <span className="text-[11px] text-slate-400 uppercase block mb-1 font-bold">
+                    <div className="min-w-0">
+                      <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                         Plural (def.)
                       </span>
-                      <span className="font-bold text-emerald-700 text-lg">
+                      <span className="font-bold text-emerald-700 text-sm sm:text-base break-words">
                         {word.plural_definite}
                       </span>
                     </div>
@@ -329,14 +347,14 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
 
             {/* Imperative */}
             {word.imperative && (
-              <div className="bg-amber-50 rounded-2xl p-5 border-2 border-amber-100 text-center">
+              <div className="bg-amber-50 rounded-2xl p-4 sm:p-5 border-2 border-amber-100 text-center">
                 <p className="text-xs font-black uppercase tracking-widest text-amber-700 mb-2">
                   Imperative
                 </p>
-                <p className="text-xl font-bold text-slate-900">
+                <p className="text-lg sm:text-xl font-bold text-slate-900 break-words">
                   {word.imperative}
                   {word.imperative_plural && (
-                    <span className="text-amber-700 ml-3">
+                    <span className="text-amber-700 ml-2 sm:ml-3">
                       / {word.imperative_plural}
                     </span>
                   )}
@@ -356,7 +374,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
                   .map((line: string, i: number) => (
                     <div
                       key={i}
-                      className="p-4 bg-slate-50 rounded-2xl border-2 border-slate-100"
+                      className="p-3 sm:p-4 bg-slate-50 rounded-xl border-l-4 border-emerald-500"
                     >
                       {renderLingueeLine(line)}
                     </div>
@@ -366,11 +384,11 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
 
             {/* Notes */}
             {word.notes && (
-              <div className="p-5 bg-slate-50 rounded-2xl border-2 border-slate-100">
+              <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border-2 border-slate-100">
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2 text-center flex items-center justify-center gap-2">
                   <MessageSquareQuote size={14} className="text-emerald-500" /> Notes & Context
                 </p>
-                <p className="text-sm text-slate-600 italic leading-relaxed whitespace-pre-wrap text-center">
+                <p className="text-xs sm:text-sm text-slate-600 italic leading-relaxed whitespace-pre-wrap text-center break-words">
                   {word.notes}
                 </p>
               </div>
@@ -525,7 +543,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
       </section>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[600px] w-[95vw] max-h-[85vh] rounded-[2rem] p-0 flex flex-col border-none bg-slate-50 overflow-hidden [&>button]:hidden">
+        <DialogContent className="sm:max-w-[600px] w-[95vw] max-h-[85vh] rounded-[1.5rem] sm:rounded-[2rem] p-0 flex flex-col border-none bg-slate-50 overflow-hidden [&>button]:hidden">
           <VisuallyHidden.Root>
             <DialogHeader>
               <DialogTitle>{selectedWord?.entry_name || "Word Details"}</DialogTitle>
@@ -542,7 +560,7 @@ export default function DictionaryClient({ initialWords }: { initialWords: any[]
               <X size={20} className="text-slate-500" />
             </Button>
           </div>
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4">
             {selectedWord && <WordDetailContent word={selectedWord} />}
           </div>
         </DialogContent>
