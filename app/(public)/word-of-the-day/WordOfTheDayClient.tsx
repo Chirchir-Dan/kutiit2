@@ -85,20 +85,22 @@ export default function WordOfTheDayClient({
       <div className="w-full bg-white rounded-[1.5rem] sm:rounded-[2rem] border-[3px] border-emerald-600 shadow-[0_20px_60px_-15px_rgba(5,150,105,0.35)] overflow-hidden">
         {/* Header band */}
         <div className="bg-emerald-600 px-4 sm:px-6 py-4 sm:py-5">
+          {/* Row 1: Icon + Word Type */}
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
               <Sparkles size={20} className="text-white" />
             </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-lg md:text-xl font-black uppercase tracking-tight text-white leading-tight">
-                Ng&apos;olyot ap Rani
-              </h1>
-              <p className="text-[11px] sm:text-xs text-emerald-50/90 font-bold uppercase tracking-[0.15em] mt-0.5 truncate">
-                {getWordTypeLabel(word.word_type)}
-              </p>
-            </div>
+            <p className="text-xs sm:text-sm font-black text-amber-200 uppercase tracking-[0.2em] truncate">
+              {getWordTypeLabel(word.word_type)}
+            </p>
           </div>
 
+          {/* Row 2: Card title */}
+          <h1 className="mt-3 text-base sm:text-lg md:text-xl font-black uppercase tracking-tight text-white leading-tight">
+            Ng&apos;olyot ap Rani
+          </h1>
+
+          {/* Date */}
           {dateString && (
             <div className="flex items-start gap-2 mt-4 pt-4 border-t border-white/20">
               <Calendar size={15} className="text-white/80 shrink-0 mt-0.5" />
@@ -111,7 +113,7 @@ export default function WordOfTheDayClient({
 
         {/* Body */}
         <div className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
-          {/* The word — never breaks mid-word */}
+          {/* The word */}
           <div className="text-center space-y-2">
             <h2
               className={`${getWordSizeClass(displayWord)} font-black text-slate-900 uppercase tracking-tighter leading-tight [overflow-wrap:normal] [word-break:keep-all]`}
@@ -142,7 +144,7 @@ export default function WordOfTheDayClient({
                     <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                       Singular (indef.)
                     </span>
-                    <span className="font-bold text-slate-900 text-sm sm:text-base break-words">
+                    <span className="font-bold text-slate-900 text-xs sm:text-sm md:text-base [overflow-wrap:normal] [word-break:keep-all]">
                       {word.singular_indefinite}
                     </span>
                   </div>
@@ -152,7 +154,7 @@ export default function WordOfTheDayClient({
                     <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                       Singular (def.)
                     </span>
-                    <span className="font-bold text-emerald-700 text-sm sm:text-base break-words">
+                    <span className="font-bold text-emerald-700 text-xs sm:text-sm md:text-base [overflow-wrap:normal] [word-break:keep-all]">
                       {word.singular_definite}
                     </span>
                   </div>
@@ -162,7 +164,7 @@ export default function WordOfTheDayClient({
                     <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                       Plural (indef.)
                     </span>
-                    <span className="font-bold text-slate-900 text-sm sm:text-base break-words">
+                    <span className="font-bold text-slate-900 text-xs sm:text-sm md:text-base [overflow-wrap:normal] [word-break:keep-all]">
                       {word.plural_indefinite}
                     </span>
                   </div>
@@ -172,7 +174,7 @@ export default function WordOfTheDayClient({
                     <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                       Plural (def.)
                     </span>
-                    <span className="font-bold text-emerald-700 text-sm sm:text-base break-words">
+                    <span className="font-bold text-emerald-700 text-xs sm:text-sm md:text-base [overflow-wrap:normal] [word-break:keep-all]">
                       {word.plural_definite}
                     </span>
                   </div>

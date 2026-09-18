@@ -36,7 +36,6 @@ interface ClientCacheEntry {
 const clientSearchCache: Record<string, ClientCacheEntry> = {};
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
-// Scale font based on length so long words don't break mid-word
 function getWordSizeClass(word: string, isTraditional: boolean): string {
   const len = word.length;
   if (isTraditional) {
@@ -273,32 +272,33 @@ export default function DictionaryClient({
               </button>
             )}
 
-            <div className="flex items-start gap-3 min-w-0 pr-10">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0 mt-0.5">
+            {/* Row 1: Icon + Word Type */}
+            <div className="flex items-center gap-3 min-w-0 pr-10">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
                 {isTraditional ? (
                   <Quote size={20} className="text-white" />
                 ) : (
                   <BookOpen size={20} className="text-white" />
                 )}
               </div>
-              <div className="min-w-0 flex-1">
-                <h1
-                  className={`font-black text-white leading-tight [overflow-wrap:normal] [word-break:keep-all] ${getWordSizeClass(
-                    displayWord,
-                    isTraditional
-                  )} ${
-                    isTraditional
-                      ? "italic tracking-tight"
-                      : "uppercase tracking-tighter"
-                  }`}
-                >
-                  {displayWord}
-                </h1>
-                <p className="text-[11px] sm:text-xs text-emerald-50/90 font-bold uppercase tracking-[0.15em] mt-1 truncate">
-                  {getWordTypeLabel(word.word_type)}
-                </p>
-              </div>
+              <p className="text-xs sm:text-sm font-black text-amber-200 uppercase tracking-[0.2em] truncate">
+                {getWordTypeLabel(word.word_type)}
+              </p>
             </div>
+
+            {/* Row 2: The Word */}
+            <h1
+              className={`mt-3 font-black text-white leading-tight [overflow-wrap:normal] [word-break:keep-all] ${getWordSizeClass(
+                displayWord,
+                isTraditional
+              )} ${
+                isTraditional
+                  ? "italic tracking-tight"
+                  : "uppercase tracking-tighter"
+              }`}
+            >
+              {displayWord}
+            </h1>
           </div>
 
           {/* Body */}
