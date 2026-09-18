@@ -1,80 +1,129 @@
-import { Badge } from "@/components/ui/badge";
+// components/shared/WordCard.tsx
+
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageSquareQuote, Lightbulb, Quote, MapPin } from "lucide-react";
+import {
+  MessageSquareQuote,
+  Lightbulb,
+  Quote,
+  BookOpen
+} from "lucide-react";
+import { getWordTypeLabel } from "@/lib/wordTypeLabels";
 
 export function WordCard({ word }: { word: any }) {
-  // 1. Keep the specialized checks for layout shifts
-  const isRiddle = word.word_type === 'riddle';
-  const isProverb = word.word_type === 'proverb' || word.word_type === 'saying';
-  
-  // 2. Check for "Noun-like" data instead of just the 'noun' string
-  const hasGrammarForms = word.singular_definite || word.plural_definite || word.imperative;
+  const isRiddle = word.word_type === "riddle";
+  const isProverb = word.word_type === "proverb" || word.word_type === "saying";
+
+  const hasGrammarForms =
+    word.singular_definite || word.plural_definite || word.imperative;
 
   return (
-    <Card className={`overflow-hidden hover:shadow-md transition-all border-slate-200 ${isProverb ? 'bg-emerald-50/30' : 'bg-white'}`}>
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1">7
-            <div className="flex items-center gap-2 mb-1">
-              {isProverb && <Quote size={14} className="text-emerald-600" />}
-              {isRiddle && <Lightbulb size={14} className="text-amber-500" />}
-              <h3 className={`font-bold text-slate-900 uppercase tracking-tight ${isProverb ? 'text-xl' : 'text-2xl'}`}>
+    <Card className="overflow-hidden border-[3px] border-emerald-600 rounded-[1.75rem] shadow-[0_15px_40px_-15px_rgba(5,150,105,0.3)] bg-white">
+      <CardContent className="p-0">
+        {/* Header band */}
+        <div className="bg-emerald-600 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0 mt-0.5">
+              {isProverb ? (
+                <Quote size={18} className="text-white" />
+              ) : isRiddle ? (
+                <Lightbulb size={18} className="text-white" />
+              ) : (
+                <BookOpen size={18} className="text-white" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3
+                className={`font-black text-white leading-tight break-words ${
+                  isProverb
+                    ? "text-base italic tracking-tight"
+                    : "text-lg uppercase tracking-tighter"
+                }`}
+              >
                 {word.entry_name}
               </h3>
+              <p className="text-[11px] text-emerald-50/90 font-bold uppercase tracking-[0.15em] mt-0.5">
+                {getWordTypeLabel(word.word_type)}
+              </p>
             </div>
-            <p className="text-emerald-600 font-semibold italic">{word.translation_en}</p>
           </div>
-          
-          {/* Universal Badge - Shows whatever type is in the DB (Adjective, etc) */}
-          
         </div>
 
-        {/* Dynamic Grammar Section (Appears for Nouns AND Verbs if data exists) */}
-        {hasGrammarForms && (
-          <div className="grid grid-cols-2 gap-3 text-sm border-t pt-4 border-slate-100 mb-2">
-            {word.singular_definite && (
-              <div className="space-y-1">
-                <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest">Singular</p>
-                <p className="text-slate-700 text-xs font-bold">{word.singular_definite}</p>
-              </div>
-            )}
-            {word.plural_definite && (
-              <div className="space-y-1">
-                <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest">Plural</p>
-                <p className="text-slate-700 text-xs font-bold">{word.plural_definite}</p>
-              </div>
-            )}
-            {word.imperative && (
-              <div className="col-span-2 space-y-1 mt-1">
-                <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest">Imperative (Command)</p>
-                <p className="text-slate-700 text-xs font-bold">{word.imperative}</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Riddle/Proverb Answer Logic */}
-        {(isRiddle || isProverb) && (word.answer || word.notes) && (
-          <div className={`mt-2 p-3 rounded-xl border ${isRiddle ? 'bg-amber-100/50 border-amber-200' : 'bg-emerald-100/30 border-emerald-200'}`}>
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
-              {isRiddle ? "Answer / Walutiet" : "Meaning / Explanation"}
+        {/* Body */}
+        <div className="p-5 space-y-4">
+          {/* Translation */}
+          {word.translation_en && (
+            <p className="text-lg font-bold text-emerald-700 text-center">
+              {word.translation_en}
             </p>
-            <p className="text-slate-800 font-bold">{word.answer || word.notes}</p>
-          </div>
-        )}
+          )}
 
-        {/* Standard Usage/Context - For all other word types */}
-        {!isRiddle && !isProverb && word.notes && (
-          <div className="mt-4 pt-4 border-t border-slate-100">
-            <div className="flex items-center gap-2 mb-1">
-              <MessageSquareQuote size={12} className="text-emerald-500" />
-              <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest">Usage & Context</p>
+          {/* Grammar forms */}
+          {hasGrammarForms && (
+            <div className="bg-slate-50 rounded-2xl p-4 border-2 border-slate-100">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 text-center">
+                Forms
+              </p>
+              <div className="grid grid-cols-2 gap-3 text-center">
+                {word.singular_definite && (
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase block mb-0.5 font-bold">
+                      Singular
+                    </span>
+                    <span className="font-bold text-slate-900 text-sm">
+                      {word.singular_definite}
+                    </span>
+                  </div>
+                )}
+                {word.plural_definite && (
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase block mb-0.5 font-bold">
+                      Plural
+                    </span>
+                    <span className="font-bold text-slate-900 text-sm">
+                      {word.plural_definite}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-            <p className="text-slate-600 text-xs italic leading-relaxed">
-              {word.notes}
-            </p>
-          </div>
-        )}
+          )}
+
+          {/* Imperative */}
+          {word.imperative && (
+            <div className="bg-amber-50 rounded-2xl p-4 border-2 border-amber-100 text-center">
+              <p className="text-[10px] font-black uppercase tracking-widest text-amber-700 mb-1">
+                Imperative
+              </p>
+              <p className="text-base font-bold text-slate-900">
+                {word.imperative}
+              </p>
+            </div>
+          )}
+
+          {/* Riddle answer or Proverb meaning */}
+          {(isRiddle || isProverb) && (word.answer || word.notes) && (
+            <div className="bg-emerald-50 rounded-2xl p-4 border-2 border-emerald-100">
+              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-1.5 text-center">
+                {isRiddle ? "Walutiet" : "Meaning"}
+              </p>
+              <p className="text-base font-bold text-slate-900 text-center">
+                {word.answer || word.notes}
+              </p>
+            </div>
+          )}
+
+          {/* Notes for regular words */}
+          {!isRiddle && !isProverb && word.notes && (
+            <div className="bg-slate-50 rounded-2xl p-4 border-2 border-slate-100">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 text-center flex items-center justify-center gap-1.5">
+                <MessageSquareQuote size={12} className="text-emerald-500" /> Notes
+              </p>
+              <p className="text-xs text-slate-600 italic leading-relaxed text-center">
+                {word.notes}
+              </p>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
