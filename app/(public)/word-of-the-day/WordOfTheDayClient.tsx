@@ -75,25 +75,25 @@ export default function WordOfTheDayClient({
       {/* Card */}
       <div className="w-full bg-white rounded-[2rem] border-[3px] border-emerald-600 shadow-[0_20px_60px_-15px_rgba(5,150,105,0.35)] overflow-hidden">
         {/* Header band */}
-        <div className="bg-emerald-600 px-5 py-4">
+        <div className="bg-emerald-600 px-6 py-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
-              <Sparkles size={20} className="text-white" />
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
+              <Sparkles size={22} className="text-white" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-base md:text-lg font-black uppercase tracking-tight text-white leading-tight">
+              <h1 className="text-lg md:text-xl font-black uppercase tracking-tight text-white leading-tight">
                 Ng&apos;olyot ap Rani
               </h1>
-              <p className="text-[10px] text-emerald-50/90 font-bold uppercase tracking-[0.2em] mt-0.5">
+              <p className="text-xs text-emerald-50/90 font-bold uppercase tracking-[0.15em] mt-0.5">
                 {getWordTypeLabel(word.word_type)}
               </p>
             </div>
           </div>
 
           {dateString && (
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/20">
-              <Calendar size={13} className="text-white/80 shrink-0" />
-              <span className="text-xs font-bold text-white tracking-wide">
+            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/20">
+              <Calendar size={15} className="text-white/80 shrink-0" />
+              <span className="text-sm font-bold text-white tracking-wide">
                 {dateString}
               </span>
             </div>
@@ -101,7 +101,7 @@ export default function WordOfTheDayClient({
         </div>
 
         {/* Body */}
-        <div className="p-5 md:p-7 space-y-5">
+        <div className="p-6 md:p-8 space-y-6">
           {/* The word */}
           <div className="text-center space-y-2">
             <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase tracking-tighter leading-none break-words">
@@ -121,47 +121,47 @@ export default function WordOfTheDayClient({
             word.singular_definite ||
             word.plural_indefinite ||
             word.plural_definite) && (
-            <div className="bg-slate-50 rounded-2xl p-4 border-2 border-slate-100">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 text-center">
+            <div className="bg-slate-50 rounded-2xl p-5 border-2 border-slate-100">
+              <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4 text-center">
                 Forms
               </p>
-              <div className="grid grid-cols-2 gap-3 text-center">
+              <div className="grid grid-cols-2 gap-4 text-center">
                 {word.singular_indefinite && (
                   <div>
-                    <span className="text-[9px] text-slate-400 uppercase block mb-0.5">
+                    <span className="text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                       Singular (indef.)
                     </span>
-                    <span className="font-bold text-slate-900 text-base">
+                    <span className="font-bold text-slate-900 text-lg">
                       {word.singular_indefinite}
                     </span>
                   </div>
                 )}
                 {word.singular_definite && (
                   <div>
-                    <span className="text-[9px] text-slate-400 uppercase block mb-0.5">
+                    <span className="text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                       Singular (def.)
                     </span>
-                    <span className="font-bold text-emerald-700 text-base">
+                    <span className="font-bold text-emerald-700 text-lg">
                       {word.singular_definite}
                     </span>
                   </div>
                 )}
                 {word.plural_indefinite && (
                   <div>
-                    <span className="text-[9px] text-slate-400 uppercase block mb-0.5">
+                    <span className="text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                       Plural (indef.)
                     </span>
-                    <span className="font-bold text-slate-900 text-base">
+                    <span className="font-bold text-slate-900 text-lg">
                       {word.plural_indefinite}
                     </span>
                   </div>
                 )}
                 {word.plural_definite && (
                   <div>
-                    <span className="text-[9px] text-slate-400 uppercase block mb-0.5">
+                    <span className="text-[11px] text-slate-400 uppercase block mb-1 font-bold">
                       Plural (def.)
                     </span>
-                    <span className="font-bold text-emerald-700 text-base">
+                    <span className="font-bold text-emerald-700 text-lg">
                       {word.plural_definite}
                     </span>
                   </div>
@@ -172,8 +172,8 @@ export default function WordOfTheDayClient({
 
           {/* Imperative */}
           {word.imperative && (
-            <div className="bg-amber-50 rounded-2xl p-4 border-2 border-amber-100 text-center">
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-700 mb-1.5">
+            <div className="bg-amber-50 rounded-2xl p-5 border-2 border-amber-100 text-center">
+              <p className="text-xs font-black uppercase tracking-widest text-amber-700 mb-2">
                 Imperative
               </p>
               <p className="text-xl font-bold text-slate-900">
@@ -189,8 +189,8 @@ export default function WordOfTheDayClient({
 
           {/* Examples */}
           {word.examples && (
-            <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">
+            <div className="space-y-3">
+              <p className="text-xs font-black uppercase tracking-widest text-slate-400 text-center">
                 Example
               </p>
               {word.examples
@@ -200,9 +200,9 @@ export default function WordOfTheDayClient({
                 .map((line, i) => (
                   <div
                     key={i}
-                    className="p-3 bg-slate-50 rounded-xl border-l-4 border-emerald-500"
+                    className="p-4 bg-slate-50 rounded-xl border-l-4 border-emerald-500"
                   >
-                    <p className="text-sm font-medium text-slate-700 whitespace-pre-wrap text-center">
+                    <p className="text-base font-medium text-slate-700 whitespace-pre-wrap text-center">
                       {line.trim()}
                     </p>
                   </div>
@@ -212,11 +212,11 @@ export default function WordOfTheDayClient({
 
           {/* Notes */}
           {word.notes && (
-            <div className="p-4 bg-slate-50 rounded-2xl border-2 border-slate-100">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 text-center">
+            <div className="p-5 bg-slate-50 rounded-2xl border-2 border-slate-100">
+              <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2 text-center">
                 Notes
               </p>
-              <p className="text-xs text-slate-600 italic leading-relaxed whitespace-pre-wrap text-center">
+              <p className="text-sm text-slate-600 italic leading-relaxed whitespace-pre-wrap text-center">
                 {word.notes}
               </p>
             </div>
@@ -224,14 +224,14 @@ export default function WordOfTheDayClient({
         </div>
 
         {/* Footer */}
-        <div className="bg-emerald-50 px-5 py-3 border-t-2 border-emerald-100 flex justify-center">
+        <div className="bg-emerald-50 px-6 py-4 border-t-2 border-emerald-100 flex justify-center">
           <Button
             asChild
             variant="outline"
-            className="border-2 border-emerald-600 bg-white hover:bg-emerald-50 h-10 px-6 rounded-xl font-bold uppercase text-[10px] tracking-widest text-emerald-700"
+            className="border-2 border-emerald-600 bg-white hover:bg-emerald-50 h-11 px-6 rounded-xl font-bold uppercase text-xs tracking-widest text-emerald-700"
           >
             <Link href="/dictionary" className="flex items-center justify-center">
-              <BookOpen size={14} className="mr-2" /> Browse Dictionary
+              <BookOpen size={15} className="mr-2" /> Browse Dictionary
             </Link>
           </Button>
         </div>
@@ -240,9 +240,9 @@ export default function WordOfTheDayClient({
       {/* Back link */}
       <Link
         href="/"
-        className="mt-6 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-emerald-600 transition-colors flex items-center gap-2"
+        className="mt-6 text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-emerald-600 transition-colors flex items-center gap-2"
       >
-        <ArrowLeft size={14} /> Back to Home
+        <ArrowLeft size={15} /> Back to Home
       </Link>
     </div>
   );
