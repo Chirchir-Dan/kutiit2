@@ -4,8 +4,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { BookOpen, ArrowLeft, Sparkles, Calendar } from "lucide-react";
+import { ArrowLeft, Sparkles, Calendar } from "lucide-react";
 import type { NandiCalendar } from "@/lib/nandiDate";
 import { getWordTypeLabel } from "@/lib/wordTypeLabels";
 
@@ -51,7 +50,6 @@ function formatNandiDate(date: Date, calendar: NandiCalendar): string {
   return parts.join(", ");
 }
 
-// Scale font based on length so long words don't break mid-word
 function getWordSizeClass(word: string): string {
   const len = word.length;
   if (len > 22) return "text-xl sm:text-2xl md:text-3xl";
@@ -83,32 +81,30 @@ export default function WordOfTheDayClient({
     <div className="flex-1 flex flex-col items-center px-3 sm:px-4 py-6 md:py-12 max-w-2xl mx-auto w-full">
       {/* Card */}
       <div className="w-full bg-white rounded-[1.5rem] sm:rounded-[2rem] border-[3px] border-emerald-600 shadow-[0_20px_60px_-15px_rgba(5,150,105,0.35)] overflow-hidden">
-        {/* Header band */}
-        <div className="bg-emerald-600 px-4 sm:px-6 py-4 sm:py-5">
-          {/* Row 1: Icon + Word Type */}
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
-              <Sparkles size={20} className="text-white" />
-            </div>
-            <p className="text-xs sm:text-sm font-black text-amber-200 uppercase tracking-[0.2em] truncate">
-              {getWordTypeLabel(word.word_type)}
-            </p>
-          </div>
-
-          {/* Row 2: Card title */}
-          <h1 className="mt-3 text-base sm:text-lg md:text-xl font-black uppercase tracking-tight text-white leading-tight">
+        {/* Header band — centered title + date */}
+        <div className="bg-emerald-600 px-4 sm:px-6 py-6 sm:py-7">
+          {/* Row 1: Title */}
+          <h1 className="text-center text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-white leading-tight">
             Ng&apos;olyot ap Rani
           </h1>
 
-          {/* Date */}
+          {/* Row 2: Date */}
           {dateString && (
-            <div className="flex items-start gap-2 mt-4 pt-4 border-t border-white/20">
-              <Calendar size={15} className="text-white/80 shrink-0 mt-0.5" />
-              <span className="text-xs sm:text-sm font-bold text-white tracking-wide">
+            <div className="flex items-center justify-center gap-2 mt-3">
+              <Calendar size={15} className="text-white/80 shrink-0" />
+              <span className="text-sm sm:text-base font-bold text-white tracking-wide">
                 {dateString}
               </span>
             </div>
           )}
+
+          {/* Row 3: Icon + Word type */}
+          <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-white/20">
+            <Sparkles size={14} className="text-amber-200 shrink-0" />
+            <p className="text-xs sm:text-sm font-black text-amber-200 uppercase tracking-[0.2em] truncate">
+              {getWordTypeLabel(word.word_type)}
+            </p>
+          </div>
         </div>
 
         {/* Body */}
@@ -116,7 +112,9 @@ export default function WordOfTheDayClient({
           {/* The word */}
           <div className="text-center space-y-2">
             <h2
-              className={`${getWordSizeClass(displayWord)} font-black text-slate-900 uppercase tracking-tighter leading-tight [overflow-wrap:normal] [word-break:keep-all]`}
+              className={`${getWordSizeClass(
+                displayWord
+              )} font-black text-slate-900 uppercase tracking-tighter leading-tight [overflow-wrap:normal] [word-break:keep-all]`}
             >
               {displayWord}
             </h2>
@@ -234,19 +232,6 @@ export default function WordOfTheDayClient({
               </p>
             </div>
           )}
-        </div>
-
-        {/* Footer */}
-        <div className="bg-emerald-50 px-4 sm:px-6 py-4 border-t-2 border-emerald-100 flex justify-center">
-          <Button
-            asChild
-            variant="outline"
-            className="border-2 border-emerald-600 bg-white hover:bg-emerald-50 h-11 px-5 sm:px-6 rounded-xl font-bold uppercase text-[11px] sm:text-xs tracking-widest text-emerald-700"
-          >
-            <Link href="/dictionary" className="flex items-center justify-center">
-              <BookOpen size={15} className="mr-2" /> Browse Dictionary
-            </Link>
-          </Button>
         </div>
       </div>
 
