@@ -1,3 +1,5 @@
+// hooks/useAdminWords.ts
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -6,15 +8,32 @@ import { supabase } from "@/lib/supabase";
 export function useAdminWords() {
   const [words, setWords] = useState<any[]>([]);
   const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [view, setView] = useState<"words" | "suggestions">("words");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
+  // Fetch only the count — no rows returned
+  const fetchCount = useCallback(async () => {
+    const { count, error } = await supabase
+      .from("words")
+      .select("*", { count: "exact", head: true });
+
+    if (error) {
+      console.error("Count fetch error:", error);
+      return;
+    }
+
+    if (count !== null) setTotalCount(count);
+  }, []);
+
+  // Fetch words for the list (limited, paginated later if needed)
   const fetchWords = useCallback(async () => {
     const { data } = await supabase
       .from("words")
       .select("*")
-      .order("entry_name", { ascending: true });
+      .order("entry_name", { ascending: true })
+      .limit(500);
     if (data) setWords(data);
   }, []);
 
@@ -54,7 +73,8 @@ export function useAdminWords() {
   useEffect(() => {
     fetchWords();
     fetchSuggestions();
-  }, [fetchWords, fetchSuggestions]);
+    fetchCount();
+  }, [fetchWords, fetchSuggestions, fetchCount]);
 
   useEffect(() => {
     if (view === "words") {
@@ -80,12 +100,14 @@ export function useAdminWords() {
   return {
     words,
     suggestions,
+    totalCount,
     view,
     setView,
     searchQuery,
     setSearchQuery,
     isSearching,
     fetchWords,
-    fetchSuggestions
+    fetchSuggestions,
+    fetchCount
   };
 }

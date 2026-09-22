@@ -20,6 +20,7 @@ interface AdminSidebarProps {
   isSearching: boolean;
   words: any[];
   suggestions: any[];
+  totalCount: number;
   currentList: any[];
   selectedWord: any;
   onSelect: (word: any) => void;
@@ -39,6 +40,7 @@ export default function AdminSidebar({
   isSearching,
   words,
   suggestions,
+  totalCount,
   currentList,
   selectedWord,
   onSelect,
@@ -115,7 +117,7 @@ export default function AdminSidebar({
                   : "bg-slate-200 text-slate-500"
               }`}
             >
-              {words.length}
+              {totalCount}
             </span>
           </button>
           <button

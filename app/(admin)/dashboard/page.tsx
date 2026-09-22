@@ -18,6 +18,7 @@ export default function AdminDashboard() {
   const {
     words,
     suggestions,
+    totalCount,
     view,
     setView,
     searchQuery,
@@ -106,6 +107,7 @@ export default function AdminDashboard() {
         isSearching={isSearching}
         words={words}
         suggestions={suggestions}
+        totalCount={totalCount}
         currentList={currentList}
         selectedWord={selectedWord}
         onSelect={handleSelect}

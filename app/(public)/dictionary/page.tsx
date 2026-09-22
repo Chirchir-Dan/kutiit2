@@ -38,7 +38,8 @@ export default async function DictionaryPage() {
     .from("words")
     .select("*")
     .eq("is_verified", true)
-    .order("entry_name", { ascending: true });
+    .order("entry_name", { ascending: true })
+    .limit(100);
 
   return <DictionaryClient initialWords={data || []} />;
 }
