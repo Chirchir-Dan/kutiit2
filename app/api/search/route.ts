@@ -4,9 +4,8 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { searchCache } from "@/lib/searchCache";
 import { checkRateLimit } from "@/lib/rateLimit";
-import Fuse from "fuse.js";
 
-// Only return these fields in list results — no notes, no examples
+// Only return these fields in list results
 const LIST_FIELDS =
   "id, entry_name, translation_en, translations, answer, word_type, singular_indefinite, singular_definite, plural_indefinite, plural_definite, imperative, imperative_plural";
 
@@ -28,19 +27,18 @@ export async function GET(request: Request) {
         },
         {
           status: 429,
-          headers: {
-            "Retry-After": String(Math.ceil(resetIn / 1000))
-          }
+          headers: { "Retry-After": String(Math.ceil(resetIn / 1000)) }
         }
       );
     }
 
     // ── 2. Parse & cap parameters ──
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get("q")?.toLowerCase().trim();
+    const rawQuery = searchParams.get("q")?.trim() || "";
+    const query = rawQuery.toLowerCase();
     const type = searchParams.get("type") || "all";
     const requestedLimit = parseInt(searchParams.get("limit") || "50");
-    const limit = Math.min(Math.max(requestedLimit, 1), 50); // cap at 50
+    const limit = Math.min(Math.max(requestedLimit, 1), 50);
 
     const cacheKey = `${query}|${type}|${limit}`;
     const cachedResult = searchCache.get(cacheKey);
@@ -54,28 +52,22 @@ export async function GET(request: Request) {
           type,
           cached: true
         },
-        {
-          headers: {
-            "X-RateLimit-Remaining": String(remaining)
-          }
-        }
+        { headers: { "X-RateLimit-Remaining": String(remaining) } }
       );
     }
 
     console.log(`🔄 Search: "${query}" type="${type}" limit=${limit}`);
 
-    // ── 3. If NO query, paginate directly from Supabase ──
+    // ── 3. No query — paginate directly ──
     if (!query) {
-      let supabaseQuery = supabase
+      let q = supabase
         .from("words")
         .select(LIST_FIELDS)
         .eq("is_verified", true);
 
-      if (type !== "all") {
-        supabaseQuery = supabaseQuery.eq("word_type", type);
-      }
+      if (type !== "all") q = q.eq("word_type", type);
 
-      const { data, error } = await supabaseQuery
+      const { data, error } = await q
         .order("entry_name", { ascending: true })
         .limit(limit);
 
@@ -98,94 +90,59 @@ export async function GET(request: Request) {
           type,
           cached: false
         },
-        {
-          headers: {
-            "X-RateLimit-Remaining": String(remaining)
-          }
-        }
+        { headers: { "X-RateLimit-Remaining": String(remaining) } }
       );
     }
 
-    // ── 4. If query exists, narrow via ILIKE on server first ──
-    //    This avoids fetching the entire dictionary for every search.
-    let supabaseQuery = supabase
-      .from("words")
-      .select(LIST_FIELDS)
-      .eq("is_verified", true)
-      .or(
-        `entry_name.ilike.%${query}%,translation_en.ilike.%${query}%,answer.ilike.%${query}%`
-      );
-
-    if (type !== "all") {
-      supabaseQuery = supabaseQuery.eq("word_type", type);
-    }
-
-    const { data, error } = await supabaseQuery
-      .order("entry_name", { ascending: true })
-      .limit(200); // hard cap on server-side pre-filter
+    // ── 4. Fuzzy search via pg_trgm RPC ──
+    const { data, error } = await supabase.rpc("search_words", {
+      search_term: query,
+      word_type_filter: type,
+      result_limit: limit
+    });
 
     if (error) {
-      console.error("Supabase error:", error);
+      console.error("Search RPC error:", error);
       return NextResponse.json(
-        { error: "Failed to search words" },
+        { error: "Search failed" },
         { status: 500 }
       );
     }
 
-    if (!data || data.length === 0) {
-      return NextResponse.json(
-        {
-          results: [],
-          count: 0,
-          query,
-          type,
-          cached: false
-        },
-        {
-          headers: {
-            "X-RateLimit-Remaining": String(remaining)
-          }
-        }
-      );
+    // Attach translations if not returned by the RPC (they're not)
+    // The RPC returns enough for the sidebar list; detail view fetches full row on demand.
+    const results = data || [];
+
+    // Enrich with translations field from the full row — one extra query per result
+    // is acceptable, but let's do it in one batch
+    let enrichedResults: any[] = results;
+    if (results.length > 0) {
+      const ids = results.map((r: any) => r.id);
+      const { data: fullRows } = await supabase
+        .from("words")
+        .select("id, translations, notes, examples")
+        .in("id", ids);
+
+      if (fullRows) {
+        const map = new Map(fullRows.map((r: any) => [r.id, r]));
+        enrichedResults = results.map((r: any) => ({
+          ...r,
+          ...(map.get(r.id) || {})
+        }));
+      }
     }
 
-    // ── 5. Fuzzy search on the narrowed set ──
-    const fuse = new Fuse(data, {
-      keys: [
-        "entry_name",
-        "translation_en",
-        "translations",
-        "answer",
-        "singular_indefinite",
-        "singular_definite",
-        "plural_indefinite",
-        "plural_definite"
-      ],
-      threshold: 0.37,
-      distance: 100,
-      includeScore: true,
-      shouldSort: true
-    });
-
-    const fuseResults = fuse.search(query);
-    const filteredData = fuseResults.slice(0, limit).map((r) => r.item);
-
-    searchCache.set(cacheKey, filteredData, filteredData.length);
+    searchCache.set(cacheKey, enrichedResults, enrichedResults.length);
 
     return NextResponse.json(
       {
-        results: filteredData,
-        count: filteredData.length,
-        totalMatches: fuseResults.length,
+        results: enrichedResults,
+        count: enrichedResults.length,
         query,
         type,
         cached: false
       },
-      {
-        headers: {
-          "X-RateLimit-Remaining": String(remaining)
-        }
-      }
+      { headers: { "X-RateLimit-Remaining": String(remaining) } }
     );
   } catch (error) {
     console.error("Search API error:", error);

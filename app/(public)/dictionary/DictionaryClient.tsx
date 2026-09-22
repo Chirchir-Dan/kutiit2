@@ -177,18 +177,14 @@ export default function DictionaryClient({
         return;
       }
 
-      if (query.length <= 3) {
-        performClientSearch(query);
-        return;
-      }
-
+      // Always search via API for fuzzy matching
       const timer = setTimeout(() => {
         performAPISearch(query);
-      }, 500);
+      }, 300);
 
       return () => clearTimeout(timer);
     },
-    [performClientSearch, performAPISearch, words, selectedType]
+    [performAPISearch, words, selectedType]
   );
 
   useEffect(() => {
