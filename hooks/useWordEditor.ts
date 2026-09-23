@@ -38,7 +38,7 @@ const COLUMN_WHITELIST = [
 ] as const;
 
 function pickColumns(obj: any): any {
-  const result:  any = {};
+  const result: any = {};
   for (const key of COLUMN_WHITELIST) {
     if (key in obj) {
       result[key] = obj[key];
@@ -125,7 +125,41 @@ export function useWordEditor({
     ) => {
       setEditForm((prev: any) => {
         if (!prev) return prev;
-        return { ...prev, [e.target.name]: e.target.value };
+
+        const updated = { ...prev, [e.target.name]: e.target.value };
+
+        // When word_type changes, clear fields that no longer apply
+        if (e.target.name === "word_type") {
+          const newType = e.target.value;
+
+          // Verb-only fields
+          if (newType !== "verb") {
+            updated.imperative = "";
+            updated.imperative_plural = "";
+            updated.is_irregular = false;
+            updated.present_1sg = "";
+            updated.present_2sg = "";
+            updated.present_3sg = "";
+            updated.present_1pl = "";
+            updated.present_2pl = "";
+            updated.present_3pl = "";
+          }
+
+          // Noun-only fields
+          if (newType !== "noun") {
+            updated.singular_indefinite = "";
+            updated.singular_definite = "";
+            updated.plural_indefinite = "";
+            updated.plural_definite = "";
+          }
+
+          // Riddle-only field
+          if (newType !== "riddle") {
+            updated.answer = "";
+          }
+        }
+
+        return updated;
       });
     },
     []
