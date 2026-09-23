@@ -10,6 +10,43 @@ interface UseWordEditorOptions {
   onAfterApprove: () => Promise<void>;
 }
 
+// Whitelist of actual columns in the words table.
+// Only these fields are ever sent to Supabase on save/insert.
+// Any computed field (similarity_score, similarity, etc.) is silently dropped.
+const COLUMN_WHITELIST = [
+  "entry_name",
+  "translation_en",
+  "translations",
+  "answer",
+  "word_type",
+  "singular_indefinite",
+  "singular_definite",
+  "plural_indefinite",
+  "plural_definite",
+  "imperative",
+  "imperative_plural",
+  "examples",
+  "notes",
+  "is_verified",
+  "is_irregular",
+  "present_1sg",
+  "present_2sg",
+  "present_3sg",
+  "present_1pl",
+  "present_2pl",
+  "present_3pl"
+] as const;
+
+function pickColumns(obj: any): any {
+  const result:  any = {};
+  for (const key of COLUMN_WHITELIST) {
+    if (key in obj) {
+      result[key] = obj[key];
+    }
+  }
+  return result;
+}
+
 export function useWordEditor({
   onAfterSave,
   onAfterApprove
@@ -196,11 +233,14 @@ export function useWordEditor({
     setError(null);
 
     try {
-      const { translation_input, ...cleanData } = editForm;
+      // Pick only real DB columns — drops similarity_score, translation_input,
+      // and any other transient field the search API may have added.
+      const columnData = pickColumns(editForm);
+
       const saveData = {
-        ...cleanData,
-        translation_en: cleanData.translations?.[0] || "",
-        translations: cleanData.translations || []
+        ...columnData,
+        translation_en: columnData.translations?.[0] || "",
+        translations: columnData.translations || []
       };
 
       const { error: supabaseError } = editForm.id
@@ -236,13 +276,13 @@ export function useWordEditor({
     setError(null);
 
     try {
-      const { id, created_at, user_email, translation_input, ...cleanData } =
-        editForm;
+      // Pick only real columns before insert
+      const columnData = pickColumns(editForm);
 
       const insertData = {
-        ...cleanData,
-        translation_en: cleanData.translations?.[0] || "",
-        translations: cleanData.translations || [],
+        ...columnData,
+        translation_en: columnData.translations?.[0] || "",
+        translations: columnData.translations || [],
         is_verified: true
       };
 
@@ -259,13 +299,16 @@ export function useWordEditor({
         text: buildEmbeddingText(insertData)
       });
 
-      const { error: deleteError } = await supabase
-        .from("suggestions")
-        .delete()
-        .eq("id", id);
+      const suggestionId = editForm.id;
+      if (suggestionId) {
+        const { error: deleteError } = await supabase
+          .from("suggestions")
+          .delete()
+          .eq("id", suggestionId);
 
-      if (deleteError) {
-        console.error("Failed to delete suggestion:", deleteError);
+        if (deleteError) {
+          console.error("Failed to delete suggestion:", deleteError);
+        }
       }
 
       await clearSearchCache();
