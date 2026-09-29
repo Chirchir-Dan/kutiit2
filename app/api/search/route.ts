@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { searchCache } from "@/lib/searchCache";
 import { checkRateLimit } from "@/lib/rateLimit";
 
-// Only return these fields in list results
 const LIST_FIELDS =
   "id, entry_name, translation_en, translations, answer, word_type, singular_indefinite, singular_definite, plural_indefinite, plural_definite, imperative, imperative_plural";
 
@@ -39,8 +38,9 @@ export async function GET(request: Request) {
     const type = searchParams.get("type") || "all";
     const requestedLimit = parseInt(searchParams.get("limit") || "50");
     const limit = Math.min(Math.max(requestedLimit, 1), 50);
+    const offset = Math.max(parseInt(searchParams.get("offset") || "0"), 0);
 
-    const cacheKey = `${query}|${type}|${limit}`;
+    const cacheKey = `${query}|${type}|${limit}|${offset}`;
     const cachedResult = searchCache.get(cacheKey);
 
     if (cachedResult) {
@@ -50,13 +50,12 @@ export async function GET(request: Request) {
           count: cachedResult.count,
           query,
           type,
+          offset,
           cached: true
         },
         { headers: { "X-RateLimit-Remaining": String(remaining) } }
       );
     }
-
-    console.log(`🔄 Search: "${query}" type="${type}" limit=${limit}`);
 
     // ── 3. No query — paginate directly ──
     if (!query) {
@@ -69,7 +68,7 @@ export async function GET(request: Request) {
 
       const { data, error } = await q
         .order("entry_name", { ascending: true })
-        .limit(limit);
+        .range(offset, offset + limit - 1);
 
       if (error) {
         console.error("Supabase error:", error);
@@ -88,6 +87,7 @@ export async function GET(request: Request) {
           count: results.length,
           query,
           type,
+          offset,
           cached: false
         },
         { headers: { "X-RateLimit-Remaining": String(remaining) } }
@@ -98,7 +98,8 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.rpc("search_words", {
       search_term: query,
       word_type_filter: type,
-      result_limit: limit
+      result_limit: limit,
+      result_offset: offset
     });
 
     if (error) {
@@ -109,12 +110,9 @@ export async function GET(request: Request) {
       );
     }
 
-    // Attach translations if not returned by the RPC (they're not)
-    // The RPC returns enough for the sidebar list; detail view fetches full row on demand.
     const results = data || [];
 
-    // Enrich with translations field from the full row — one extra query per result
-    // is acceptable, but let's do it in one batch
+    // Enrich with translations/notes/examples for list display
     let enrichedResults: any[] = results;
     if (results.length > 0) {
       const ids = results.map((r: any) => r.id);
@@ -140,6 +138,7 @@ export async function GET(request: Request) {
         count: enrichedResults.length,
         query,
         type,
+        offset,
         cached: false
       },
       { headers: { "X-RateLimit-Remaining": String(remaining) } }

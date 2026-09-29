@@ -12,7 +12,8 @@ import {
   Frown,
   Languages,
   Plus,
-  BookOpen
+  BookOpen,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,16 +27,10 @@ import {
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import SuggestWordModal from "@/components/shared/SuggestWordModal";
 import { getWordTypeLabel } from "@/lib/wordTypeLabels";
-import Fuse from "fuse.js";
 
-interface ClientCacheEntry {
-  results: any[];
-  timestamp: number;
-}
+const PAGE_SIZE = 50;
 
-const clientSearchCache: Record<string, ClientCacheEntry> = {};
-const CACHE_DURATION = 24 * 60 * 60 * 1000;
-
+// Scale font based on length so long words don't break mid-word
 function getWordSizeClass(word: string, isTraditional: boolean): string {
   const len = word.length;
   if (isTraditional) {
@@ -53,7 +48,6 @@ export default function DictionaryClient({
 }: {
   initialWords: any[];
 }) {
-  const [words] = useState<any[]>(initialWords);
   const [filteredWords, setFilteredWords] = useState<any[]>(initialWords);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedWord, setSelectedWord] = useState<any>(
@@ -65,137 +59,159 @@ export default function DictionaryClient({
   const [selectedType, setSelectedType] = useState<string>("all");
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
-  const wordTypes = [
-    "all",
-    ...new Set(words.map((w) => w.word_type).filter(Boolean))
-  ];
+  // Pagination
+  const [offset, setOffset] = useState(initialWords.length);
+  const [hasMore, setHasMore] = useState(initialWords.length === 100);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const fuse = useMemo(() => {
-    return new Fuse(words, {
-      keys: [
-        "entry_name",
-        "translation_en",
-        "translations",
-        "answer",
-        "notes",
-        "examples"
-      ],
-      threshold: 0.37,
-      distance: 100
-    });
-  }, [words]);
+  // Known word types for filter — we fetch once from server
+  // For simplicity, derive from loaded words + a fixed list
+  const wordTypes = useMemo(() => {
+    const types = new Set(filteredWords.map((w) => w.word_type).filter(Boolean));
+    return ["all", ...Array.from(types)];
+  }, [filteredWords]);
 
-  const performClientSearch = useCallback(
-    (query: string) => {
-      if (!query.trim()) {
-        if (selectedType === "all") {
-          setFilteredWords(words);
-        } else {
-          setFilteredWords(words.filter((w) => w.word_type === selectedType));
-        }
-        return;
+  const [isSearchingAPI, setIsSearchingAPI] = useState(false);
+
+  // ── Load more (pagination) ──
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+
+    try {
+      const params = new URLSearchParams({
+        type: selectedType,
+        limit: String(PAGE_SIZE),
+        offset: String(offset)
+      });
+
+      const res = await fetch(`/api/search?${params.toString()}`);
+      const data = await res.json();
+
+      if (data.results && data.results.length > 0) {
+        setFilteredWords((prev) => {
+          const existingIds = new Set(prev.map((w) => w.id));
+          const newOnes = data.results.filter(
+            (w: any) => !existingIds.has(w.id)
+          );
+          return [...prev, ...newOnes];
+        });
+        setOffset((prev) => prev + data.results.length);
+        if (data.results.length < PAGE_SIZE) setHasMore(false);
+      } else {
+        setHasMore(false);
       }
+    } catch (err) {
+      console.error("Load more error:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, offset, selectedType]);
 
-      setIsSearching(true);
+  // ── Reset pagination when type changes ──
+  useEffect(() => {
+    setOffset(0);
+    setHasMore(true);
+    setFilteredWords([]);
+  }, [selectedType]);
 
-      const cacheKey = `client|${query}|${selectedType}`;
-      const cached = clientSearchCache[cacheKey];
+  // ── Fetch initial batch when type changes ──
+  useEffect(() => {
+    let cancelled = false;
 
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        setFilteredWords(cached.results);
-        setIsSearching(false);
-        return;
-      }
-
-      const results = fuse.search(query).map((result) => result.item);
-
-      const filtered =
-        selectedType === "all"
-          ? results
-          : results.filter((w) => w.word_type === selectedType);
-
-      clientSearchCache[cacheKey] = {
-        results: filtered,
-        timestamp: Date.now()
-      };
-
-      setFilteredWords(filtered);
-      setIsSearching(false);
-    },
-    [words, fuse, selectedType]
-  );
-
-  const performAPISearch = useCallback(
-    async (query: string) => {
-      const cacheKey = `api|${query}|${selectedType}`;
-
-      const cached = clientSearchCache[cacheKey];
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        setFilteredWords(cached.results);
-        setIsSearching(false);
-        return;
-      }
-
-      setIsSearching(true);
+    const fetchInitial = async () => {
+      setIsSearchingAPI(true);
       try {
         const params = new URLSearchParams({
-          q: query.trim(),
           type: selectedType,
-          limit: "100"
+          limit: String(PAGE_SIZE),
+          offset: "0"
         });
-
-        const response = await fetch(`/api/search?${params.toString()}`);
-        const data = await response.json();
+        const res = await fetch(`/api/search?${params.toString()}`);
+        const data = await res.json();
+        if (cancelled) return;
 
         if (data.results) {
-          clientSearchCache[cacheKey] = {
-            results: data.results,
-            timestamp: Date.now()
-          };
           setFilteredWords(data.results);
-        } else {
-          setFilteredWords([]);
+          setSelectedWord(data.results[0] || null);
+          setOffset(data.results.length);
+          setHasMore(data.results.length === PAGE_SIZE);
         }
-      } catch (error) {
-        console.error("Search error:", error);
-        performClientSearch(query);
+      } catch (err) {
+        console.error("Initial fetch error:", err);
       } finally {
-        setIsSearching(false);
+        if (!cancelled) setIsSearchingAPI(false);
       }
-    },
-    [selectedType, performClientSearch]
-  );
+    };
 
+    fetchInitial();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedType]);
+
+  // ── Search via API (fuzzy) ──
   const performSearch = useCallback(
     (query: string) => {
       if (!query.trim()) {
-        if (selectedType === "all") {
-          setFilteredWords(words);
-        } else {
-          setFilteredWords(words.filter((w) => w.word_type === selectedType));
-        }
+        // Reset to first page
+        setOffset(0);
+        setHasMore(true);
+        setIsSearchingAPI(true);
+        const params = new URLSearchParams({
+          type: selectedType,
+          limit: String(PAGE_SIZE),
+          offset: "0"
+        });
+        fetch(`/api/search?${params.toString()}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.results) {
+              setFilteredWords(data.results);
+              setSelectedWord(data.results[0] || null);
+              setOffset(data.results.length);
+              setHasMore(data.results.length === PAGE_SIZE);
+            }
+          })
+          .catch((err) => console.error("Search error:", err))
+          .finally(() => setIsSearchingAPI(false));
         return;
       }
 
-      // Always search via API for fuzzy matching
-      const timer = setTimeout(() => {
-        performAPISearch(query);
-      }, 300);
+      setIsSearching(true);
+      const timer = setTimeout(async () => {
+        try {
+          const params = new URLSearchParams({
+            q: query.trim(),
+            type: selectedType,
+            limit: String(PAGE_SIZE),
+            offset: "0"
+          });
+          const res = await fetch(`/api/search?${params.toString()}`);
+          const data = await res.json();
+          if (data.results) {
+            setFilteredWords(data.results);
+            // No pagination during search
+            setHasMore(false);
+          }
+        } catch (err) {
+          console.error("Search error:", err);
+        } finally {
+          setIsSearching(false);
+        }
+      }, 400);
 
       return () => clearTimeout(timer);
     },
-    [performAPISearch, words, selectedType]
+    [selectedType]
   );
 
   useEffect(() => {
     const cleanup = performSearch(searchQuery);
     return cleanup;
-  }, [searchQuery, selectedType, performSearch]);
+  }, [searchQuery, performSearch]);
 
   const clearSearchCache = useCallback(async () => {
-    Object.keys(clientSearchCache).forEach(
-      (key) => delete clientSearchCache[key]
-    );
     try {
       await fetch("/api/search/clear-cache", { method: "POST" });
     } catch (error) {
@@ -205,11 +221,6 @@ export default function DictionaryClient({
 
   const clearSearch = () => {
     setSearchQuery("");
-    if (selectedType === "all") {
-      setFilteredWords(words);
-    } else {
-      setFilteredWords(words.filter((w) => w.word_type === selectedType));
-    }
   };
 
   const renderLingueeLine = (line: string) => {
@@ -268,7 +279,6 @@ export default function DictionaryClient({
               </button>
             )}
 
-            {/* Row 1: Icon + Word Type */}
             <div className="flex items-center gap-3 min-w-0 pr-10">
               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
                 {isTraditional ? (
@@ -282,7 +292,6 @@ export default function DictionaryClient({
               </p>
             </div>
 
-            {/* Row 2: The Word */}
             <h1
               className={`mt-3 font-black text-white leading-tight [overflow-wrap:normal] [word-break:keep-all] ${getWordSizeClass(
                 displayWord,
@@ -299,7 +308,6 @@ export default function DictionaryClient({
 
           {/* Body */}
           <div className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
-            {/* Riddle Answer */}
             {isRiddle && word.answer && (
               <div className="bg-emerald-50 rounded-2xl p-4 sm:p-5 border-2 border-emerald-100 text-center">
                 <p className="text-xs font-black text-emerald-700 uppercase tracking-widest mb-2">
@@ -311,7 +319,6 @@ export default function DictionaryClient({
               </div>
             )}
 
-            {/* Translations */}
             {!isRiddle && translations.length > 0 && (
               <div className="text-center space-y-2">
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400">
@@ -333,7 +340,6 @@ export default function DictionaryClient({
               </div>
             )}
 
-            {/* Noun forms */}
             {hasNounForms && (
               <div className="bg-slate-50 rounded-2xl p-4 sm:p-5 border-2 border-slate-100">
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4 text-center">
@@ -384,7 +390,6 @@ export default function DictionaryClient({
               </div>
             )}
 
-            {/* Imperative */}
             {word.imperative && (
               <div className="bg-amber-50 rounded-2xl p-4 sm:p-5 border-2 border-amber-100 text-center">
                 <p className="text-xs font-black uppercase tracking-widest text-amber-700 mb-2">
@@ -401,7 +406,6 @@ export default function DictionaryClient({
               </div>
             )}
 
-            {/* Examples */}
             {word.examples && (
               <div className="space-y-3">
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400 text-center flex items-center justify-center gap-2">
@@ -421,7 +425,6 @@ export default function DictionaryClient({
               </div>
             )}
 
-            {/* Notes */}
             {word.notes && (
               <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border-2 border-slate-100">
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2 text-center flex items-center justify-center gap-2">
@@ -510,46 +513,80 @@ export default function DictionaryClient({
         </div>
 
         <div className="flex-1 overflow-y-auto bg-white custom-scrollbar">
-          {filteredWords.length > 0 ? (
-            filteredWords.map((word) => {
-              const sidebarTranslations =
-                word.translations ||
-                (word.translation_en ? [word.translation_en] : []);
+          {isSearchingAPI ? (
+            <div className="p-12 text-center">
+              <Loader2 className="animate-spin text-emerald-500 mx-auto" size={24} />
+            </div>
+          ) : filteredWords.length > 0 ? (
+            <>
+              {filteredWords.map((word) => {
+                const sidebarTranslations =
+                  word.translations ||
+                  (word.translation_en ? [word.translation_en] : []);
 
-              return (
-                <button
-                  key={word.id}
-                  onClick={() => {
-                    setSelectedWord(word);
-                    if (window.innerWidth < 768) setIsModalOpen(true);
-                  }}
-                  className={`w-full text-left p-5 border-b transition-all flex justify-between items-center group ${
-                    selectedWord?.id === word.id
-                      ? "bg-white border-l-4 border-l-emerald-600 shadow-sm"
-                      : "hover:bg-slate-50 border-l-4 border-l-transparent"
-                  }`}
-                >
-                  <div className="min-w-0 pr-2">
-                    <div className="font-black text-slate-900 uppercase text-sm tracking-tight truncate">
-                      {word.entry_name}
-                    </div>
-                    <div className="text-xs text-slate-400 italic truncate mt-1">
-                      {word.word_type === "riddle"
-                        ? word.answer
-                        : sidebarTranslations.join(", ")}
-                    </div>
-                  </div>
-                  <ChevronRight
-                    size={16}
-                    className={
+                return (
+                  <button
+                    key={word.id}
+                    onClick={() => {
+                      setSelectedWord(word);
+                      if (window.innerWidth < 768) setIsModalOpen(true);
+                    }}
+                    className={`w-full text-left p-5 border-b transition-all flex justify-between items-center group ${
                       selectedWord?.id === word.id
-                        ? "text-emerald-600"
-                        : "text-slate-200"
-                    }
-                  />
-                </button>
-              );
-            })
+                        ? "bg-white border-l-4 border-l-emerald-600 shadow-sm"
+                        : "hover:bg-slate-50 border-l-4 border-l-transparent"
+                    }`}
+                  >
+                    <div className="min-w-0 pr-2">
+                      <div className="font-black text-slate-900 uppercase text-sm tracking-tight truncate">
+                        {word.entry_name}
+                      </div>
+                      <div className="text-xs text-slate-400 italic truncate mt-1">
+                        {word.word_type === "riddle"
+                          ? word.answer
+                          : sidebarTranslations.join(", ")}
+                      </div>
+                    </div>
+                    <ChevronRight
+                      size={16}
+                      className={
+                        selectedWord?.id === word.id
+                          ? "text-emerald-600"
+                          : "text-slate-200"
+                      }
+                    />
+                  </button>
+                );
+              })}
+
+              {/* Load more button */}
+              {hasMore && !searchQuery && (
+                <div className="p-4 flex justify-center">
+                  <button
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    className="w-full py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold uppercase text-[11px] tracking-widest border-2 border-emerald-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {loadingMore ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      "Load More"
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {!hasMore && !searchQuery && filteredWords.length > 0 && (
+                <div className="p-6 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
+                    End of list
+                  </p>
+                </div>
+              )}
+            </>
           ) : searchQuery.length > 0 ? (
             <div className="p-10 text-center">
               <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
