@@ -2,10 +2,11 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Search,
   ChevronRight,
+  ChevronLeft,
   X,
   MessageSquareQuote,
   Quote,
@@ -30,7 +31,24 @@ import { getWordTypeLabel } from "@/lib/wordTypeLabels";
 
 const PAGE_SIZE = 50;
 
-// Scale font based on length so long words don't break mid-word
+const KNOWN_TYPES = [
+  "noun",
+  "verb",
+  "name",
+  "adjective",
+  "adverb",
+  "pronoun",
+  "preposition",
+  "conjunction",
+  "interjection",
+  "expression",
+  "number",
+  "particle",
+  "proverb",
+  "riddle",
+  "saying"
+];
+
 function getWordSizeClass(word: string, isTraditional: boolean): string {
   const len = word.length;
   if (isTraditional) {
@@ -58,123 +76,58 @@ export default function DictionaryClient({
   const [isSearching, setIsSearching] = useState(false);
   const [selectedType, setSelectedType] = useState<string>("all");
   const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [isLoadingPage, setIsLoadingPage] = useState(false);
 
   // Pagination
-  const [offset, setOffset] = useState(initialWords.length);
-  const [hasMore, setHasMore] = useState(initialWords.length === 100);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(initialWords.length === PAGE_SIZE);
 
-  // Known word types for filter — we fetch once from server
-  // For simplicity, derive from loaded words + a fixed list
-  const wordTypes = useMemo(() => {
-    const types = new Set(filteredWords.map((w) => w.word_type).filter(Boolean));
-    return ["all", ...Array.from(types)];
-  }, [filteredWords]);
+  const wordTypes = ["all", ...KNOWN_TYPES];
 
-  const [isSearchingAPI, setIsSearchingAPI] = useState(false);
-
-  // ── Load more (pagination) ──
-  const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
-
-    try {
-      const params = new URLSearchParams({
-        type: selectedType,
-        limit: String(PAGE_SIZE),
-        offset: String(offset)
-      });
-
-      const res = await fetch(`/api/search?${params.toString()}`);
-      const data = await res.json();
-
-      if (data.results && data.results.length > 0) {
-        setFilteredWords((prev) => {
-          const existingIds = new Set(prev.map((w) => w.id));
-          const newOnes = data.results.filter(
-            (w: any) => !existingIds.has(w.id)
-          );
-          return [...prev, ...newOnes];
-        });
-        setOffset((prev) => prev + data.results.length);
-        if (data.results.length < PAGE_SIZE) setHasMore(false);
-      } else {
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error("Load more error:", err);
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [loadingMore, hasMore, offset, selectedType]);
-
-  // ── Reset pagination when type changes ──
-  useEffect(() => {
-    setOffset(0);
-    setHasMore(true);
-    setFilteredWords([]);
-  }, [selectedType]);
-
-  // ── Fetch initial batch when type changes ──
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchInitial = async () => {
-      setIsSearchingAPI(true);
+  // ── Fetch a specific page ──
+  const fetchPage = useCallback(
+    async (pageNumber: number, type: string) => {
+      setIsLoadingPage(true);
       try {
+        const offset = (pageNumber - 1) * PAGE_SIZE;
         const params = new URLSearchParams({
-          type: selectedType,
+          type,
           limit: String(PAGE_SIZE),
-          offset: "0"
+          offset: String(offset)
         });
+
         const res = await fetch(`/api/search?${params.toString()}`);
         const data = await res.json();
-        if (cancelled) return;
 
         if (data.results) {
           setFilteredWords(data.results);
+          // Auto-select first word on the page
           setSelectedWord(data.results[0] || null);
-          setOffset(data.results.length);
-          setHasMore(data.results.length === PAGE_SIZE);
+          setHasNext(data.results.length === PAGE_SIZE);
         }
       } catch (err) {
-        console.error("Initial fetch error:", err);
+        console.error("Fetch page error:", err);
       } finally {
-        if (!cancelled) setIsSearchingAPI(false);
+        setIsLoadingPage(false);
       }
-    };
+    },
+    []
+  );
 
-    fetchInitial();
-    return () => {
-      cancelled = true;
-    };
+  // ── Fetch initial page when type changes ──
+  useEffect(() => {
+    if (searchQuery.trim()) return;
+    setPage(1);
+    fetchPage(1, selectedType);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedType]);
 
-  // ── Search via API (fuzzy) ──
+  // ── Search via API ──
   const performSearch = useCallback(
     (query: string) => {
       if (!query.trim()) {
-        // Reset to first page
-        setOffset(0);
-        setHasMore(true);
-        setIsSearchingAPI(true);
-        const params = new URLSearchParams({
-          type: selectedType,
-          limit: String(PAGE_SIZE),
-          offset: "0"
-        });
-        fetch(`/api/search?${params.toString()}`)
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.results) {
-              setFilteredWords(data.results);
-              setSelectedWord(data.results[0] || null);
-              setOffset(data.results.length);
-              setHasMore(data.results.length === PAGE_SIZE);
-            }
-          })
-          .catch((err) => console.error("Search error:", err))
-          .finally(() => setIsSearchingAPI(false));
+        setPage(1);
+        fetchPage(1, selectedType);
         return;
       }
 
@@ -191,8 +144,9 @@ export default function DictionaryClient({
           const data = await res.json();
           if (data.results) {
             setFilteredWords(data.results);
-            // No pagination during search
-            setHasMore(false);
+            setSelectedWord(data.results[0] || null);
+            setHasNext(false);
+            setPage(1);
           }
         } catch (err) {
           console.error("Search error:", err);
@@ -203,7 +157,7 @@ export default function DictionaryClient({
 
       return () => clearTimeout(timer);
     },
-    [selectedType]
+    [selectedType, fetchPage]
   );
 
   useEffect(() => {
@@ -221,6 +175,21 @@ export default function DictionaryClient({
 
   const clearSearch = () => {
     setSearchQuery("");
+    setPage(1);
+    fetchPage(1, selectedType);
+  };
+
+  const goToNextPage = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchPage(nextPage, selectedType);
+  };
+
+  const goToPrevPage = () => {
+    if (page <= 1) return;
+    const prevPage = page - 1;
+    setPage(prevPage);
+    fetchPage(prevPage, selectedType);
   };
 
   const renderLingueeLine = (line: string) => {
@@ -267,7 +236,7 @@ export default function DictionaryClient({
     return (
       <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-right-4 duration-300 pb-4">
         <div className="w-full bg-white rounded-[1.5rem] sm:rounded-[2rem] border-[3px] border-emerald-600 shadow-[0_20px_60px_-15px_rgba(5,150,105,0.35)] overflow-hidden">
-          {/* Header band */}
+          {/* Header */}
           <div className="bg-emerald-600 px-4 sm:px-6 py-4 sm:py-5 relative">
             {onClose && (
               <button
@@ -442,9 +411,12 @@ export default function DictionaryClient({
     );
   };
 
+  const isSearchMode = searchQuery.trim().length > 0;
+
   return (
     <div className="flex flex-col md:flex-row flex-1 h-full bg-white font-sans overflow-hidden max-w-7xl mx-auto w-full border-x">
       <aside className="flex w-full md:w-80 lg:w-96 flex-col border-r bg-slate-50/30 shrink-0 h-full overflow-hidden relative">
+        {/* Header: search + add */}
         <div className="sticky top-0 p-4 bg-white border-b shrink-0 z-30">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -512,82 +484,56 @@ export default function DictionaryClient({
           </div>
         </div>
 
+        {/* Word list */}
         <div className="flex-1 overflow-y-auto bg-white custom-scrollbar">
-          {isSearchingAPI ? (
+          {isLoadingPage ? (
             <div className="p-12 text-center">
-              <Loader2 className="animate-spin text-emerald-500 mx-auto" size={24} />
+              <Loader2
+                className="animate-spin text-emerald-500 mx-auto"
+                size={24}
+              />
             </div>
           ) : filteredWords.length > 0 ? (
-            <>
-              {filteredWords.map((word) => {
-                const sidebarTranslations =
-                  word.translations ||
-                  (word.translation_en ? [word.translation_en] : []);
+            filteredWords.map((word) => {
+              const sidebarTranslations =
+                word.translations ||
+                (word.translation_en ? [word.translation_en] : []);
 
-                return (
-                  <button
-                    key={word.id}
-                    onClick={() => {
-                      setSelectedWord(word);
-                      if (window.innerWidth < 768) setIsModalOpen(true);
-                    }}
-                    className={`w-full text-left p-5 border-b transition-all flex justify-between items-center group ${
-                      selectedWord?.id === word.id
-                        ? "bg-white border-l-4 border-l-emerald-600 shadow-sm"
-                        : "hover:bg-slate-50 border-l-4 border-l-transparent"
-                    }`}
-                  >
-                    <div className="min-w-0 pr-2">
-                      <div className="font-black text-slate-900 uppercase text-sm tracking-tight truncate">
-                        {word.entry_name}
-                      </div>
-                      <div className="text-xs text-slate-400 italic truncate mt-1">
-                        {word.word_type === "riddle"
-                          ? word.answer
-                          : sidebarTranslations.join(", ")}
-                      </div>
+              return (
+                <button
+                  key={word.id}
+                  onClick={() => {
+                    setSelectedWord(word);
+                    if (window.innerWidth < 768) setIsModalOpen(true);
+                  }}
+                  className={`w-full text-left p-5 border-b transition-all flex justify-between items-center group ${
+                    selectedWord?.id === word.id
+                      ? "bg-white border-l-4 border-l-emerald-600 shadow-sm"
+                      : "hover:bg-slate-50 border-l-4 border-l-transparent"
+                  }`}
+                >
+                  <div className="min-w-0 pr-2">
+                    <div className="font-black text-slate-900 uppercase text-sm tracking-tight truncate">
+                      {word.entry_name}
                     </div>
-                    <ChevronRight
-                      size={16}
-                      className={
-                        selectedWord?.id === word.id
-                          ? "text-emerald-600"
-                          : "text-slate-200"
-                      }
-                    />
-                  </button>
-                );
-              })}
-
-              {/* Load more button */}
-              {hasMore && !searchQuery && (
-                <div className="p-4 flex justify-center">
-                  <button
-                    onClick={loadMore}
-                    disabled={loadingMore}
-                    className="w-full py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold uppercase text-[11px] tracking-widest border-2 border-emerald-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {loadingMore ? (
-                      <>
-                        <Loader2 size={14} className="animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      "Load More"
-                    )}
-                  </button>
-                </div>
-              )}
-
-              {!hasMore && !searchQuery && filteredWords.length > 0 && (
-                <div className="p-6 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
-                    End of list
-                  </p>
-                </div>
-              )}
-            </>
-          ) : searchQuery.length > 0 ? (
+                    <div className="text-xs text-slate-400 italic truncate mt-1">
+                      {word.word_type === "riddle"
+                        ? word.answer
+                        : sidebarTranslations.join(", ")}
+                    </div>
+                  </div>
+                  <ChevronRight
+                    size={16}
+                    className={
+                      selectedWord?.id === word.id
+                        ? "text-emerald-600"
+                        : "text-slate-200"
+                    }
+                  />
+                </button>
+              );
+            })
+          ) : isSearchMode ? (
             <div className="p-10 text-center">
               <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Frown size={32} />
@@ -612,6 +558,33 @@ export default function DictionaryClient({
             </div>
           )}
         </div>
+
+        {/* Prev / Next pagination */}
+        {!isSearchMode && filteredWords.length > 0 && (
+          <div className="border-t-2 border-slate-100 bg-white p-3 shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={goToPrevPage}
+                disabled={page <= 1 || isLoadingPage}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 font-bold text-[11px] uppercase tracking-wider transition-colors"
+              >
+                <ChevronLeft size={16} /> Prev
+              </button>
+
+              <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                Page {page}
+              </span>
+
+              <button
+                onClick={goToNextPage}
+                disabled={!hasNext || isLoadingPage}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 font-bold text-[11px] uppercase tracking-wider transition-colors"
+              >
+                Next <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </aside>
 
       <section className="hidden md:block flex-1 overflow-y-auto bg-slate-50/50 p-8 custom-scrollbar relative">
